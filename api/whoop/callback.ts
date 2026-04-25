@@ -33,9 +33,6 @@ export default async function handler(req: any, res: any) {
       return
     }
 
-    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
-
-    // Send credentials BOTH via Basic auth header AND body for maximum compat
     const body = new URLSearchParams({
       grant_type:    'authorization_code',
       code,
@@ -46,11 +43,8 @@ export default async function handler(req: any, res: any) {
 
     const tokenRes = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
       method:  'POST',
-      headers: {
-        'Content-Type':  'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`,
-      },
-      body: body.toString(),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body:    body.toString(),
     })
 
     if (!tokenRes.ok) {
@@ -58,7 +52,11 @@ export default async function handler(req: any, res: any) {
       console.error('Whoop token exchange failed:', tokenRes.status, errBody)
       const idHint = clientId.length > 6 ? `${clientId.slice(0, 4)}…${clientId.slice(-2)}` : '(short)'
       const detail = encodeURIComponent(
-        `token-${tokenRes.status} id_len=${clientId.length} id=${idHint} secret_len=${clientSecret.length}: ${errBody.slice(0, 150)}`
+        `token-${tokenRes.status} ` +
+        `id=${idHint} ` +
+        `secret_len=${clientSecret.length} ` +
+        `redirect=${redirectUri} ` +
+        `host=${host}: ${errBody.slice(0, 120)}`
       )
       res.writeHead(302, { Location: `/?whoop=error&reason=${detail}` })
       res.end()

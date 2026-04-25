@@ -15,19 +15,17 @@ async function exchangeRefresh(
   clientSecret: string,
   redirectUri: string,
 ): Promise<{ access_token: string; refresh_token: string; expires_in: number } | null> {
-  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
   const body = new URLSearchParams({
     grant_type:    'refresh_token',
     refresh_token: refreshToken,
     redirect_uri:  redirectUri,
+    client_id:     clientId,
+    client_secret: clientSecret,
   })
   const res = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
     method:  'POST',
-    headers: {
-      'Content-Type':  'application/x-www-form-urlencoded',
-      'Authorization': `Basic ${basicAuth}`,
-    },
-    body: body.toString(),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    body.toString(),
   })
   if (!res.ok) return null
   return res.json() as any
