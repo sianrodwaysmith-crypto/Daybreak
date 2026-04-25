@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import Header from './components/Header'
@@ -41,12 +41,34 @@ function scheduleSubtitle(events: readonly { id: string }[], loading: boolean, c
   return `${events.length} event${events.length === 1 ? '' : 's'} today`
 }
 
+function useWhoopFlash(): { msg: string | null; clear: () => void } {
+  const [msg, setMsg] = useState<string | null>(null)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const w = params.get('whoop')
+    if (!w) return
+    if (w === 'connected')      setMsg('✅ Whoop connected.')
+    else if (w === 'cancelled') setMsg('Whoop connection cancelled.')
+    else if (w === 'error') {
+      const reason = params.get('reason')
+      setMsg(`Whoop connection failed${reason ? `: ${decodeURIComponent(reason)}` : '.'}`)
+    }
+    // Clean the URL so it doesn't keep showing on refresh
+    const url = new URL(window.location.href)
+    url.searchParams.delete('whoop')
+    url.searchParams.delete('reason')
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''))
+  }, [])
+  return { msg, clear: () => setMsg(null) }
+}
+
 function HomeView() {
   const [activeId, setActiveId]     = useState<string | null>(null)
   const [showSettings, setSettings] = useState(false)
   const weather  = useWeather()
   const calendar = useCalendar()
   const whoop    = useWhoop()
+  const whoopFlash = useWhoopFlash()
 
   const readinessScore = whoop.recovery ?? 74
   const { ai, retry } = useAIContent(readinessScore)
@@ -90,6 +112,26 @@ function HomeView() {
           readinessColor={readinessColor(readinessScore)}
           onSettings={() => setSettings(true)}
         />
+        {whoopFlash.msg && (
+          <div
+            onClick={whoopFlash.clear}
+            style={{
+              margin: '0 20px 12px',
+              padding: '10px 14px',
+              borderRadius: 10,
+              background: whoopFlash.msg.startsWith('✅') ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
+              border:     whoopFlash.msg.startsWith('✅') ? '1px solid rgba(74,222,128,0.35)' : '1px solid rgba(248,113,113,0.35)',
+              color:      whoopFlash.msg.startsWith('✅') ? '#86efac' : '#fca5a5',
+              fontSize: 13,
+              lineHeight: 1.45,
+              cursor: 'pointer',
+              wordBreak: 'break-word',
+            }}
+          >
+            {whoopFlash.msg}
+            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>tap to dismiss</div>
+          </div>
+        )}
         {weather && <WeatherBanner weather={weather} />}
         <div className="tile-grid">
           {TILES.map(t => (

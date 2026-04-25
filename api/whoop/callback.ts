@@ -1,5 +1,14 @@
 export default async function handler(req: any, res: any) {
-  const code = req.query?.code as string | undefined
+  const code         = req.query?.code              as string | undefined
+  const oauthError   = req.query?.error             as string | undefined
+  const oauthErrDesc = req.query?.error_description as string | undefined
+
+  if (oauthError) {
+    const detail = encodeURIComponent(oauthErrDesc ?? oauthError)
+    res.writeHead(302, { Location: `/?whoop=error&reason=${detail}` })
+    res.end()
+    return
+  }
 
   if (!code) {
     res.writeHead(302, { Location: '/?whoop=cancelled' })
@@ -27,8 +36,10 @@ export default async function handler(req: any, res: any) {
     })
 
     if (!tokenRes.ok) {
-      console.error('Whoop token exchange failed:', tokenRes.status, await tokenRes.text())
-      res.writeHead(302, { Location: '/?whoop=error' })
+      const errBody = await tokenRes.text()
+      console.error('Whoop token exchange failed:', tokenRes.status, errBody)
+      const detail = encodeURIComponent(`token-${tokenRes.status}: ${errBody.slice(0, 200)}`)
+      res.writeHead(302, { Location: `/?whoop=error&reason=${detail}` })
       res.end()
       return
     }
