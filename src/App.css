@@ -1586,6 +1586,210 @@
 }
 
 /* =========================================================
+   MOVEMENT TILE
+========================================================= */
+.movement-tile {
+  margin-top: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.movement-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.movement-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--faint);
+}
+.movement-recovery {
+  font-size: 11px;
+  color: var(--muted);
+}
+.movement-today {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 4px 0 2px;
+  cursor: pointer;
+}
+.movement-today-line {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.25;
+  color: var(--ink);
+  font-weight: 400;
+}
+.movement-today-sub {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+.movement-chart {
+  width: 100%;
+  height: 64px;
+  display: block;
+}
+.movement-day:active rect { fill: rgba(10,10,10,0.04); }
+.movement-legend {
+  display: flex;
+  gap: 14px;
+  font-size: 10.5px;
+  color: var(--faint);
+}
+.movement-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.movement-legend-mark {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+}
+.movement-legend-mark.legend-done    { background: var(--ink); }
+.movement-legend-mark.legend-booked  { border: 1px solid var(--ink); position: relative; }
+.movement-legend-mark.legend-booked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.movement-legend-mark.legend-planned { border: 1px solid var(--muted); }
+.movement-legend-mark.legend-rest    { width: 10px; height: 1.4px; border-radius: 1px; background: var(--ink); }
+
+.movement-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.movement-foot-line {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.movement-foot-cta {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--accent);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+}
+
+/* ----- Sheet (quick-add / detail) ----- */
+.movement-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.movement-sheet-date {
+  font-size: 11.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.movement-sheet-readtitle {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  font-style: italic;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.movement-sheet-readmeta {
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.movement-sheet-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent);
+}
+.movement-field { display: flex; flex-direction: column; gap: 6px; }
+.movement-field-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+}
+.movement-field-row { display: flex; gap: 10px; }
+.movement-field-row > .movement-field { flex: 1; }
+.movement-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+}
+.movement-input:focus { border-color: var(--line-strong); }
+.movement-input::placeholder { color: var(--faint); }
+
+.movement-intensity { display: flex; gap: 8px; }
+.movement-intensity-pill {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  font-size: 13px;
+  color: var(--ink);
+}
+.movement-intensity-pill.is-on {
+  border-color: var(--ink);
+  font-weight: 500;
+}
+
+.movement-sheet-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.movement-btn-primary {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+.movement-btn-primary:disabled {
+  background: var(--bg-soft);
+  color: var(--faint);
+  border-color: var(--line);
+}
+.movement-btn-quiet {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  font-size: 13px;
+}
+
+/* =========================================================
    PULSE — editorial
 ========================================================= */
 .pulse-screen { display: flex; flex-direction: column; gap: 28px; }

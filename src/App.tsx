@@ -7,6 +7,7 @@ import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
 import OneThing from './components/OneThing'
+import MovementTile from './components/MovementTile'
 import {
   MindsetIcon, ReadinessIcon, ClientResearchIcon, PulseIcon, ScheduleIcon,
 } from './components/icons'
@@ -134,6 +135,8 @@ function HomeView() {
             />
           ))}
         </div>
+
+        <MovementTile recovery={readinessScore} />
 
         <OneThing />
 
