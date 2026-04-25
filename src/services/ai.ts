@@ -163,12 +163,15 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
   console.log(`[pulse:${debugKey}] raw response`, data)
 
   type Citation     = { type?: string; url?: string; title?: string }
-  type SearchResult = { type?: string; url?: string; title?: string }
+  type SearchResult = { type?: string; url?: string; title?: string; error_code?: string }
   type Block        = {
     type:      string
     text?:     string
     citations?: Citation[]
-    content?:  SearchResult[]   // present on web_search_tool_result blocks
+    // For web_search_tool_result this is normally an array of search hits,
+    // but on a search error it's a single object with type
+    // 'web_search_tool_result_error' and an error_code field.
+    content?:  SearchResult[] | SearchResult
   }
 
   const blocks = (data.content as Block[]) || []
@@ -191,17 +194,28 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
     seen.add(url)
     sourceUrls.push(url)
   }
+
+  let searchError: string | null = null
   for (const b of blocks) {
-    if (b.type === 'text') {
-      for (const c of b.citations ?? []) take(c.url)
+    if (b.type === 'text' && Array.isArray(b.citations)) {
+      for (const c of b.citations) take(c.url)
     }
     if (b.type === 'web_search_tool_result') {
-      for (const r of b.content ?? []) take(r.url)
+      if (Array.isArray(b.content)) {
+        for (const r of b.content) take(r.url)
+      } else if (b.content && typeof b.content === 'object') {
+        // Single error object — capture the code so we can surface it.
+        searchError = b.content.error_code || 'unknown'
+      }
     }
   }
 
   if (!textContent) {
-    throw new Error('empty-response')
+    throw new Error(
+      searchError
+        ? `web_search error: ${searchError}`
+        : 'empty-response — model returned no text',
+    )
   }
 
   // Append a sources block if the model didn't already include Source: lines
