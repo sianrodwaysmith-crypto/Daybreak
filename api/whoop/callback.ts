@@ -21,18 +21,23 @@ export default async function handler(req: any, res: any) {
   const redirectUri = `${protocol}://${host}/api/whoop/callback`
 
   try {
+    const clientId     = process.env.VITE_WHOOP_CLIENT_ID    ?? ''
+    const clientSecret = process.env.WHOOP_CLIENT_SECRET ?? ''
+    const basicAuth    = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+
     const body = new URLSearchParams({
-      grant_type:    'authorization_code',
+      grant_type:   'authorization_code',
       code,
-      redirect_uri:  redirectUri,
-      client_id:     process.env.VITE_WHOOP_CLIENT_ID    ?? '',
-      client_secret: process.env.WHOOP_CLIENT_SECRET ?? '',
+      redirect_uri: redirectUri,
     })
 
     const tokenRes = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    body.toString(),
+      headers: {
+        'Content-Type':  'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`,
+      },
+      body: body.toString(),
     })
 
     if (!tokenRes.ok) {
