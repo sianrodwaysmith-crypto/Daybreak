@@ -2,7 +2,7 @@ const DAYS   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SAT
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 interface Props {
-  readinessScore: number
+  readinessScore: number | null
   readinessColor: string
   onSettings: () => void
 }
@@ -11,6 +11,9 @@ export default function Header({ readinessScore, readinessColor, onSettings }: P
   const now  = new Date()
   const day  = DAYS[now.getDay()]
   const date = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
+
+  const barWidth = readinessScore != null ? `${readinessScore}%` : '0%'
+  const labelText = readinessScore != null ? `READINESS ${readinessScore}` : 'READINESS —'
 
   return (
     <header className="header">
@@ -21,10 +24,10 @@ export default function Header({ readinessScore, readinessColor, onSettings }: P
       <div className="header-day">{day}</div>
       <div className="header-date">{date}</div>
       <div className="readiness-bar-wrap">
-        <div className="readiness-bar-fill" style={{ width: `${readinessScore}%`, background: readinessColor }} />
+        <div className="readiness-bar-fill" style={{ width: barWidth, background: readinessColor }} />
       </div>
       <div className="readiness-label" style={{ color: readinessColor }}>
-        READINESS {readinessScore}
+        {labelText}
       </div>
     </header>
   )

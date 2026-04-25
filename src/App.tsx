@@ -21,17 +21,18 @@ import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
 
-function readinessColor(score: number): string {
-  if (score >= 80) return '#4ade80'
-  if (score >= 60) return '#ffc800'
+function readinessColor(score: number | null): string {
+  if (score == null)   return 'rgba(255,255,255,0.25)'
+  if (score >= 67) return '#4ade80'
+  if (score >= 34) return '#ffc800'
   return '#f87171'
 }
 
-function readinessLabel(score: number): string {
-  if (score >= 80) return 'Optimal'
-  if (score >= 60) return 'Good'
-  if (score >= 40) return 'Moderate'
-  return 'Low'
+function readinessLabel(score: number | null): string {
+  if (score == null)   return '—'
+  if (score >= 67) return 'Green'
+  if (score >= 34) return 'Yellow'
+  return 'Red'
 }
 
 function scheduleSubtitle(events: readonly { id: string }[], loading: boolean, connected: boolean): string {
@@ -70,12 +71,12 @@ function HomeView() {
   const whoop    = useWhoop()
   const whoopFlash = useWhoopFlash()
 
-  const readinessScore = whoop.recovery ?? 74
-  const { ai, retry } = useAIContent(readinessScore)
+  const readinessScore = whoop.recovery
+  const { ai, retry } = useAIContent(readinessScore ?? 70)
 
   const TILES = [
     { id: 'mindset', icon: '🙏', title: 'Daily Mindset',  subtitle: 'Ground yourself',                                                                                                                    accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: whoop.connected ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop',     accent: readinessColor(readinessScore) },
+    { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop',     accent: readinessColor(readinessScore) },
     { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                                                                                                           accent: '#4ade80', loading: ai.work.loading   },
     { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                                                                                                 accent: '#64b5f6', loading: ai.client.loading },
     { id: 'biz',     icon: '📈', title: 'Business Pulse', subtitle: 'Markets and top stories',                                                                                                             accent: '#ffc800', loading: ai.biz.loading    },
@@ -88,7 +89,21 @@ function HomeView() {
 
   function getContent(id: string | null) {
     switch (id) {
-      case 'ready':    return <ReadinessScreen score={readinessScore} hrv={whoop.hrv} rhr={whoop.rhr} sleep={whoop.sleep} sleepHours={whoop.sleepHours} />
+      case 'ready':    return <ReadinessScreen
+        score={readinessScore}
+        hrv={whoop.hrv}
+        rhr={whoop.rhr}
+        sleep={whoop.sleep}
+        sleepEfficiency={whoop.sleepEfficiency}
+        sleepConsistency={whoop.sleepConsistency}
+        sleepHours={whoop.sleepHours}
+        remHours={whoop.remHours}
+        deepHours={whoop.deepHours}
+        strain={whoop.strain}
+        avgHr={whoop.avgHr}
+        maxHr={whoop.maxHr}
+        connected={whoop.connected}
+      />
       case 'work':     return <DeepWorkScreen  aiState={ai.work}   onRetry={() => retry('work')}   />
       case 'client':   return <ClientBriefScreen aiState={ai.client} onRetry={() => retry('client')} />
       case 'biz':      return <BusinessPulseScreen aiState={ai.biz}  onRetry={() => retry('biz')}   />

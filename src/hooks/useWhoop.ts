@@ -1,38 +1,52 @@
 import { useState, useEffect, useCallback } from 'react'
 
 export interface WhoopData {
-  connected:  boolean
-  loading:    boolean
-  recovery:   number | null
-  hrv:        number | null
-  rhr:        number | null
-  sleep:      number | null
-  sleepHours: number | null
-  strain:     number | null
-  disconnect: () => Promise<void>
+  connected:        boolean
+  loading:          boolean
+  recovery:         number | null
+  hrv:              number | null
+  rhr:              number | null
+  sleep:            number | null
+  sleepEfficiency:  number | null
+  sleepConsistency: number | null
+  sleepHours:       number | null
+  remHours:         number | null
+  deepHours:        number | null
+  strain:           number | null
+  avgHr:            number | null
+  maxHr:            number | null
+  disconnect:       () => Promise<void>
 }
 
 interface WhoopPayload {
-  connected:  boolean
-  recovery:   number | null
-  hrv:        number | null
-  rhr:        number | null
-  sleep:      number | null
-  sleepHours: number | null
-  strain:     number | null
+  connected:        boolean
+  recovery:         number | null
+  hrv:              number | null
+  rhr:              number | null
+  sleep:            number | null
+  sleepEfficiency:  number | null
+  sleepConsistency: number | null
+  sleepHours:       number | null
+  remHours:         number | null
+  deepHours:        number | null
+  strain:           number | null
+  avgHr:            number | null
+  maxHr:            number | null
 }
 
 const EMPTY: WhoopPayload = {
   connected: false,
   recovery: null, hrv: null, rhr: null,
-  sleep: null, sleepHours: null, strain: null,
+  sleep: null, sleepEfficiency: null, sleepConsistency: null,
+  sleepHours: null, remHours: null, deepHours: null,
+  strain: null, avgHr: null, maxHr: null,
 }
 
-const CACHE_KEY = `daybreak-whoop-${new Date().toISOString().split('T')[0]}`
+const CACHE_KEY = `daybreak-whoop-v2-${new Date().toISOString().split('T')[0]}`
 
 export function useWhoop(): WhoopData {
-  const [loading, setLoading]   = useState(true)
-  const [payload, setPayload]   = useState<WhoopPayload>(EMPTY)
+  const [loading, setLoading] = useState(true)
+  const [payload, setPayload] = useState<WhoopPayload>(EMPTY)
 
   const fetchData = useCallback(async () => {
     const cached = sessionStorage.getItem(CACHE_KEY)

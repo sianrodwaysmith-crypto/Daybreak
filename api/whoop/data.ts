@@ -111,19 +111,26 @@ export default async function handler(req: any, res: any) {
     const sleep = (sleepData as any)?.records?.[0]
     const cycle = (cycleData as any)?.records?.[0]
 
-    const totalBedMs = sleep?.score?.stage_summary?.total_in_bed_time_milli
-    const sleepHours = totalBedMs != null
-      ? Math.round((totalBedMs / 3_600_000) * 10) / 10
-      : null
+    const stage = sleep?.score?.stage_summary
+    const toHours = (ms: number | null | undefined): number | null =>
+      ms != null ? Math.round((ms / 3_600_000) * 10) / 10 : null
+    const round1 = (n: number | null | undefined): number | null =>
+      n != null ? Math.round(n * 10) / 10 : null
 
     res.status(200).json({
-      connected:  true,
-      recovery:   rec?.score?.recovery_score              ?? null,
-      hrv:        rec?.score?.hrv_rmssd_milli              ?? null,
-      rhr:        rec?.score?.resting_heart_rate           ?? null,
-      sleep:      sleep?.score?.sleep_performance_percentage ?? null,
-      sleepHours,
-      strain:     cycle?.score?.strain                    ?? null,
+      connected:        true,
+      recovery:         rec?.score?.recovery_score              ?? null,
+      hrv:              round1(rec?.score?.hrv_rmssd_milli),
+      rhr:              rec?.score?.resting_heart_rate          ?? null,
+      sleep:            sleep?.score?.sleep_performance_percentage ?? null,
+      sleepEfficiency:  sleep?.score?.sleep_efficiency_percentage  ?? null,
+      sleepConsistency: sleep?.score?.sleep_consistency_percentage ?? null,
+      sleepHours:       toHours(stage?.total_in_bed_time_milli),
+      remHours:         toHours(stage?.total_rem_sleep_time_milli),
+      deepHours:        toHours(stage?.total_slow_wave_sleep_time_milli),
+      strain:           round1(cycle?.score?.strain),
+      avgHr:            cycle?.score?.average_heart_rate ?? null,
+      maxHr:            cycle?.score?.max_heart_rate     ?? null,
     })
   } catch (e) {
     console.error('Whoop data parse error:', e)
