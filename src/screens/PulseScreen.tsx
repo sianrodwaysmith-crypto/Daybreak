@@ -33,9 +33,29 @@ function Section({ label, accent, state, onRetry, first }: SectionProps) {
       >
         {label}
       </div>
-      <AIBlock state={state} accent={accent} onRetry={onRetry} />
+      <AIBlock
+        state={state}
+        accent={accent}
+        onRetry={onRetry}
+        errorText="Could not fetch live content — tap to retry"
+        retryAccent="#ffc800"
+      />
     </div>
   )
+}
+
+function copyPulseDebug() {
+  const keys = ['anthropic', 'aiworld', 'techmarket']
+  const dump: Record<string, unknown> = {}
+  for (const k of keys) {
+    const raw = sessionStorage.getItem(`daybreak-pulse-debug-${k}`)
+    dump[k] = raw ? JSON.parse(raw) : null
+  }
+  const text = JSON.stringify(dump, null, 2)
+  navigator.clipboard?.writeText(text).catch(() => {})
+  // Fallback: also alert a head of it so the user can confirm something landed
+  const head = text.length > 600 ? text.slice(0, 600) + '\n…(truncated)' : text
+  alert('Pulse debug copied to clipboard.\n\nFirst chunk:\n\n' + head)
 }
 
 function formatTime(ms: number): string {
@@ -96,8 +116,24 @@ export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySectio
           letterSpacing: '0.04em',
         }}
       >
-        <span>
-          {updated ? `Last updated ${formatTime(updated)}` : 'Updating…'}
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+          <span>{updated ? `Last updated ${formatTime(updated)}` : 'Updating…'}</span>
+          <button
+            onClick={copyPulseDebug}
+            aria-label="Copy pulse debug response"
+            style={{
+              background: 'transparent',
+              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 6,
+              padding: '2px 6px',
+              color: 'rgba(255,255,255,0.35)',
+              fontSize: 10,
+              cursor: 'pointer',
+              letterSpacing: '0.04em',
+            }}
+          >
+            COPY DEBUG
+          </button>
         </span>
         <button
           onClick={onRefreshAll}

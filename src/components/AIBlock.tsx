@@ -2,12 +2,16 @@ import type { TileAI } from '../hooks/useAIContent'
 import Markdown from './Markdown'
 
 interface Props {
-  state: TileAI
-  accent: string
-  onRetry: () => void
+  state:        TileAI
+  accent:       string
+  onRetry:      () => void
+  errorText?:   string
+  retryAccent?: string
 }
 
-export default function AIBlock({ state, accent, onRetry }: Props) {
+const DEFAULT_ERROR = 'Content unavailable — check your connection'
+
+export default function AIBlock({ state, accent, onRetry, errorText, retryAccent }: Props) {
   if (state.loading) {
     return (
       <div className="ai-block-loading">
@@ -19,12 +23,13 @@ export default function AIBlock({ state, accent, onRetry }: Props) {
   }
 
   if (state.error) {
+    const btnColor = retryAccent ?? accent
     return (
       <div className="ai-block-error">
-        <span className="ai-error-text">Content unavailable — check your connection</span>
+        <span className="ai-error-text">{errorText ?? DEFAULT_ERROR}</span>
         <button
           className="ai-retry-btn"
-          style={{ color: accent, borderColor: `${accent}44` }}
+          style={{ color: btnColor, borderColor: `${btnColor}55` }}
           onClick={onRetry}
         >
           ↻ Retry

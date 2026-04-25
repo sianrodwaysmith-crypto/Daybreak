@@ -81,42 +81,114 @@ CLIENT CONTEXT
   )
 }
 
-const PULSE_FORMAT = `Surface the 2 most important stories. For each, use this exact format on two lines:
+const PULSE_FORMAT_TAIL = `
+
+Format each story exactly like this:
 
 **Headline in sentence case**
-Two sentences of context — what happened and why it matters.
+Two sentences of context explaining what happened and why it matters.
 
-Two stories total. Leave a blank line between stories. No other commentary, no preamble, no closing remarks.`
+Leave a blank line between the two stories. Do not include any preamble, closing remarks, or commentary outside the two stories.`
+
+async function callPulse(prompt: string, debugKey: string): Promise<string> {
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
+
+  const response = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type':                              'application/json',
+      'x-api-key':                                 apiKey ?? '',
+      'anthropic-version':                          '2023-06-01',
+      'anthropic-beta':                             'interleaved-thinking-2025-05-14',
+      // Required for direct browser calls — without it the API CORS-rejects
+      'anthropic-dangerous-direct-browser-access':  'true',
+    },
+    body: JSON.stringify({
+      model:      MODEL,
+      max_tokens: 1024,
+      tools: [
+        {
+          type: 'web_search_20250305',
+          name: 'web_search',
+        },
+      ],
+      messages: [
+        {
+          role:    'user',
+          content: prompt,
+        },
+      ],
+    }),
+  })
+
+  if (!response.ok) {
+    const errText = await response.text().catch(() => '')
+    try {
+      sessionStorage.setItem(
+        `daybreak-pulse-debug-${debugKey}`,
+        JSON.stringify({ ok: false, status: response.status, body: errText, ts: Date.now() }),
+      )
+    } catch { /* noop */ }
+    throw new Error(`API ${response.status}`)
+  }
+
+  const data = await response.json()
+
+  // Persist the raw response so we can verify web-search is actually returning content.
+  // Inspect via:  JSON.parse(sessionStorage.getItem('daybreak-pulse-debug-anthropic'))
+  try {
+    sessionStorage.setItem(
+      `daybreak-pulse-debug-${debugKey}`,
+      JSON.stringify({ ok: true, data, ts: Date.now() }),
+    )
+  } catch { /* noop */ }
+  // eslint-disable-next-line no-console
+  console.log(`[pulse:${debugKey}] raw response`, data)
+
+  const textContent = (data.content as Array<{ type: string; text?: string }>)
+    .filter((block) => block.type === 'text')
+    .map((block) => block.text ?? '')
+    .join('\n')
+    .trim()
+
+  if (!textContent) {
+    throw new Error('empty-response')
+  }
+  return textContent
+}
 
 export function fetchPulseAnthropic(): Promise<string> {
   const { day, date } = dayInfo()
-  return callClaude(
-    'You are a sharp AI industry analyst tracking Anthropic. Be accurate, succinct, and prioritise importance.',
-    `Today is ${day}, ${date}. Using web search, find the latest news specifically about Anthropic — new model releases, research papers, product announcements, company news, or safety updates. Prioritise stories from the last 48 hours; if nothing significant in 48 hours, expand up to the last 7 days.
+  return callPulse(
+    `Today is ${day}, ${date}.
 
-${PULSE_FORMAT}`,
-    true,
+Search reputable technology news sources including the official Anthropic blog at anthropic.com/news, TechCrunch, The Verge, Wired, Reuters Technology and the Financial Times for the latest news specifically about Anthropic from the last 7 days.
+
+Return the 2 most important stories. For each, give a bold headline and 2 sentences of context explaining why it matters to someone working in enterprise technology.${PULSE_FORMAT_TAIL}`,
+    'anthropic',
   )
 }
 
 export function fetchPulseAIWorld(): Promise<string> {
   const { day, date } = dayInfo()
-  return callClaude(
-    'You are a sharp AI industry analyst covering the broader AI ecosystem. Be accurate, succinct, and prioritise importance.',
-    `Today is ${day}, ${date}. Using web search, find the most important AI industry news from the last 48 hours, excluding Anthropic — covering OpenAI, Google DeepMind, Meta AI, Mistral, new research, AI regulation, or enterprise AI adoption trends.
+  return callPulse(
+    `Today is ${day}, ${date}.
 
-${PULSE_FORMAT}`,
-    true,
+Search reputable technology news sources including TechCrunch, The Verge, Wired, MIT Technology Review, VentureBeat and Reuters Technology for the most important AI industry news from the last 7 days. Cover OpenAI, Google DeepMind, Meta AI, Microsoft AI, enterprise AI adoption and significant AI research.
+
+Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
+    'aiworld',
   )
 }
 
 export function fetchPulseTechMarket(): Promise<string> {
   const { day, date } = dayInfo()
-  return callClaude(
-    'You are a concise tech-market and business analyst briefing a senior account executive who sells enterprise technology. Focus on what affects deals, budgets, and go-to-market strategy.',
-    `Today is ${day}, ${date}. Using web search, find the most important technology market and business news from the last 48 hours — big tech earnings, enterprise software deals, VC funding in AI, UK and global tech market movements, anything relevant to a senior AE selling tech.
+  return callPulse(
+    `Today is ${day}, ${date}.
 
-${PULSE_FORMAT}`,
-    true,
+Search reputable business and technology sources including the Financial Times, Reuters, BBC Business, TechCrunch and VentureBeat for the most important technology market and business news from the last 7 days relevant to a senior account executive selling enterprise technology in the UK.
+
+Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
+    'techmarket',
   )
 }
