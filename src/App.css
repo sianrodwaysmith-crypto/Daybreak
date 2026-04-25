@@ -504,3 +504,272 @@
   font-size: 13px;
   color: var(--muted);
 }
+
+/* =========================================================
+   HOME SHELL (batch 1)
+========================================================= */
+.app { min-height: 100dvh; background: var(--bg); }
+.app-content {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 18px 22px calc(120px + env(safe-area-inset-bottom, 0px));
+  padding-top: calc(18px + env(safe-area-inset-top, 0px));
+}
+
+/* ---------- Header ---------- */
+.header { margin-bottom: 22px; }
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+.header-mark {
+  font-family: 'DM Serif Display', serif;
+  font-size: 22px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+}
+.header-settings {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease;
+}
+.header-settings:active { background: var(--bg-soft); }
+.header-greeting {
+  font-family: 'DM Serif Display', serif;
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.header-date {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.header-readiness {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.header-readiness-bar {
+  height: 3px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.header-readiness-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease, background 0.3s ease;
+}
+.header-readiness-label {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.01em;
+}
+
+/* ---------- Flash banner ---------- */
+.flash {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 13.5px;
+  color: var(--ink-2);
+}
+.flash-ok  { border-color: rgba(25,160,90,0.30); }
+.flash-err { border-color: rgba(194,69,58,0.30); }
+.flash-close {
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1;
+}
+
+/* ---------- Weather ---------- */
+.weather-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--ink-2);
+  padding: 10px 0 18px;
+}
+.weather-emoji  { font-size: 16px; }
+.weather-temp   { font-weight: 500; color: var(--ink); }
+.weather-sep    { color: var(--faint); }
+.weather-cond   { color: var(--ink-2); }
+.weather-range  { color: var(--muted); }
+.weather-rain   { color: var(--muted); }
+
+/* ---------- Tile grid ---------- */
+.tile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 6px;
+}
+.tile {
+  position: relative;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 14px 14px;
+  min-height: 116px;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.12s ease, border-color 0.12s ease, background 0.12s ease;
+}
+.tile:active, .tile.is-pressing { transform: scale(0.985); border-color: var(--line-strong); }
+.tile-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 14px;
+  filter: grayscale(0.2);
+  opacity: 0.95;
+}
+.tile-title {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 17px;
+  letter-spacing: -0.005em;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-top: auto;
+}
+.tile-dot {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  opacity: 0.85;
+}
+.tile-full {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  min-height: 70px;
+  padding: 14px 16px;
+  gap: 14px;
+}
+.tile-full .tile-icon { margin-bottom: 0; }
+.tile-full .tile-title { margin-top: 0; }
+.tile-full .tile-dot { top: 50%; transform: translateY(-50%); }
+
+.tile-loading {
+  position: absolute;
+  bottom: 14px;
+  right: 14px;
+  display: flex;
+  gap: 4px;
+}
+.tile-loading-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--muted);
+  animation: tile-bounce 1.1s infinite ease-in-out;
+}
+@keyframes tile-bounce {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40%           { opacity: 1;    transform: translateY(-2px); }
+}
+
+/* ---------- Home footer ---------- */
+.home-footer {
+  margin-top: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.home-footer-link { color: var(--muted); }
+.home-footer-sep  { color: var(--faint); }
+
+/* ---------- Modal ---------- */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10,10,10,0.32);
+  transition: opacity 0.32s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-sheet {
+  width: 100%;
+  max-width: 540px;
+  max-height: 92dvh;
+  background: var(--bg);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.42s cubic-bezier(0.16,1,0.3,1);
+}
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  margin: 10px auto 6px;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 22px 10px;
+}
+.modal-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 24px;
+  letter-spacing: -0.01em;
+  color: var(--ink) !important;
+}
+.modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 0 22px;
+}
+.modal-body {
+  overflow-y: auto;
+  padding: 22px;
+  padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+}
+.modal-body::-webkit-scrollbar { display: none; }
