@@ -11,8 +11,7 @@ import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
 import { useWhoop } from './hooks/useWhoop'
 import ReadinessScreen from './screens/ReadinessScreen'
-import DeepWorkScreen from './screens/DeepWorkScreen'
-import ClientBriefScreen from './screens/ClientBriefScreen'
+import ClientResearchScreen from './screens/ClientResearchScreen'
 import PulseScreen from './screens/PulseScreen'
 import MindsetScreen from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
@@ -71,18 +70,17 @@ function HomeView() {
   const whoopFlash = useWhoopFlash()
 
   const readinessScore = whoop.recovery
-  const { ai, retry, refreshPulse } = useAIContent(readinessScore ?? 70)
+  const { ai, retry, refreshPulse } = useAIContent()
 
   const pulseLoading =
     ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
   const TILES = [
-    { id: 'mindset', icon: '🙏', title: 'Daily Mindset', subtitle: 'Ground yourself',                                                                                                              accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',     subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop', accent: readinessColor(readinessScore) },
-    { id: 'work',    icon: '🧠', title: 'Deep Work',     subtitle: 'Focus blocks and strategy',                                                                                                     accent: '#4ade80', loading: ai.work.loading   },
-    { id: 'client',  icon: '💼', title: 'Client Brief',  subtitle: 'Aztec · Salesforce',                                                                                                            accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'pulse',   icon: '🌍', title: 'Pulse',         subtitle: 'Markets · AI · Tech — updated daily',                                                                                            accent: '#ffc800', loading: pulseLoading      },
-    { id: 'schedule',icon: '📅', title: 'Schedule',      subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                          accent: '#38bdf8', fullWidth: true },
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',    subtitle: 'Ground yourself',                                                                                                              accent: '#f59e0b' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',        subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop', accent: readinessColor(readinessScore) },
+    { id: 'client',  icon: '💼', title: 'Client Research',  subtitle: 'Aztec · Salesforce',                                                                                                            accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'pulse',   icon: '🌍', title: 'Pulse',            subtitle: 'Markets · AI · Tech — updated daily',                                                                                          accent: '#ffc800', loading: pulseLoading      },
+    { id: 'schedule',icon: '📅', title: 'Schedule',         subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                          accent: '#38bdf8', fullWidth: true },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -104,8 +102,7 @@ function HomeView() {
         maxHr={whoop.maxHr}
         connected={whoop.connected}
       />
-      case 'work':     return <DeepWorkScreen  aiState={ai.work}   onRetry={() => retry('work')}   />
-      case 'client':   return <ClientBriefScreen aiState={ai.client} onRetry={() => retry('client')} />
+      case 'client':   return <ClientResearchScreen aiState={ai.client} onRetry={() => retry('client')} />
       case 'pulse':    return <PulseScreen
         anthropic={ai['pulse-anthropic']}
         aiWorld={ai['pulse-aiworld']}

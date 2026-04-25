@@ -1,5 +1,4 @@
 import type { TileAI } from '../hooks/useAIContent'
-import AIBlock from '../components/AIBlock'
 
 interface Props {
   anthropic: TileAI
@@ -9,53 +8,77 @@ interface Props {
   onRefreshAll:   () => void
 }
 
-const SECTION_GAP_STYLE: React.CSSProperties = { marginTop: 22 }
-const DIVIDER_STYLE: React.CSSProperties = {
-  height: 1,
-  background: 'rgba(255,255,255,0.08)',
-  margin: '22px 0 0',
+interface Story {
+  headline: string
+  body:     string
+}
+
+function parseStories(text: string): Story[] {
+  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
+  return blocks
+    .map(block => {
+      const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
+      if (lines.length === 0) return null
+      const first   = lines[0]
+      const bolded  = first.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
+      const headline = bolded ? bolded[1] : first.replace(/^\*\*|\*\*$/g, '')
+      const body     = lines.slice(bolded ? 1 : 1).join(' ').replace(/\*\*/g, '').trim()
+      if (!headline && !body) return null
+      return { headline, body }
+    })
+    .filter((s): s is Story => s !== null)
 }
 
 interface SectionProps {
-  label:    string
-  accent:   string
-  state:    TileAI
-  onRetry:  () => void
-  first?:   boolean
+  label:     string
+  accent:    string
+  emoji:     string
+  state:     TileAI
+  onRetry:   () => void
 }
 
-function Section({ label, accent, state, onRetry, first }: SectionProps) {
+function Section({ label, accent, emoji, state, onRetry }: SectionProps) {
   return (
-    <div style={first ? undefined : SECTION_GAP_STYLE}>
-      <div
-        className="screen-section-label"
-        style={{ color: accent, marginBottom: 12 }}
-      >
-        {label}
+    <section className="pulse-section">
+      <div className="pulse-section-head">
+        <span className="pulse-section-accent" style={{ background: accent }} aria-hidden />
+        <span className="pulse-section-emoji" aria-hidden>{emoji}</span>
+        <span className="pulse-section-label" style={{ color: accent }}>{label}</span>
       </div>
-      <AIBlock
-        state={state}
-        accent={accent}
-        onRetry={onRetry}
-        errorText="Could not fetch live content — tap to retry"
-        retryAccent="#ffc800"
-      />
-    </div>
-  )
-}
 
-function copyPulseDebug() {
-  const keys = ['anthropic', 'aiworld', 'techmarket']
-  const dump: Record<string, unknown> = {}
-  for (const k of keys) {
-    const raw = sessionStorage.getItem(`daybreak-pulse-debug-${k}`)
-    dump[k] = raw ? JSON.parse(raw) : null
-  }
-  const text = JSON.stringify(dump, null, 2)
-  navigator.clipboard?.writeText(text).catch(() => {})
-  // Fallback: also alert a head of it so the user can confirm something landed
-  const head = text.length > 600 ? text.slice(0, 600) + '\n…(truncated)' : text
-  alert('Pulse debug copied to clipboard.\n\nFirst chunk:\n\n' + head)
+      {state.loading && (
+        <div className="pulse-story-card pulse-story-loading">
+          <span className="pulse-skel pulse-skel-headline" />
+          <span className="pulse-skel pulse-skel-line" />
+          <span className="pulse-skel pulse-skel-line pulse-skel-line-short" />
+        </div>
+      )}
+
+      {!state.loading && state.error && (
+        <div className="pulse-story-card pulse-story-error">
+          <div className="pulse-error-text">Could not fetch live content</div>
+          <button
+            className="pulse-retry-btn"
+            style={{ color: accent, borderColor: `${accent}55` }}
+            onClick={onRetry}
+          >
+            ↻ Retry
+          </button>
+        </div>
+      )}
+
+      {!state.loading && !state.error && state.content && (
+        <div className="pulse-story-list">
+          {parseStories(state.content).map((story, i) => (
+            <article key={i} className="pulse-story-card" style={{ borderLeftColor: accent }}>
+              <h3 className="pulse-story-headline">{story.headline}</h3>
+              {story.body && <p className="pulse-story-body">{story.body}</p>}
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  )
 }
 
 function formatTime(ms: number): string {
@@ -72,90 +95,47 @@ function lastUpdated(states: TileAI[]): number | null {
 }
 
 export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
-  const updated = lastUpdated([anthropic, aiWorld, techMkt])
-  const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
+  const updated     = lastUpdated([anthropic, aiWorld, techMkt])
+  const anyLoading  = anthropic.loading || aiWorld.loading || techMkt.loading
 
   return (
-    <div>
-      <Section
-        first
-        label="ANTHROPIC"
-        accent="#a78bfa"
-        state={anthropic}
-        onRetry={() => onRetrySection('pulse-anthropic')}
-      />
-
-      <div style={DIVIDER_STYLE} />
-
-      <Section
-        label="AI WORLD"
-        accent="#64b5f6"
-        state={aiWorld}
-        onRetry={() => onRetrySection('pulse-aiworld')}
-      />
-
-      <div style={DIVIDER_STYLE} />
-
-      <Section
-        label="TECH MARKET"
-        accent="#4ade80"
-        state={techMkt}
-        onRetry={() => onRetrySection('pulse-tech')}
-      />
-
-      <div
-        style={{
-          marginTop: 28,
-          paddingTop: 14,
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          fontSize: 11,
-          color: 'rgba(255,255,255,0.35)',
-          letterSpacing: '0.04em',
-        }}
-      >
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-          <span>{updated ? `Last updated ${formatTime(updated)}` : 'Updating…'}</span>
-          <button
-            onClick={copyPulseDebug}
-            aria-label="Copy pulse debug response"
-            style={{
-              background: 'transparent',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 6,
-              padding: '2px 6px',
-              color: 'rgba(255,255,255,0.35)',
-              fontSize: 10,
-              cursor: 'pointer',
-              letterSpacing: '0.04em',
-            }}
-          >
-            COPY DEBUG
-          </button>
+    <div className="pulse-screen">
+      <div className="pulse-toolbar">
+        <span className="pulse-toolbar-meta">
+          {updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
         </span>
         <button
           onClick={onRefreshAll}
           disabled={anyLoading}
           aria-label="Refresh Pulse"
-          style={{
-            background: 'transparent',
-            border: '1px solid rgba(255,255,255,0.12)',
-            borderRadius: 999,
-            padding: '4px 10px',
-            color: anyLoading ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.55)',
-            fontSize: 12,
-            cursor: anyLoading ? 'default' : 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
+          className="pulse-refresh-btn"
         >
-          <span style={{ fontSize: 13, lineHeight: 1 }}>↻</span>
-          <span>Refresh</span>
+          <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
+          <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
         </button>
       </div>
+
+      <Section
+        label="ANTHROPIC"
+        emoji="◆"
+        accent="#a78bfa"
+        state={anthropic}
+        onRetry={() => onRetrySection('pulse-anthropic')}
+      />
+      <Section
+        label="AI WORLD"
+        emoji="✦"
+        accent="#64b5f6"
+        state={aiWorld}
+        onRetry={() => onRetrySection('pulse-aiworld')}
+      />
+      <Section
+        label="TECH MARKET"
+        emoji="▲"
+        accent="#4ade80"
+        state={techMkt}
+        onRetry={() => onRetrySection('pulse-tech')}
+      />
     </div>
   )
 }

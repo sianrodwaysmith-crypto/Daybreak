@@ -6,7 +6,7 @@ interface Props {
   onRetry: () => void
 }
 
-export default function ClientBriefScreen({ aiState, onRetry }: Props) {
+export default function ClientResearchScreen({ aiState, onRetry }: Props) {
   return (
     <div>
       <div className="client-active-box">

@@ -45,38 +45,21 @@ function dayInfo() {
   }
 }
 
-export function fetchDeepWork(score: number): Promise<string> {
-  const { day, date } = dayInfo()
-  const label = score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'moderate'
-  return callClaude(
-    'You are a deep work and productivity coach. Be direct, practical, and specific.',
-    `Today is ${day}, ${date}. My readiness score is ${score} (${label}).
-
-Give me a deep work strategy with two sections:
-
-AI STRATEGY
-[3-4 sentences of personalised advice — when to schedule deep work, what cognitive tasks suit this energy level, how to protect focus]
-
-FOCUS PROTOCOL
-[6-8 specific tactical items separated by · on a single line]`,
-  )
-}
-
 export function fetchClientBrief(): Promise<string> {
   const { day, date } = dayInfo()
   return callClaude(
-    'You are an executive assistant briefing a consultant. Be concise, professional, and action-oriented.',
+    'You are a research analyst supporting a senior consultant. Be concise, professional, and insight-driven.',
     `Today is ${day}, ${date}. My active client is Aztec, working on Salesforce CRM digital transformation, Phase 2 (Integration), deadline 15 May 2026, status On Track. Key contact: James Henderson (CPO). Also active: Salesforce — Discovery Phase, contact Rachel Ng.
 
-Using web search, find any relevant news about Salesforce or enterprise CRM today, then give me a brief with two sections:
+Using web search, research any relevant news about Aztec, Salesforce, or enterprise CRM today, then give me a research summary with two sections:
 
-TODAY'S PRIORITIES
-→ [first specific actionable task]
-→ [second specific actionable task]
-→ [third specific actionable task]
+KEY FINDINGS
+→ [first specific research insight or news item that affects this client]
+→ [second specific research insight or news item]
+→ [third specific research insight or news item]
 
-CLIENT CONTEXT
-[2-3 sentences of relevant background or news that affects today's work]`,
+CONTEXT & IMPLICATIONS
+[2-3 sentences interpreting what these findings mean for today's work with the client]`,
     true,
   )
 }

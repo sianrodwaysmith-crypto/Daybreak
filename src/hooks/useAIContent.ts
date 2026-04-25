@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react'
 import {
-  fetchDeepWork, fetchClientBrief,
+  fetchClientBrief,
   fetchPulseAnthropic, fetchPulseAIWorld, fetchPulseTechMarket,
 } from '../services/ai'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
 
-export type AITileId = 'work' | 'client' | 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
+export type AITileId = 'client' | 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
 export type PulseSectionId = 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
 
 export const PULSE_SECTIONS: PulseSectionId[] = ['pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
@@ -19,7 +19,7 @@ export interface TileAI {
 
 type AIState = Record<AITileId, TileAI>
 
-const TILE_IDS: AITileId[] = ['work', 'client', 'pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
+const TILE_IDS: AITileId[] = ['client', 'pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10)
@@ -59,9 +59,8 @@ function clearCache(id: AITileId): void {
   } catch { /* noop */ }
 }
 
-function getPromise(id: AITileId, score: number): Promise<string> {
+function getPromise(id: AITileId): Promise<string> {
   switch (id) {
-    case 'work':            return fetchDeepWork(score)
     case 'client':          return fetchClientBrief()
     case 'pulse-anthropic': return fetchPulseAnthropic()
     case 'pulse-aiworld':   return fetchPulseAIWorld()
@@ -80,7 +79,7 @@ function buildInitialState(): AIState {
   return s
 }
 
-export function useAIContent(score: number) {
+export function useAIContent() {
   const { registerContent } = useDayBreakContext()
   const [state, setState] = useState<AIState>(buildInitialState)
 
@@ -93,7 +92,7 @@ export function useAIContent(score: number) {
 
   function fetchOne(id: AITileId) {
     setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, fetchedAt: null } }))
-    getPromise(id, score)
+    getPromise(id)
       .then(text => {
         const fetchedAt = Date.now()
         writeCache(id, text, fetchedAt)
