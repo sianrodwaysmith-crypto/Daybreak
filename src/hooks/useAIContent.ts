@@ -25,12 +25,16 @@ function todayStr(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
+// Bump this when the prompt format or rendered shape changes so stale caches
+// don't survive a deploy.
+const CACHE_VERSION = 'v2'
+
 function cacheKey(id: AITileId): string {
-  return `daybreak-ai-${id}-${todayStr()}`
+  return `daybreak-ai-${CACHE_VERSION}-${id}-${todayStr()}`
 }
 
 function tsKey(id: AITileId): string {
-  return `daybreak-ai-${id}-${todayStr()}-ts`
+  return `daybreak-ai-${CACHE_VERSION}-${id}-${todayStr()}-ts`
 }
 
 function readCache(id: AITileId): { content: string; fetchedAt: number } | null {

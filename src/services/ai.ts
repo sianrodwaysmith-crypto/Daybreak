@@ -66,13 +66,14 @@ CONTEXT & IMPLICATIONS
 
 const PULSE_FORMAT_TAIL = `
 
-Format each story exactly like this:
+Format each story exactly like this and never deviate:
 
 **Headline in sentence case**
-Two sentences of context explaining what happened and why it matters.
+What: One sentence describing the concrete event that just happened — no background, no setup.
+Impact: One sentence describing why this matters or what changes for someone working in enterprise tech.
 Source: https://full-direct-url-to-the-original-article
 
-Leave a blank line between stories. The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage). Do not include any preamble, closing remarks, citations, or commentary outside the two stories.`
+Leave a blank line between stories. The What and Impact lines must each be a single sentence and must start with the literal label "What:" or "Impact:" followed by a space. The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage). Do not include any preamble, closing remarks, extra fields, citations, or commentary outside the labelled lines.`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
@@ -129,8 +130,14 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
   // eslint-disable-next-line no-console
   console.log(`[pulse:${debugKey}] raw response`, data)
 
-  type Citation = { type?: string; url?: string; title?: string }
-  type Block    = { type: string; text?: string; citations?: Citation[] }
+  type Citation     = { type?: string; url?: string; title?: string }
+  type SearchResult = { type?: string; url?: string; title?: string }
+  type Block        = {
+    type:      string
+    text?:     string
+    citations?: Citation[]
+    content?:  SearchResult[]   // present on web_search_tool_result blocks
+  }
 
   const blocks = (data.content as Block[]) || []
 
@@ -140,17 +147,24 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
     .join('\n')
     .trim()
 
-  // Collect every web_search citation URL the model relied on, in order,
-  // de-duplicated. We use these as a fallback so each story has a clickable
-  // source even when the model omits the explicit "Source:" line.
+  // Collect URLs from two places, de-duplicated, in order:
+  //   1. citations attached to text blocks (the model's own attributions)
+  //   2. web_search_tool_result blocks' content (the raw search hits)
+  // We use these as a fallback so each story has a clickable source even when
+  // the model omits the explicit "Source:" line.
   const seen = new Set<string>()
   const sourceUrls: string[] = []
+  function take(url: string | undefined) {
+    if (!url || seen.has(url)) return
+    seen.add(url)
+    sourceUrls.push(url)
+  }
   for (const b of blocks) {
-    for (const c of b.citations ?? []) {
-      const url = c.url
-      if (!url || seen.has(url)) continue
-      seen.add(url)
-      sourceUrls.push(url)
+    if (b.type === 'text') {
+      for (const c of b.citations ?? []) take(c.url)
+    }
+    if (b.type === 'web_search_tool_result') {
+      for (const r of b.content ?? []) take(r.url)
     }
   }
 

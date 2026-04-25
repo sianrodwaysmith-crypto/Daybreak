@@ -1676,6 +1676,27 @@ a.pulse-card-link:active { transform: scale(0.995); }
   line-height: 1.55;
   color: var(--ink-2);
 }
+.pulse-facts {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  column-gap: 14px;
+  row-gap: 6px;
+  margin: 0;
+}
+.pulse-fact-label {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-top: 4px;
+}
+.pulse-fact-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
 .pulse-source {
   margin-top: 12px;
   font-size: 11.5px;

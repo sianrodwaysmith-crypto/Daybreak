@@ -10,7 +10,9 @@ interface Props {
 
 interface Story {
   headline: string
-  body:     string
+  what:     string
+  impact:   string
+  body:     string   // fallback when What/Impact are missing
   url:      string | null
 }
 
@@ -23,11 +25,16 @@ function cleanUrl(raw: string): string {
   return raw.replace(/[).,;]+$/, '')
 }
 
+function stripBold(s: string): string {
+  return s.replace(/\*\*/g, '').trim()
+}
+
 /**
- * Splits the model output into stories. Sources can come from three places,
- * in priority order: an explicit "Source: <url>" line within the story; an
- * inline URL anywhere in the body; or a trailing "Sources: \n- <url>" block
- * the service appended from web_search citations.
+ * Splits the model output into stories. Each story has a headline, a What
+ * sentence, an Impact sentence, and a source URL. URLs are resolved in
+ * priority order: explicit "Source: <url>" line → inline URL in the body →
+ * i-th URL from the trailing "Sources:" block the service appends from
+ * web_search citations.
  */
 function parseStories(raw: string): Story[] {
   let text = raw
@@ -49,12 +56,14 @@ function parseStories(raw: string): Story[] {
   const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
 
   return blocks
-    .map((block, i) => {
+    .map((block, i): Story | null => {
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
       if (lines.length === 0) return null
 
       let headline = ''
-      const bodyParts: string[] = []
+      let what     = ''
+      let impact   = ''
+      const otherLines: string[] = []
       let url: string | null = null
 
       for (const line of lines) {
@@ -64,30 +73,41 @@ function parseStories(raw: string): Story[] {
           if (u) url = cleanUrl(u[0])
           continue
         }
+        const whatLine   = line.match(/^what\s*:\s*(.+)$/i)
+        if (whatLine) { what = stripBold(whatLine[1]); continue }
+        const impactLine = line.match(/^impact\s*:\s*(.+)$/i)
+        if (impactLine) { impact = stripBold(impactLine[1]); continue }
+
         if (!headline) {
           const bolded = line.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
-          headline = bolded ? bolded[1] : line.replace(/^\*\*|\*\*$/g, '')
+          headline = bolded ? bolded[1] : stripBold(line)
           continue
         }
-        bodyParts.push(line.replace(/\*\*/g, ''))
+        otherLines.push(stripBold(line))
       }
 
-      let body = bodyParts.join(' ').trim()
+      // Fallback body if model didn't follow the What/Impact format
+      let body = otherLines.join(' ').trim()
 
-      // If we still don't have a URL, look for any inline URL in the body
+      // If we still don't have a URL, look for any inline URL in the body or
+      // What/Impact lines
       if (!url) {
-        const inline = body.match(/https?:\/\/[^\s)>\]]+/)
+        const haystack = `${body} ${what} ${impact}`
+        const inline = haystack.match(/https?:\/\/[^\s)>\]]+/)
         if (inline) {
-          url = cleanUrl(inline[0])
-          body = body.replace(inline[0], '').trim().replace(/\s+([.,;])/g, '$1')
+          const u = cleanUrl(inline[0])
+          url = u
+          const stripUrl = (s: string) => s.replace(inline[0], '').trim().replace(/\s+([.,;])/g, '$1')
+          body   = stripUrl(body)
+          what   = stripUrl(what)
+          impact = stripUrl(impact)
         }
       }
 
-      // Or fall back to the i-th URL from the citations block
       if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
-      if (!headline && !body) return null
-      return { headline, body, url }
+      if (!headline && !what && !impact && !body) return null
+      return { headline, what, impact, body, url }
     })
     .filter((s): s is Story => s !== null)
 }
@@ -121,10 +141,28 @@ function Section({ label, state, onRetry }: SectionProps) {
       {!state.loading && !state.error && state.content && (
         <div className="pulse-card-list">
           {parseStories(state.content).map((story, i) => {
+            const hasStructured = story.what || story.impact
             const inner = (
               <>
                 <h3 className="pulse-headline">{story.headline}</h3>
-                {story.body && <p className="pulse-body">{story.body}</p>}
+                {hasStructured ? (
+                  <dl className="pulse-facts">
+                    {story.what && (
+                      <>
+                        <dt className="pulse-fact-label">What</dt>
+                        <dd className="pulse-fact-text">{story.what}</dd>
+                      </>
+                    )}
+                    {story.impact && (
+                      <>
+                        <dt className="pulse-fact-label">Impact</dt>
+                        <dd className="pulse-fact-text">{story.impact}</dd>
+                      </>
+                    )}
+                  </dl>
+                ) : (
+                  story.body && <p className="pulse-body">{story.body}</p>
+                )}
                 {story.url && (
                   <span className="pulse-source">
                     {hostname(story.url)} <span aria-hidden>↗</span>
