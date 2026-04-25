@@ -1,5 +1,9 @@
-const MODEL    = 'claude-sonnet-4-6'
-const ENDPOINT = 'https://api.anthropic.com/v1/messages'
+const MODEL       = 'claude-sonnet-4-6'
+// Pulse uses the fast model — three parallel web_search calls on cellular
+// were taking 30-45s each on Sonnet. Haiku 4.5 is plenty for two-story
+// summaries and finishes in roughly a third the time.
+const PULSE_MODEL = 'claude-haiku-4-5-20251001'
+const ENDPOINT    = 'https://api.anthropic.com/v1/messages'
 
 async function callClaude(system: string, prompt: string, webSearch = false): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
@@ -96,15 +100,15 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
       },
       signal: ctrl.signal,
       body: JSON.stringify({
-        // 4096 leaves room for multiple web_search rounds + the final
-        // formatted output. We dropped interleaved-thinking to keep the
-        // round-trip fast on cellular.
-        model:      MODEL,
-        max_tokens: 4096,
+        // Haiku for speed; max_uses caps the model at 2 searches per call
+        // so it can't go down a 5-search rabbit hole on cellular.
+        model:      PULSE_MODEL,
+        max_tokens: 2048,
         tools: [
           {
-            type: 'web_search_20250305',
-            name: 'web_search',
+            type:     'web_search_20250305',
+            name:     'web_search',
+            max_uses: 2,
           },
         ],
         messages: [
