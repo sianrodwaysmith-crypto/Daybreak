@@ -133,7 +133,10 @@ function Section({ label, state, onRetry }: SectionProps) {
 
       {!state.loading && state.error && (
         <div className="pulse-card pulse-card-error">
-          <span className="pulse-error-text">Couldn't fetch live content.</span>
+          <div className="pulse-error-stack">
+            <span className="pulse-error-text">Couldn't fetch live content.</span>
+            {state.errorMsg && <span className="pulse-error-detail">{state.errorMsg}</span>}
+          </div>
           <button className="pulse-retry-btn" onClick={onRetry}>↻ Retry</button>
         </div>
       )}

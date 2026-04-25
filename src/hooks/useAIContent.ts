@@ -14,6 +14,7 @@ export interface TileAI {
   content:    string | null
   loading:    boolean
   error:      boolean
+  errorMsg:   string | null
   fetchedAt:  number | null
 }
 
@@ -77,8 +78,8 @@ function buildInitialState(): AIState {
   for (const id of TILE_IDS) {
     const cached = readCache(id)
     s[id] = cached
-      ? { content: cached.content, loading: false, error: false, fetchedAt: cached.fetchedAt }
-      : { content: null, loading: true, error: false, fetchedAt: null }
+      ? { content: cached.content, loading: false, error: false, errorMsg: null, fetchedAt: cached.fetchedAt }
+      : { content: null, loading: true, error: false, errorMsg: null, fetchedAt: null }
   }
   return s
 }
@@ -95,15 +96,16 @@ export function useAIContent() {
   }, [state, registerContent])
 
   function fetchOne(id: AITileId) {
-    setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, fetchedAt: null } }))
+    setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, errorMsg: null, fetchedAt: null } }))
     getPromise(id)
       .then(text => {
         const fetchedAt = Date.now()
         writeCache(id, text, fetchedAt)
-        setState(s => ({ ...s, [id]: { content: text, loading: false, error: false, fetchedAt } }))
+        setState(s => ({ ...s, [id]: { content: text, loading: false, error: false, errorMsg: null, fetchedAt } }))
       })
-      .catch(() => {
-        setState(s => ({ ...s, [id]: { content: null, loading: false, error: true, fetchedAt: null } }))
+      .catch((err: unknown) => {
+        const msg = err instanceof Error ? err.message : String(err)
+        setState(s => ({ ...s, [id]: { content: null, loading: false, error: true, errorMsg: msg, fetchedAt: null } }))
       })
   }
 

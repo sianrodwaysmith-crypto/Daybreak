@@ -1735,7 +1735,14 @@ a.pulse-card-link:active { transform: scale(0.995); }
   justify-content: space-between;
   gap: 12px;
 }
+.pulse-error-stack { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 0; }
 .pulse-error-text { font-size: 13px; color: var(--ink-2); }
+.pulse-error-detail {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  color: var(--muted);
+  word-break: break-word;
+}
 .pulse-retry-btn {
   font-size: 12px;
   font-weight: 500;

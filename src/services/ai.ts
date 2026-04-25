@@ -139,7 +139,14 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
         JSON.stringify({ ok: false, status: response.status, body: errText, ts: Date.now() }),
       )
     } catch { /* noop */ }
-    throw new Error(`API ${response.status}`)
+    // Try to pull a useful message out of the JSON-shaped error body so the
+    // UI can display it without needing the console.
+    let detail = ''
+    try {
+      const parsed = JSON.parse(errText)
+      detail = parsed?.error?.message || parsed?.message || ''
+    } catch { detail = errText.slice(0, 240) }
+    throw new Error(`API ${response.status}${detail ? ` — ${detail}` : ''}`)
   }
 
   const data = await response.json()
