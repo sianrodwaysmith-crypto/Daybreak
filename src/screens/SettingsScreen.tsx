@@ -17,13 +17,23 @@ interface Props {
 type SaveState = 'idle' | 'connecting' | 'success' | 'error'
 
 function connectWhoop() {
-  const clientId   = import.meta.env.VITE_WHOOP_CLIENT_ID as string
-  const redirectUri = encodeURIComponent(`${window.location.origin}/api/whoop/callback`)
-  const scope       = encodeURIComponent('read:recovery read:sleep read:cycles read:profile offline')
-  window.location.href =
+  const clientId = import.meta.env.VITE_WHOOP_CLIENT_ID as string | undefined
+  if (!clientId) {
+    alert(
+      'Whoop client ID is missing.\n\n' +
+      'Add VITE_WHOOP_CLIENT_ID in Vercel env vars and redeploy.'
+    )
+    return
+  }
+  const redirectUri = `${window.location.origin}/api/whoop/callback`
+  const scope       = 'read:recovery read:sleep read:cycles read:profile offline'
+  const url =
     `https://api.prod.whoop.com/oauth/oauth2/auth` +
-    `?client_id=${clientId}&redirect_uri=${redirectUri}` +
-    `&response_type=code&scope=${scope}`
+    `?client_id=${encodeURIComponent(clientId)}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&response_type=code` +
+    `&scope=${encodeURIComponent(scope)}`
+  window.location.assign(url)
 }
 
 export default function SettingsScreen({ calendar, whoop }: Props) {
