@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
 import Header from './components/Header'
 import Tile from './components/Tile'
@@ -11,6 +12,8 @@ import BusinessPulseScreen from './screens/BusinessPulseScreen'
 import AIBriefingScreen from './screens/AIBriefingScreen'
 import TodaysFocusScreen from './screens/TodaysFocusScreen'
 import MindsetScreen from './screens/MindsetScreen'
+import PrivacyScreen from './screens/PrivacyScreen'
+import TermsScreen from './screens/TermsScreen'
 
 const READINESS_SCORE = 74
 
@@ -21,14 +24,14 @@ function readinessColor(score: number): string {
 }
 
 const TILES = [
-  { id: 'stoic',    icon: '⚡', title: 'Stoic',          subtitle: "Today's principle",      accent: '#ffc800' },
+  { id: 'stoic',    icon: '⚡', title: 'Stoic',          subtitle: "Today's principle",         accent: '#ffc800' },
   { id: 'ready',   icon: '💚', title: 'Readiness',       subtitle: `${READINESS_SCORE} · Good`, accent: readinessColor(READINESS_SCORE) },
-  { id: 'work',    icon: '🧠', title: 'Deep Work',       subtitle: 'Focus blocks and strategy', accent: '#4ade80' },
-  { id: 'client',  icon: '💼', title: 'Client Brief',    subtitle: 'Aztec · Salesforce',     accent: '#64b5f6' },
-  { id: 'biz',     icon: '📈', title: 'Business Pulse',  subtitle: 'Markets and top stories', accent: '#ffc800' },
-  { id: 'ai',      icon: '🤖', title: 'AI Briefing',     subtitle: 'Anthropic and AI news',  accent: '#a78bfa' },
-  { id: 'focus',   icon: '🎯', title: "Today's Focus",   subtitle: 'Your priority',          accent: '#f97316' },
-  { id: 'mindset', icon: '🙏', title: 'Mindset',         subtitle: 'Gratitude and intention', accent: '#f59e0b' },
+  { id: 'work',    icon: '🧠', title: 'Deep Work',       subtitle: 'Focus blocks and strategy',  accent: '#4ade80' },
+  { id: 'client',  icon: '💼', title: 'Client Brief',    subtitle: 'Aztec · Salesforce',        accent: '#64b5f6' },
+  { id: 'biz',     icon: '📈', title: 'Business Pulse',  subtitle: 'Markets and top stories',   accent: '#ffc800' },
+  { id: 'ai',      icon: '🤖', title: 'AI Briefing',     subtitle: 'Anthropic and AI news',     accent: '#a78bfa' },
+  { id: 'focus',   icon: '🎯', title: "Today's Focus",   subtitle: 'Your priority',             accent: '#f97316' },
+  { id: 'mindset', icon: '🙏', title: 'Mindset',         subtitle: 'Gratitude and intention',   accent: '#f59e0b' },
 ]
 
 function getContent(id: string | null) {
@@ -45,7 +48,7 @@ function getContent(id: string | null) {
   }
 }
 
-export default function App() {
+function HomeView() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const activeTile = TILES.find(t => t.id === activeId)
 
@@ -69,6 +72,11 @@ export default function App() {
             />
           ))}
         </div>
+        <footer className="home-footer">
+          <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
+          <span className="home-footer-sep">·</span>
+          <Link to="/terms" className="home-footer-link">Terms</Link>
+        </footer>
       </div>
 
       <Modal
@@ -80,5 +88,15 @@ export default function App() {
         {getContent(activeId)}
       </Modal>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomeView />} />
+      <Route path="/privacy" element={<PrivacyScreen />} />
+      <Route path="/terms" element={<TermsScreen />} />
+    </Routes>
   )
 }

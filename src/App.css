@@ -104,7 +104,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  padding: 8px 16px calc(32px + env(safe-area-inset-bottom, 0px));
+  padding: 8px 16px 8px;
 }
 
 /* ===== TILE ===== */
@@ -758,3 +758,130 @@
   transition: color 0.2s;
 }
 .mindset-reset-btn:hover { color: rgba(255,255,255,0.45); }
+
+/* ===== HOME FOOTER ===== */
+.home-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 16px calc(28px + env(safe-area-inset-bottom, 0px));
+  font-family: 'DM Serif Display', serif;
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+}
+.home-footer-link {
+  color: rgba(255,255,255,0.2);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.home-footer-link:hover { color: rgba(255,255,255,0.42); }
+.home-footer-sep { color: rgba(255,255,255,0.12); }
+
+/* ===== LEGAL PAGES ===== */
+.legal-page {
+  position: relative;
+  min-height: 100dvh;
+  background: #080810;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.legal-inner {
+  position: relative;
+  z-index: 1;
+  padding: calc(22px + env(safe-area-inset-top, 0px)) 22px calc(52px + env(safe-area-inset-bottom, 0px));
+  max-width: 540px;
+}
+.legal-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 30px;
+}
+.legal-back-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.65);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.legal-back-btn:hover { background: rgba(255,255,255,0.13); }
+.legal-app-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.38em;
+  color: rgba(255,255,255,0.28);
+}
+.legal-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  line-height: 1;
+  margin: 0 0 6px;
+}
+.legal-updated {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.28);
+  margin-bottom: 22px;
+}
+.legal-intro {
+  font-family: 'DM Serif Display', serif;
+  font-size: 16px;
+  line-height: 1.68;
+  color: rgba(255,255,255,0.62);
+  margin: 0 0 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+.legal-section {
+  margin-bottom: 28px;
+}
+.legal-section-label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  color: rgba(255,255,255,0.28);
+  margin-bottom: 14px;
+}
+.legal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+.legal-item {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  line-height: 1.65;
+  color: rgba(255,255,255,0.6);
+  padding-left: 16px;
+  position: relative;
+}
+.legal-item::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: rgba(255,255,255,0.18);
+}
+.legal-item-accent {
+  color: #ffc800;
+  font-style: normal;
+}
+.legal-email {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  color: #64b5f6;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.legal-email:hover { color: #93c5fd; }
