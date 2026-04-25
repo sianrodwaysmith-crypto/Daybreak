@@ -71,3 +71,16 @@ export function ScheduleIcon({ size }: IconProps = {}) {
     </Svg>
   )
 }
+
+export function MovementIcon({ size }: IconProps = {}) {
+  // Horizon line with two end-dots and an arc between them — a small jump
+  // / sunrise mark for the Movement tile.
+  return (
+    <Svg size={size}>
+      <line x1="3" y1="15" x2="21" y2="15" />
+      <path d="M7.5 15 Q12 6.5 16.5 15" />
+      <circle cx="7.5"  cy="15" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="16.5" cy="15" r="1.5" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}

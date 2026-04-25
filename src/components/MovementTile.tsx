@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
+import { MovementIcon } from './icons'
 import {
   MockMovementSource, CompositeMovementSource,
   computeCadence, todaysSession, weekDates, startOfWeek, todayISO, isoDate,
@@ -396,7 +397,10 @@ export default function MovementTile({ recovery }: Props) {
   return (
     <section className="movement-tile">
       <div className="movement-head">
-        <span className="movement-eyebrow">movement</span>
+        <span className="movement-eyebrow">
+          <span className="movement-eyebrow-icon" aria-hidden><MovementIcon size={16} /></span>
+          movement
+        </span>
         {recovery != null && <span className="movement-recovery">{recoveryLabel(recovery)}</span>}
       </div>
 
