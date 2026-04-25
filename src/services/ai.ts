@@ -129,14 +129,39 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
   // eslint-disable-next-line no-console
   console.log(`[pulse:${debugKey}] raw response`, data)
 
-  const textContent = (data.content as Array<{ type: string; text?: string }>)
-    .filter((block) => block.type === 'text')
-    .map((block) => block.text ?? '')
+  type Citation = { type?: string; url?: string; title?: string }
+  type Block    = { type: string; text?: string; citations?: Citation[] }
+
+  const blocks = (data.content as Block[]) || []
+
+  const textContent = blocks
+    .filter(b => b.type === 'text')
+    .map(b => b.text ?? '')
     .join('\n')
     .trim()
 
+  // Collect every web_search citation URL the model relied on, in order,
+  // de-duplicated. We use these as a fallback so each story has a clickable
+  // source even when the model omits the explicit "Source:" line.
+  const seen = new Set<string>()
+  const sourceUrls: string[] = []
+  for (const b of blocks) {
+    for (const c of b.citations ?? []) {
+      const url = c.url
+      if (!url || seen.has(url)) continue
+      seen.add(url)
+      sourceUrls.push(url)
+    }
+  }
+
   if (!textContent) {
     throw new Error('empty-response')
+  }
+
+  // Append a sources block if the model didn't already include Source: lines
+  // for every story. The PulseScreen parser will use these as fallbacks.
+  if (sourceUrls.length > 0 && !/^source\s*:/im.test(textContent)) {
+    return textContent + '\n\nSources:\n' + sourceUrls.map(u => '- ' + u).join('\n')
   }
   return textContent
 }

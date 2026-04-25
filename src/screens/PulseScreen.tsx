@@ -19,10 +19,37 @@ function hostname(url: string): string {
   catch { return url }
 }
 
-function parseStories(text: string): Story[] {
+function cleanUrl(raw: string): string {
+  return raw.replace(/[).,;]+$/, '')
+}
+
+/**
+ * Splits the model output into stories. Sources can come from three places,
+ * in priority order: an explicit "Source: <url>" line within the story; an
+ * inline URL anywhere in the body; or a trailing "Sources: \n- <url>" block
+ * the service appended from web_search citations.
+ */
+function parseStories(raw: string): Story[] {
+  let text = raw
+
+  // Pull off the trailing Sources block if present
+  const fallbackUrls: string[] = []
+  const sourcesMatch = text.match(/\n\s*sources?\s*:?\s*\n([\s\S]+)$/i)
+  if (sourcesMatch) {
+    const list = sourcesMatch[1]
+      .split('\n')
+      .map(l => l.replace(/^[-*•]\s*/, '').trim())
+      .map(l => l.match(/https?:\/\/\S+/)?.[0] ?? '')
+      .filter(Boolean)
+      .map(cleanUrl)
+    fallbackUrls.push(...list)
+    text = text.slice(0, sourcesMatch.index).trim()
+  }
+
   const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
+
   return blocks
-    .map(block => {
+    .map((block, i) => {
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
       if (lines.length === 0) return null
 
@@ -31,10 +58,10 @@ function parseStories(text: string): Story[] {
       let url: string | null = null
 
       for (const line of lines) {
-        const sourceMatch = line.match(/^source\s*:?\s*(.+)$/i)
-        if (sourceMatch) {
-          const urlMatch = sourceMatch[1].match(/https?:\/\/[^\s)>\]]+/)
-          if (urlMatch) url = urlMatch[0].replace(/[).,;]+$/, '')
+        const sourceLine = line.match(/^source\s*:?\s*(.+)$/i)
+        if (sourceLine) {
+          const u = sourceLine[1].match(/https?:\/\/[^\s)>\]]+/)
+          if (u) url = cleanUrl(u[0])
           continue
         }
         if (!headline) {
@@ -45,7 +72,20 @@ function parseStories(text: string): Story[] {
         bodyParts.push(line.replace(/\*\*/g, ''))
       }
 
-      const body = bodyParts.join(' ').trim()
+      let body = bodyParts.join(' ').trim()
+
+      // If we still don't have a URL, look for any inline URL in the body
+      if (!url) {
+        const inline = body.match(/https?:\/\/[^\s)>\]]+/)
+        if (inline) {
+          url = cleanUrl(inline[0])
+          body = body.replace(inline[0], '').trim().replace(/\s+([.,;])/g, '$1')
+        }
+      }
+
+      // Or fall back to the i-th URL from the citations block
+      if (!url && fallbackUrls[i]) url = fallbackUrls[i]
+
       if (!headline && !body) return null
       return { headline, body, url }
     })
@@ -53,24 +93,18 @@ function parseStories(text: string): Story[] {
 }
 
 interface SectionProps {
-  label:     string
-  accent:    string
-  emoji:     string
-  state:     TileAI
-  onRetry:   () => void
+  label:   string
+  state:   TileAI
+  onRetry: () => void
 }
 
-function Section({ label, accent, emoji, state, onRetry }: SectionProps) {
+function Section({ label, state, onRetry }: SectionProps) {
   return (
     <section className="pulse-section">
-      <div className="pulse-section-head">
-        <span className="pulse-section-accent" style={{ background: accent }} aria-hidden />
-        <span className="pulse-section-emoji" aria-hidden>{emoji}</span>
-        <span className="pulse-section-label" style={{ color: accent }}>{label}</span>
-      </div>
+      <div className="pulse-section-label">{label}</div>
 
       {state.loading && (
-        <div className="pulse-story-card pulse-story-loading">
+        <div className="pulse-card pulse-card-loading">
           <span className="pulse-skel pulse-skel-headline" />
           <span className="pulse-skel pulse-skel-line" />
           <span className="pulse-skel pulse-skel-line pulse-skel-line-short" />
@@ -78,54 +112,41 @@ function Section({ label, accent, emoji, state, onRetry }: SectionProps) {
       )}
 
       {!state.loading && state.error && (
-        <div className="pulse-story-card pulse-story-error">
-          <div className="pulse-error-text">Could not fetch live content</div>
-          <button
-            className="pulse-retry-btn"
-            style={{ color: accent, borderColor: `${accent}55` }}
-            onClick={onRetry}
-          >
-            ↻ Retry
-          </button>
+        <div className="pulse-card pulse-card-error">
+          <span className="pulse-error-text">Couldn't fetch live content.</span>
+          <button className="pulse-retry-btn" onClick={onRetry}>↻ Retry</button>
         </div>
       )}
 
       {!state.loading && !state.error && state.content && (
-        <div className="pulse-story-list">
+        <div className="pulse-card-list">
           {parseStories(state.content).map((story, i) => {
-            const headlineNode = (
-              <h3 className="pulse-story-headline">
-                {story.headline}
-                {story.url && <span className="pulse-story-arrow" aria-hidden> ↗</span>}
-              </h3>
-            )
-            const bodyNode = story.body && <p className="pulse-story-body">{story.body}</p>
-            const sourceNode = story.url && (
-              <span className="pulse-story-source">{hostname(story.url)}</span>
+            const inner = (
+              <>
+                <h3 className="pulse-headline">{story.headline}</h3>
+                {story.body && <p className="pulse-body">{story.body}</p>}
+                {story.url && (
+                  <span className="pulse-source">
+                    {hostname(story.url)} <span aria-hidden>↗</span>
+                  </span>
+                )}
+              </>
             )
 
             if (story.url) {
               return (
                 <a
                   key={i}
-                  className="pulse-story-card pulse-story-link"
+                  className="pulse-card pulse-card-link"
                   href={story.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ borderLeftColor: accent }}
                 >
-                  {headlineNode}
-                  {bodyNode}
-                  {sourceNode}
+                  {inner}
                 </a>
               )
             }
-            return (
-              <article key={i} className="pulse-story-card" style={{ borderLeftColor: accent }}>
-                {headlineNode}
-                {bodyNode}
-              </article>
-            )
+            return <article key={i} className="pulse-card">{inner}</article>
           })}
         </div>
       )}
@@ -141,14 +162,13 @@ function formatTime(ms: number): string {
 }
 
 function lastUpdated(states: TileAI[]): number | null {
-  const timestamps = states.map(s => s.fetchedAt).filter((t): t is number => t != null)
-  if (timestamps.length === 0) return null
-  return Math.min(...timestamps)
+  const ts = states.map(s => s.fetchedAt).filter((t): t is number => t != null)
+  return ts.length === 0 ? null : Math.min(...ts)
 }
 
 export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
-  const updated     = lastUpdated([anthropic, aiWorld, techMkt])
-  const anyLoading  = anthropic.loading || aiWorld.loading || techMkt.loading
+  const updated    = lastUpdated([anthropic, aiWorld, techMkt])
+  const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
 
   return (
     <div className="pulse-screen">
@@ -167,27 +187,9 @@ export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySectio
         </button>
       </div>
 
-      <Section
-        label="ANTHROPIC"
-        emoji="◆"
-        accent="#a78bfa"
-        state={anthropic}
-        onRetry={() => onRetrySection('pulse-anthropic')}
-      />
-      <Section
-        label="AI WORLD"
-        emoji="✦"
-        accent="#64b5f6"
-        state={aiWorld}
-        onRetry={() => onRetrySection('pulse-aiworld')}
-      />
-      <Section
-        label="TECH MARKET"
-        emoji="▲"
-        accent="#4ade80"
-        state={techMkt}
-        onRetry={() => onRetrySection('pulse-tech')}
-      />
+      <Section label="Anthropic"   state={anthropic} onRetry={() => onRetrySection('pulse-anthropic')} />
+      <Section label="AI world"    state={aiWorld}   onRetry={() => onRetrySection('pulse-aiworld')} />
+      <Section label="Tech market" state={techMkt}   onRetry={() => onRetrySection('pulse-tech')} />
     </div>
   )
 }
