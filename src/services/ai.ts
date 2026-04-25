@@ -78,36 +78,54 @@ Leave a blank line between stories. The What and Impact lines must each be a sin
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
 
-  const response = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers: {
-      'Content-Type':                              'application/json',
-      'x-api-key':                                 apiKey ?? '',
-      'anthropic-version':                          '2023-06-01',
-      'anthropic-beta':                             'interleaved-thinking-2025-05-14',
-      // Required for direct browser calls — without it the API CORS-rejects
-      'anthropic-dangerous-direct-browser-access':  'true',
-    },
-    body: JSON.stringify({
-      // 4096 leaves room for interleaved thinking + multiple web_search
-      // rounds + the final formatted output. 1024 was running out before
-      // the model could write any text at all.
-      model:      MODEL,
-      max_tokens: 4096,
-      tools: [
-        {
-          type: 'web_search_20250305',
-          name: 'web_search',
-        },
-      ],
-      messages: [
-        {
-          role:    'user',
-          content: prompt,
-        },
-      ],
-    }),
-  })
+  // Bail after 45s so the UI doesn't sit on "Updating…" forever when the
+  // network is flaky or the model takes too long with web_search rounds.
+  const ctrl = new AbortController()
+  const timeoutId = setTimeout(() => ctrl.abort(), 45_000)
+
+  let response: Response
+  try {
+    response = await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type':                              'application/json',
+        'x-api-key':                                 apiKey ?? '',
+        'anthropic-version':                          '2023-06-01',
+        // Required for direct browser calls — without it the API CORS-rejects
+        'anthropic-dangerous-direct-browser-access':  'true',
+      },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        // 4096 leaves room for multiple web_search rounds + the final
+        // formatted output. We dropped interleaved-thinking to keep the
+        // round-trip fast on cellular.
+        model:      MODEL,
+        max_tokens: 4096,
+        tools: [
+          {
+            type: 'web_search_20250305',
+            name: 'web_search',
+          },
+        ],
+        messages: [
+          {
+            role:    'user',
+            content: prompt,
+          },
+        ],
+      }),
+    })
+  } catch (e) {
+    clearTimeout(timeoutId)
+    try {
+      sessionStorage.setItem(
+        `daybreak-pulse-debug-${debugKey}`,
+        JSON.stringify({ ok: false, network: true, msg: String(e), ts: Date.now() }),
+      )
+    } catch { /* noop */ }
+    throw e
+  }
+  clearTimeout(timeoutId)
 
   if (!response.ok) {
     const errText = await response.text().catch(() => '')
