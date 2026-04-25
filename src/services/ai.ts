@@ -70,14 +70,21 @@ CONTEXT & IMPLICATIONS
 
 const PULSE_FORMAT_TAIL = `
 
-Format each story exactly like this and never deviate:
+Output ONLY the two stories, in this exact format, with no other text:
 
 **Headline in sentence case**
 What: One sentence describing the concrete event that just happened — no background, no setup.
 Impact: One sentence describing why this matters or what changes for someone working in enterprise tech.
 Source: https://full-direct-url-to-the-original-article
 
-Leave a blank line between stories. The What and Impact lines must each be a single sentence and must start with the literal label "What:" or "Impact:" followed by a space. The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage). Do not include any preamble, closing remarks, extra fields, citations, or commentary outside the labelled lines.`
+Separate the two stories with a single blank line and nothing else.
+
+Hard rules:
+- Your very first character must be the asterisk of the first headline. Do not write any introductory sentence, framing, or "here are the stories" line.
+- Do not write any closing line, summary, or commentary after the last Source.
+- Do not write "---", "***", or any other separator between stories.
+- The What and Impact lines must each be a single sentence and must start with the literal label "What:" or "Impact:" followed by a space.
+- The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage).`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined

@@ -53,6 +53,15 @@ function parseStories(raw: string): Story[] {
     text = text.slice(0, sourcesMatch.index).trim()
   }
 
+  // Strip markdown horizontal-rule separators ("---", "***", "___") that the
+  // model sometimes wedges between stories.
+  text = text.replace(/^\s*[-*_]{3,}\s*$/gm, '')
+
+  // Drop any preamble before the first headline. A headline is the first
+  // line in the response that starts with "**" (bolded).
+  const firstHeadline = text.search(/^\*\*.+\*\*/m)
+  if (firstHeadline > 0) text = text.slice(firstHeadline)
+
   const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
 
   return blocks
