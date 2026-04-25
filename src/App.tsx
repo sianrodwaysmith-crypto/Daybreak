@@ -8,6 +8,7 @@ import WeatherBanner from './components/WeatherBanner'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
+import { useWhoop } from './hooks/useWhoop'
 import ReadinessScreen from './screens/ReadinessScreen'
 import DeepWorkScreen from './screens/DeepWorkScreen'
 import ClientBriefScreen from './screens/ClientBriefScreen'
@@ -20,12 +21,17 @@ import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
 
-const READINESS_SCORE = 74
-
 function readinessColor(score: number): string {
   if (score >= 80) return '#4ade80'
   if (score >= 60) return '#ffc800'
   return '#f87171'
+}
+
+function readinessLabel(score: number): string {
+  if (score >= 80) return 'Optimal'
+  if (score >= 60) return 'Good'
+  if (score >= 40) return 'Moderate'
+  return 'Low'
 }
 
 function scheduleSubtitle(events: readonly { id: string }[], loading: boolean, connected: boolean): string {
@@ -40,24 +46,27 @@ function HomeView() {
   const [showSettings, setSettings] = useState(false)
   const weather  = useWeather()
   const calendar = useCalendar()
-  const { ai, retry } = useAIContent(READINESS_SCORE)
+  const whoop    = useWhoop()
+
+  const readinessScore = whoop.recovery ?? 74
+  const { ai, retry } = useAIContent(readinessScore)
 
   const TILES = [
-    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',  subtitle: 'Ground yourself',                                     accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: `${READINESS_SCORE} · Good`,                           accent: readinessColor(READINESS_SCORE) },
-    { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                           accent: '#4ade80', loading: ai.work.loading   },
-    { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                  accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'biz',     icon: '📈', title: 'Business Pulse', subtitle: 'Markets and top stories',                             accent: '#ffc800', loading: ai.biz.loading    },
-    { id: 'ai',      icon: '🤖', title: 'AI Briefing',    subtitle: 'Anthropic and AI news',                               accent: '#a78bfa', loading: ai.ai.loading     },
-    { id: 'focus',   icon: '🎯', title: "Today's Focus",  subtitle: 'Your priority',                                       accent: '#f97316', loading: ai.focus.loading  },
-    { id: 'schedule',icon: '📅', title: 'Schedule',       subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected), accent: '#38bdf8', fullWidth: true },
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',  subtitle: 'Ground yourself',                                                                                                                    accent: '#f59e0b' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: whoop.connected ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop',     accent: readinessColor(readinessScore) },
+    { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                                                                                                           accent: '#4ade80', loading: ai.work.loading   },
+    { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                                                                                                 accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'biz',     icon: '📈', title: 'Business Pulse', subtitle: 'Markets and top stories',                                                                                                             accent: '#ffc800', loading: ai.biz.loading    },
+    { id: 'ai',      icon: '🤖', title: 'AI Briefing',    subtitle: 'Anthropic and AI news',                                                                                                               accent: '#a78bfa', loading: ai.ai.loading     },
+    { id: 'focus',   icon: '🎯', title: "Today's Focus",  subtitle: 'Your priority',                                                                                                                      accent: '#f97316', loading: ai.focus.loading  },
+    { id: 'schedule',icon: '📅', title: 'Schedule',       subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                              accent: '#38bdf8', fullWidth: true },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
 
   function getContent(id: string | null) {
     switch (id) {
-      case 'ready':    return <ReadinessScreen score={READINESS_SCORE} />
+      case 'ready':    return <ReadinessScreen score={readinessScore} hrv={whoop.hrv} rhr={whoop.rhr} sleep={whoop.sleep} sleepHours={whoop.sleepHours} />
       case 'work':     return <DeepWorkScreen  aiState={ai.work}   onRetry={() => retry('work')}   />
       case 'client':   return <ClientBriefScreen aiState={ai.client} onRetry={() => retry('client')} />
       case 'biz':      return <BusinessPulseScreen aiState={ai.biz}  onRetry={() => retry('biz')}   />
@@ -77,8 +86,8 @@ function HomeView() {
 
       <div className="app-content">
         <Header
-          readinessScore={READINESS_SCORE}
-          readinessColor={readinessColor(READINESS_SCORE)}
+          readinessScore={readinessScore}
+          readinessColor={readinessColor(readinessScore)}
           onSettings={() => setSettings(true)}
         />
         {weather && <WeatherBanner weather={weather} />}
@@ -120,7 +129,7 @@ function HomeView() {
         title="Settings"
         accent="rgba(255,255,255,0.7)"
       >
-        <SettingsScreen calendar={calendar} />
+        <SettingsScreen calendar={calendar} whoop={whoop} />
       </Modal>
     </div>
   )

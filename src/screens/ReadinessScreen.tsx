@@ -1,4 +1,10 @@
-interface Props { score: number }
+interface Props {
+  score:       number
+  hrv?:        number | null
+  rhr?:        number | null
+  sleep?:      number | null
+  sleepHours?: number | null
+}
 
 function scoreColor(s: number) {
   if (s >= 80) return '#4ade80'
@@ -12,20 +18,25 @@ function scoreLabel(s: number) {
   return 'LOW'
 }
 
-const R = 70
+const R    = 70
 const CIRC = 2 * Math.PI * R
 
-const STATS = [
-  { label: 'RECOVERY',   value: '74',  unit: '%',   color: '#4ade80' },
-  { label: 'HRV',        value: '62',  unit: 'ms',  color: '#64b5f6' },
-  { label: 'RESTING HR', value: '51',  unit: 'bpm', color: '#f87171' },
-  { label: 'SLEEP',      value: '7.2', unit: 'hrs', color: '#a78bfa' },
-]
+function fmt(val: number | null | undefined, fallback: string): string {
+  if (val == null) return fallback
+  return Number.isInteger(val) ? String(val) : val.toFixed(1)
+}
 
-export default function ReadinessScreen({ score }: Props) {
+export default function ReadinessScreen({ score, hrv, rhr, sleep, sleepHours }: Props) {
   const color = scoreColor(score)
   const label = scoreLabel(score)
   const offset = CIRC * (1 - score / 100)
+
+  const STATS = [
+    { label: 'RECOVERY',   value: fmt(score, '—'),      unit: '%',   color: scoreColor(score) },
+    { label: 'HRV',        value: fmt(hrv,   '—'),      unit: 'ms',  color: '#64b5f6' },
+    { label: 'RESTING HR', value: fmt(rhr,   '—'),      unit: 'bpm', color: '#f87171' },
+    { label: 'SLEEP',      value: fmt(sleepHours, '—'), unit: 'hrs', color: '#a78bfa' },
+  ]
 
   return (
     <div>
@@ -69,8 +80,10 @@ export default function ReadinessScreen({ score }: Props) {
         <div className="readiness-stat-card" style={{ borderColor: 'rgba(167,139,250,0.18)' }}>
           <div className="readiness-stat-label">OVERALL SLEEP QUALITY</div>
           <div>
-            <span className="readiness-stat-value" style={{ color: '#a78bfa' }}>81</span>
-            <span className="readiness-stat-unit">%</span>
+            <span className="readiness-stat-value" style={{ color: '#a78bfa' }}>
+              {sleep != null ? Math.round(sleep) : '—'}
+            </span>
+            <span className="readiness-stat-unit">{sleep != null ? '%' : ''}</span>
           </div>
         </div>
       </div>

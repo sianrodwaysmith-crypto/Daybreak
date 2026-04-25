@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { testConnection } from '../services/caldav'
+import type { WhoopData } from '../hooks/useWhoop'
 
 interface CalendarHook {
   connected: boolean
@@ -8,13 +9,26 @@ interface CalendarHook {
   clearCredentials: () => void
 }
 
-interface Props { calendar: CalendarHook }
+interface Props {
+  calendar: CalendarHook
+  whoop: WhoopData
+}
 
 type SaveState = 'idle' | 'connecting' | 'success' | 'error'
 
-export default function SettingsScreen({ calendar }: Props) {
-  const [email, setEmail]       = useState(calendar.getStoredEmail)
-  const [password, setPassword] = useState('')
+function connectWhoop() {
+  const clientId   = import.meta.env.VITE_WHOOP_CLIENT_ID as string
+  const redirectUri = encodeURIComponent(`${window.location.origin}/api/whoop/callback`)
+  const scope       = encodeURIComponent('read:recovery read:sleep read:cycles read:profile offline')
+  window.location.href =
+    `https://api.prod.whoop.com/oauth/oauth2/auth` +
+    `?client_id=${clientId}&redirect_uri=${redirectUri}` +
+    `&response_type=code&scope=${scope}`
+}
+
+export default function SettingsScreen({ calendar, whoop }: Props) {
+  const [email, setEmail]         = useState(calendar.getStoredEmail)
+  const [password, setPassword]   = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
 
   const handleSave = async () => {
@@ -41,6 +55,38 @@ export default function SettingsScreen({ calendar }: Props) {
 
   return (
     <div>
+      {/* ── Whoop ────────────────────────────────────────── */}
+      <div className="settings-section">
+        <div className="screen-section-label">WHOOP</div>
+
+        {whoop.connected ? (
+          <>
+            <div className="settings-msg settings-msg-success" style={{ marginBottom: 12 }}>
+              Connected · Recovery {whoop.recovery ?? '—'}%
+            </div>
+            <button
+              className="settings-btn settings-btn-disconnect"
+              onClick={() => whoop.disconnect()}
+            >
+              DISCONNECT WHOOP
+            </button>
+          </>
+        ) : (
+          <>
+            <p className="settings-note" style={{ marginBottom: 14 }}>
+              Connect your Whoop band to see live recovery, HRV, resting heart rate, and sleep data.
+              You'll be taken to Whoop to authorise the connection.
+            </p>
+            <button
+              className="settings-btn settings-btn-save active"
+              onClick={connectWhoop}
+            >
+              CONNECT WHOOP →
+            </button>
+          </>
+        )}
+      </div>
+
       {/* ── Calendar ─────────────────────────────────────── */}
       <div className="settings-section">
         <div className="screen-section-label">CALENDAR</div>
