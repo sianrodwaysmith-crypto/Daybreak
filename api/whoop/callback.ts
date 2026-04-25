@@ -21,14 +21,27 @@ export default async function handler(req: any, res: any) {
   const redirectUri = `${protocol}://${host}/api/whoop/callback`
 
   try {
-    const clientId     = process.env.VITE_WHOOP_CLIENT_ID    ?? ''
-    const clientSecret = process.env.WHOOP_CLIENT_SECRET ?? ''
-    const basicAuth    = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+    const clientId     = (process.env.VITE_WHOOP_CLIENT_ID    ?? '').trim()
+    const clientSecret = (process.env.WHOOP_CLIENT_SECRET ?? '').trim()
 
+    if (!clientId || !clientSecret) {
+      const detail = encodeURIComponent(
+        `creds-missing id_len=${clientId.length} secret_len=${clientSecret.length}`
+      )
+      res.writeHead(302, { Location: `/?whoop=error&reason=${detail}` })
+      res.end()
+      return
+    }
+
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
+
+    // Send credentials BOTH via Basic auth header AND body for maximum compat
     const body = new URLSearchParams({
-      grant_type:   'authorization_code',
+      grant_type:    'authorization_code',
       code,
-      redirect_uri: redirectUri,
+      redirect_uri:  redirectUri,
+      client_id:     clientId,
+      client_secret: clientSecret,
     })
 
     const tokenRes = await fetch('https://api.prod.whoop.com/oauth/oauth2/token', {
@@ -43,7 +56,10 @@ export default async function handler(req: any, res: any) {
     if (!tokenRes.ok) {
       const errBody = await tokenRes.text()
       console.error('Whoop token exchange failed:', tokenRes.status, errBody)
-      const detail = encodeURIComponent(`token-${tokenRes.status}: ${errBody.slice(0, 200)}`)
+      const idHint = clientId.length > 6 ? `${clientId.slice(0, 4)}…${clientId.slice(-2)}` : '(short)'
+      const detail = encodeURIComponent(
+        `token-${tokenRes.status} id_len=${clientId.length} id=${idHint} secret_len=${clientSecret.length}: ${errBody.slice(0, 150)}`
+      )
       res.writeHead(302, { Location: `/?whoop=error&reason=${detail}` })
       res.end()
       return
