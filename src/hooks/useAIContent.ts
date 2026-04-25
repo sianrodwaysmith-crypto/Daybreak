@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import {
-  fetchStoic, fetchDeepWork, fetchClientBrief,
+  fetchDeepWork, fetchClientBrief,
   fetchBusinessPulse, fetchAIBriefing, fetchTodaysFocus,
 } from '../services/ai'
 
-export type AITileId = 'stoic' | 'work' | 'client' | 'biz' | 'ai' | 'focus'
+export type AITileId = 'work' | 'client' | 'biz' | 'ai' | 'focus'
 
 export interface TileAI {
   content: string | null
@@ -14,7 +14,7 @@ export interface TileAI {
 
 type AIState = Record<AITileId, TileAI>
 
-const TILE_IDS: AITileId[] = ['stoic', 'work', 'client', 'biz', 'ai', 'focus']
+const TILE_IDS: AITileId[] = ['work', 'client', 'biz', 'ai', 'focus']
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10)
@@ -34,7 +34,6 @@ function writeCache(id: AITileId, value: string): void {
 
 function getPromise(id: AITileId, score: number): Promise<string> {
   switch (id) {
-    case 'stoic':  return fetchStoic()
     case 'work':   return fetchDeepWork(score)
     case 'client': return fetchClientBrief()
     case 'biz':    return fetchBusinessPulse()

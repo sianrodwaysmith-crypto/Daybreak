@@ -45,26 +45,6 @@ function dayInfo() {
   }
 }
 
-export function fetchStoic(): Promise<string> {
-  const { day, date } = dayInfo()
-  return callClaude(
-    'You are a Stoic philosophy expert. Write in a calm, precise, inspiring tone. Keep responses concise.',
-    `Today is ${day}, ${date}. Give me a morning Stoic briefing with four sections. Format exactly as shown:
-
-QUOTE
-"[one powerful Stoic quote]" — [Author] · [Work]
-
-TODAY'S PRINCIPLE
-[2-3 sentences on a Stoic principle to carry into the day]
-
-MORNING EXERCISE
-[2-3 sentences describing a specific Stoic practice for this morning]
-
-EVENING REFLECTION
-[2-3 sentences with questions to ask at day's end]`,
-  )
-}
-
 export function fetchDeepWork(score: number): Promise<string> {
   const { day, date } = dayInfo()
   const label = score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'moderate'

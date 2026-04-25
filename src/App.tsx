@@ -8,7 +8,6 @@ import WeatherBanner from './components/WeatherBanner'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
-import StoicScreen from './screens/StoicScreen'
 import ReadinessScreen from './screens/ReadinessScreen'
 import DeepWorkScreen from './screens/DeepWorkScreen'
 import ClientBriefScreen from './screens/ClientBriefScreen'
@@ -44,7 +43,6 @@ function HomeView() {
   const { ai, retry } = useAIContent(READINESS_SCORE)
 
   const TILES = [
-    { id: 'stoic',    icon: '⚡', title: 'Stoic',         subtitle: "Today's principle",                                    accent: '#ffc800', loading: ai.stoic.loading  },
     { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: `${READINESS_SCORE} · Good`,                           accent: readinessColor(READINESS_SCORE) },
     { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                           accent: '#4ade80', loading: ai.work.loading   },
     { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                  accent: '#64b5f6', loading: ai.client.loading },
@@ -59,7 +57,6 @@ function HomeView() {
 
   function getContent(id: string | null) {
     switch (id) {
-      case 'stoic':    return <StoicScreen   aiState={ai.stoic}  onRetry={() => retry('stoic')}  />
       case 'ready':    return <ReadinessScreen score={READINESS_SCORE} />
       case 'work':     return <DeepWorkScreen  aiState={ai.work}   onRetry={() => retry('work')}   />
       case 'client':   return <ClientBriefScreen aiState={ai.client} onRetry={() => retry('client')} />
