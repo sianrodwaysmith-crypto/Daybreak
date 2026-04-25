@@ -4,6 +4,8 @@ import './App.css'
 import Header from './components/Header'
 import Tile from './components/Tile'
 import Modal from './components/Modal'
+import WeatherBanner from './components/WeatherBanner'
+import { useWeather } from './hooks/useWeather'
 import StoicScreen from './screens/StoicScreen'
 import ReadinessScreen from './screens/ReadinessScreen'
 import DeepWorkScreen from './screens/DeepWorkScreen'
@@ -51,6 +53,7 @@ function getContent(id: string | null) {
 function HomeView() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const activeTile = TILES.find(t => t.id === activeId)
+  const weather = useWeather()
 
   return (
     <div className="app">
@@ -60,6 +63,7 @@ function HomeView() {
 
       <div className="app-content">
         <Header readinessScore={READINESS_SCORE} readinessColor={readinessColor(READINESS_SCORE)} />
+        {weather && <WeatherBanner weather={weather} />}
         <div className="tile-grid">
           {TILES.map(t => (
             <Tile

@@ -885,3 +885,52 @@
   transition: color 0.2s;
 }
 .legal-email:hover { color: #93c5fd; }
+
+/* ===== WEATHER BANNER ===== */
+.weather-banner {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 20px 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.weather-banner::-webkit-scrollbar { display: none; }
+.weather-emoji {
+  font-size: 15px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.weather-temp {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,0.88);
+  flex-shrink: 0;
+}
+.weather-sep {
+  color: rgba(255,255,255,0.14);
+  flex-shrink: 0;
+}
+.weather-cond {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.62);
+  flex-shrink: 0;
+}
+.weather-range {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.42);
+  flex-shrink: 0;
+}
+.weather-rain {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: rgba(255,255,255,0.42);
+  flex-shrink: 0;
+}
