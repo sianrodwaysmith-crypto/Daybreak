@@ -70,8 +70,9 @@ Format each story exactly like this:
 
 **Headline in sentence case**
 Two sentences of context explaining what happened and why it matters.
+Source: https://full-direct-url-to-the-original-article
 
-Leave a blank line between the two stories. Do not include any preamble, closing remarks, or commentary outside the two stories.`
+Leave a blank line between stories. The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage). Do not include any preamble, closing remarks, citations, or commentary outside the two stories.`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined

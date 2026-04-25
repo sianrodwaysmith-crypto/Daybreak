@@ -11,6 +11,12 @@ interface Props {
 interface Story {
   headline: string
   body:     string
+  url:      string | null
+}
+
+function hostname(url: string): string {
+  try { return new URL(url).hostname.replace(/^www\./, '') }
+  catch { return url }
 }
 
 function parseStories(text: string): Story[] {
@@ -19,12 +25,29 @@ function parseStories(text: string): Story[] {
     .map(block => {
       const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
       if (lines.length === 0) return null
-      const first   = lines[0]
-      const bolded  = first.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
-      const headline = bolded ? bolded[1] : first.replace(/^\*\*|\*\*$/g, '')
-      const body     = lines.slice(bolded ? 1 : 1).join(' ').replace(/\*\*/g, '').trim()
+
+      let headline = ''
+      const bodyParts: string[] = []
+      let url: string | null = null
+
+      for (const line of lines) {
+        const sourceMatch = line.match(/^source\s*:?\s*(.+)$/i)
+        if (sourceMatch) {
+          const urlMatch = sourceMatch[1].match(/https?:\/\/[^\s)>\]]+/)
+          if (urlMatch) url = urlMatch[0].replace(/[).,;]+$/, '')
+          continue
+        }
+        if (!headline) {
+          const bolded = line.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
+          headline = bolded ? bolded[1] : line.replace(/^\*\*|\*\*$/g, '')
+          continue
+        }
+        bodyParts.push(line.replace(/\*\*/g, ''))
+      }
+
+      const body = bodyParts.join(' ').trim()
       if (!headline && !body) return null
-      return { headline, body }
+      return { headline, body, url }
     })
     .filter((s): s is Story => s !== null)
 }
@@ -69,12 +92,41 @@ function Section({ label, accent, emoji, state, onRetry }: SectionProps) {
 
       {!state.loading && !state.error && state.content && (
         <div className="pulse-story-list">
-          {parseStories(state.content).map((story, i) => (
-            <article key={i} className="pulse-story-card" style={{ borderLeftColor: accent }}>
-              <h3 className="pulse-story-headline">{story.headline}</h3>
-              {story.body && <p className="pulse-story-body">{story.body}</p>}
-            </article>
-          ))}
+          {parseStories(state.content).map((story, i) => {
+            const headlineNode = (
+              <h3 className="pulse-story-headline">
+                {story.headline}
+                {story.url && <span className="pulse-story-arrow" aria-hidden> ↗</span>}
+              </h3>
+            )
+            const bodyNode = story.body && <p className="pulse-story-body">{story.body}</p>
+            const sourceNode = story.url && (
+              <span className="pulse-story-source">{hostname(story.url)}</span>
+            )
+
+            if (story.url) {
+              return (
+                <a
+                  key={i}
+                  className="pulse-story-card pulse-story-link"
+                  href={story.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ borderLeftColor: accent }}
+                >
+                  {headlineNode}
+                  {bodyNode}
+                  {sourceNode}
+                </a>
+              )
+            }
+            return (
+              <article key={i} className="pulse-story-card" style={{ borderLeftColor: accent }}>
+                {headlineNode}
+                {bodyNode}
+              </article>
+            )
+          })}
         </div>
       )}
     </section>

@@ -26,20 +26,6 @@ function readinessColor(score: number | null): string {
   return '#f87171'
 }
 
-function readinessLabel(score: number | null): string {
-  if (score == null)   return '—'
-  if (score >= 67) return 'Green'
-  if (score >= 34) return 'Yellow'
-  return 'Red'
-}
-
-function scheduleSubtitle(events: readonly { id: string }[], loading: boolean, connected: boolean): string {
-  if (!connected) return 'Tap to connect calendar'
-  if (loading)    return 'Loading…'
-  if (events.length === 0) return 'No events'
-  return `${events.length} event${events.length === 1 ? '' : 's'} today`
-}
-
 function useWhoopFlash(): { msg: string | null; clear: () => void } {
   const [msg, setMsg] = useState<string | null>(null)
   useEffect(() => {
@@ -76,11 +62,11 @@ function HomeView() {
     ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
   const TILES = [
-    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',    subtitle: 'Ground yourself',                                                                                                              accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',        subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop', accent: readinessColor(readinessScore) },
-    { id: 'client',  icon: '💼', title: 'Client Research',  subtitle: 'Aztec · Salesforce',                                                                                                            accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'pulse',   icon: '🌍', title: 'Pulse',            subtitle: 'Markets · AI · Tech — updated daily',                                                                                          accent: '#ffc800', loading: pulseLoading      },
-    { id: 'schedule',icon: '📅', title: 'Schedule',         subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                          accent: '#38bdf8', fullWidth: true },
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',   accent: '#f59e0b' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
+    { id: 'client',  icon: '💼', title: 'Client Research', accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'pulse',   icon: '🌍', title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
+    { id: 'schedule',icon: '📅', title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -189,7 +175,6 @@ function HomeView() {
               key={t.id}
               icon={t.icon}
               title={t.title}
-              subtitle={t.subtitle}
               accent={t.accent}
               fullWidth={'fullWidth' in t && t.fullWidth}
               loading={'loading' in t ? t.loading : false}
