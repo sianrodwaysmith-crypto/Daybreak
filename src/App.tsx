@@ -121,30 +121,43 @@ function HomeView() {
               background: whoopFlash.msg.startsWith('✅') ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
               border:     whoopFlash.msg.startsWith('✅') ? '1px solid rgba(74,222,128,0.35)' : '1px solid rgba(248,113,113,0.35)',
               color:      whoopFlash.msg.startsWith('✅') ? '#86efac' : '#fca5a5',
-              fontSize: 12,
-              lineHeight: 1.5,
-              wordBreak: 'break-word',
-              whiteSpace: 'pre-wrap',
             }}
           >
-            <div style={{ marginBottom: 8 }}>{whoopFlash.msg}</div>
+            <textarea
+              readOnly
+              value={whoopFlash.msg}
+              style={{
+                width: '100%',
+                minHeight: 140,
+                background: 'rgba(0,0,0,0.25)',
+                border: 'none',
+                color: 'inherit',
+                fontFamily: 'monospace',
+                fontSize: 11,
+                lineHeight: 1.5,
+                padding: 8,
+                borderRadius: 6,
+                resize: 'vertical',
+                marginBottom: 8,
+                WebkitUserSelect: 'text',
+                userSelect: 'text',
+              }}
+              onFocus={e => e.currentTarget.select()}
+            />
             <div style={{ display: 'flex', gap: 8 }}>
               <button
-                onClick={() => {
-                  navigator.clipboard?.writeText(whoopFlash.msg ?? '').catch(() => {})
-                  alert(whoopFlash.msg)
-                }}
+                onClick={() => navigator.clipboard?.writeText(whoopFlash.msg ?? '').catch(() => {})}
                 style={{
-                  flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid currentColor',
+                  flex: 1, padding: '8px 10px', borderRadius: 6, border: '1px solid currentColor',
                   background: 'transparent', color: 'inherit', fontSize: 11, cursor: 'pointer',
                 }}
               >
-                COPY / VIEW
+                COPY
               </button>
               <button
                 onClick={whoopFlash.clear}
                 style={{
-                  flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid currentColor',
+                  flex: 1, padding: '8px 10px', borderRadius: 6, border: '1px solid currentColor',
                   background: 'transparent', color: 'inherit', fontSize: 11, cursor: 'pointer',
                 }}
               >
