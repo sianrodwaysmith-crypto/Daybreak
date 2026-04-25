@@ -141,6 +141,8 @@ function HomeView() {
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
           <span className="home-footer-sep">·</span>
           <Link to="/terms" className="home-footer-link">Terms</Link>
+          <span className="home-footer-sep">·</span>
+          <span className="home-footer-build" title="Build stamp">{__BUILD_STAMP__}</span>
         </footer>
       </div>
 

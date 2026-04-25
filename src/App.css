@@ -790,8 +790,13 @@
   font-size: 12px;
   color: var(--muted);
 }
-.home-footer-link { color: var(--muted); }
-.home-footer-sep  { color: var(--faint); }
+.home-footer-link  { color: var(--muted); }
+.home-footer-sep   { color: var(--faint); }
+.home-footer-build {
+  color: var(--faint);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 10.5px;
+}
 
 /* ---------- Modal ---------- */
 .modal-overlay {
