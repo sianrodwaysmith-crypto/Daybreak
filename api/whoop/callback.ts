@@ -70,15 +70,27 @@ export default async function handler(req: any, res: any) {
     }
 
     const cookieBase = 'HttpOnly; Secure; SameSite=Lax; Path=/'
-    // 30 days for both — server still respects underlying token expiry by
-    // refreshing on 401, but a longer cookie lifetime keeps the refresh
-    // token reachable across Safari sessions.
-    res.setHeader('Set-Cookie', [
-      `whoop_access_token=${tokens.access_token}; Max-Age=2592000; ${cookieBase}`,
-      `whoop_refresh_token=${tokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
-    ])
-    res.writeHead(302, { Location: '/?whoop=connected' })
-    res.end()
+    // Use a 200 HTML response with JS redirect rather than a 302.
+    // iOS Safari is unreliable about persisting cookies set on a 302
+    // redirect that crosses an external origin (Whoop -> us); a 200
+    // with an HTML body commits cookies before the browser navigates.
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta http-equiv="refresh" content="0; url=/?whoop=connected">
+<title>Connecting…</title>
+<style>body{background:#080810;color:#fff;font:14px -apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
+</head><body><div>Connecting Whoop…</div>
+<script>setTimeout(function(){window.location.replace('/?whoop=connected')},50)</script>
+</body></html>`
+
+    res.writeHead(200, {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Cache-Control': 'no-store',
+      'Set-Cookie': [
+        `whoop_access_token=${tokens.access_token}; Max-Age=2592000; ${cookieBase}`,
+        `whoop_refresh_token=${tokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
+      ],
+    })
+    res.end(html)
   } catch (e) {
     console.error('Whoop callback error:', e)
     res.writeHead(302, { Location: '/?whoop=error' })
