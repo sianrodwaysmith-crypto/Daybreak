@@ -115,6 +115,22 @@ function parseStories(raw: string): Story[] {
 
       if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
+      // If the model skipped the What:/Impact: labels, synthesise them from
+      // the body so every card renders with the same structure. Split on the
+      // first sentence terminator; first sentence becomes What, the rest
+      // becomes Impact. If only one sentence is present, it all goes into
+      // What and Impact stays empty (still consistent — labelled row).
+      if (!what && !impact && body) {
+        const splitMatch = body.match(/^(.+?[.!?])\s+(.+)$/s)
+        if (splitMatch) {
+          what   = splitMatch[1].trim()
+          impact = splitMatch[2].trim()
+        } else {
+          what = body.trim()
+        }
+        body = ''
+      }
+
       if (!headline && !what && !impact && !body) return null
       return { headline, what, impact, body, url }
     })
