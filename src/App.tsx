@@ -6,6 +6,7 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
+import OneThing from './components/OneThing'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
@@ -130,6 +131,9 @@ function HomeView() {
             />
           ))}
         </div>
+
+        <OneThing />
+
         <footer className="home-footer">
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
           <span className="home-footer-sep">·</span>
