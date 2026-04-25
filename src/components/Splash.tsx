@@ -14,7 +14,7 @@ export default function Splash() {
 
   return (
     <div className={`splash${fading ? ' splash-fade' : ''}`}>
-      <div className="splash-bolt">⚡</div>
+      <div className="splash-mark">Daybreak</div>
     </div>
   )
 }
