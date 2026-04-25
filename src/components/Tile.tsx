@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 
 interface Props {
-  icon: string
+  icon: ReactNode
   title: string
   accent: string
   fullWidth?: boolean | false

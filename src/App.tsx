@@ -7,6 +7,9 @@ import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
 import OneThing from './components/OneThing'
+import {
+  MindsetIcon, ReadinessIcon, ClientResearchIcon, PulseIcon, ScheduleIcon,
+} from './components/icons'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
@@ -63,11 +66,11 @@ function HomeView() {
     ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
   const TILES = [
-    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',   accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
-    { id: 'pulse',   icon: '🌍', title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
-    { id: 'client',  icon: '💼', title: 'Client Research', accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'schedule',icon: '📅', title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading },
+    { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
+    { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
+    { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
+    { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)

@@ -722,12 +722,15 @@
 }
 .tile:active, .tile.is-pressing { transform: scale(0.985); border-color: var(--line-strong); }
 .tile-icon {
-  font-size: 20px;
-  line-height: 1;
-  margin-bottom: 14px;
-  filter: grayscale(0.2);
-  opacity: 0.95;
+  width: 30px;
+  height: 30px;
+  margin-bottom: 18px;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.tile-icon svg { width: 100%; height: 100%; display: block; }
 .tile-title {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
