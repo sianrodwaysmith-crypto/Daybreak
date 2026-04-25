@@ -29,7 +29,7 @@ export default function Header({ readinessScore, readinessColor, onSettings }: P
           </svg>
         </button>
       </div>
-      <div className="header-greeting">Good morning.</div>
+      <div className="header-greeting">Good morning, Siân.</div>
       <div className="header-date">{date}</div>
 
       <div className="header-readiness">
