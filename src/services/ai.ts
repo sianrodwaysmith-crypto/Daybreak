@@ -89,8 +89,11 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
       'anthropic-dangerous-direct-browser-access':  'true',
     },
     body: JSON.stringify({
+      // 4096 leaves room for interleaved thinking + multiple web_search
+      // rounds + the final formatted output. 1024 was running out before
+      // the model could write any text at all.
       model:      MODEL,
-      max_tokens: 1024,
+      max_tokens: 4096,
       tools: [
         {
           type: 'web_search_20250305',
