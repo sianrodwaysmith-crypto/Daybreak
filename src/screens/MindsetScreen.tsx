@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { generateMindsetReflection } from '../services/anthropic'
+import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 const TODAY = new Date().toISOString().split('T')[0]
 const KEY = `daybreak-mindset-${TODAY}`
@@ -12,6 +13,7 @@ interface Saved {
 }
 
 export default function MindsetScreen() {
+  const { registerContent } = useDayBreakContext()
   const [g1, setG1]                 = useState('')
   const [g2, setG2]                 = useState('')
   const [g3, setG3]                 = useState('')
@@ -30,8 +32,14 @@ export default function MindsetScreen() {
       setAffirm(e.affirmation)
       setReflection(e.reflection)
       setSubmitted(true)
+      registerContent('mindset', {
+        gratitude:    [e.g1, e.g2, e.g3].filter(Boolean),
+        great_day:    e.greatDay,
+        affirmation:  e.affirmation,
+        reflection:   e.reflection,
+      })
     }
-  }, [])
+  }, [registerContent])
 
   const allFilled = g1.trim() && g2.trim() && g3.trim() && greatDay.trim() && affirmation.trim()
 
@@ -43,6 +51,12 @@ export default function MindsetScreen() {
       setReflection(result)
       setSubmitted(true)
       localStorage.setItem(KEY, JSON.stringify({ g1, g2, g3, greatDay, affirmation, reflection: result }))
+      registerContent('mindset', {
+        gratitude:   [g1, g2, g3].filter(Boolean),
+        great_day:   greatDay,
+        affirmation: affirmation,
+        reflection:  result,
+      })
     } finally {
       setLoading(false)
     }
@@ -53,6 +67,7 @@ export default function MindsetScreen() {
     setG1(''); setG2(''); setG3('')
     setGreatDay(''); setAffirm('')
     setReflection(''); setSubmitted(false); setLoading(false)
+    registerContent('mindset', null)
   }
 
   const btnClass = loading ? 'mindset-btn loading' : allFilled ? 'mindset-btn complete' : 'mindset-btn incomplete'

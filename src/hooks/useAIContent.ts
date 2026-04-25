@@ -3,6 +3,7 @@ import {
   fetchDeepWork, fetchClientBrief,
   fetchPulseAnthropic, fetchPulseAIWorld, fetchPulseTechMarket,
 } from '../services/ai'
+import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 export type AITileId = 'work' | 'client' | 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
 export type PulseSectionId = 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
@@ -80,7 +81,15 @@ function buildInitialState(): AIState {
 }
 
 export function useAIContent(score: number) {
+  const { registerContent } = useDayBreakContext()
   const [state, setState] = useState<AIState>(buildInitialState)
+
+  useEffect(() => {
+    for (const id of TILE_IDS) {
+      const content = state[id].content
+      registerContent(`tile_${id}`, content && content.trim() ? content : null)
+    }
+  }, [state, registerContent])
 
   function fetchOne(id: AITileId) {
     setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, fetchedAt: null } }))

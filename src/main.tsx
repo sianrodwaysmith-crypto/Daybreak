@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import Splash from './components/Splash.tsx'
+import { DayBreakProvider } from './contexts/DayBreakContext.tsx'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -14,8 +15,10 @@ if ('serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
-      <Splash />
+      <DayBreakProvider>
+        <App />
+        <Splash />
+      </DayBreakProvider>
     </BrowserRouter>
   </StrictMode>,
 )

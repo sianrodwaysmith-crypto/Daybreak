@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { type CalEvent, type CalCreds, fetchTodayEvents } from '../services/caldav'
+import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 export type { CalEvent, CalCreds }
 
@@ -37,7 +38,20 @@ function saveCache(events: CalEvent[]) {
 }
 
 export function useCalendar() {
+  const { registerContent } = useDayBreakContext()
   const [state, setState] = useState<CalState>({ events: [], loading: false, connected: false, error: null })
+
+  useEffect(() => {
+    if (!state.connected || state.loading) return
+    const flat = state.events.map(e => ({
+      title:    e.title,
+      start:    e.start instanceof Date ? e.start.toISOString() : e.start,
+      end:      e.end   instanceof Date ? e.end.toISOString()   : e.end,
+      location: e.location ?? undefined,
+      all_day:  e.allDay,
+    }))
+    registerContent('calendar_today', flat)
+  }, [state.connected, state.loading, state.events, registerContent])
 
   const doFetch = useCallback(async (creds: CalCreds, bustCache = false) => {
     if (!bustCache) {

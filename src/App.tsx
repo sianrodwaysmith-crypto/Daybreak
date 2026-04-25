@@ -5,6 +5,7 @@ import Header from './components/Header'
 import Tile from './components/Tile'
 import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
+import ChatWidget from './components/ChatWidget'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
 import { useAIContent } from './hooks/useAIContent'
@@ -225,6 +226,8 @@ function HomeView() {
       >
         <SettingsScreen calendar={calendar} whoop={whoop} />
       </Modal>
+
+      <ChatWidget />
     </div>
   )
 }

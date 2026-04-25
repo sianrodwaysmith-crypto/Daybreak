@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 export interface WeatherData {
   temp: number
@@ -59,10 +60,23 @@ function loadCache(): WeatherData | null {
 }
 
 export function useWeather(): WeatherData | null {
+  const { registerContent } = useDayBreakContext()
   const [weather, setWeather] = useState<WeatherData | null>(() => {
     const cached = loadCache()
     return cached && Date.now() - cached.fetchedAt < TTL ? cached : null
   })
+
+  useEffect(() => {
+    if (weather) {
+      registerContent('weather', {
+        condition:  weather.condition,
+        temp:       weather.temp,
+        high:       weather.high,
+        low:        weather.low,
+        rainChance: weather.rainChance,
+      })
+    }
+  }, [weather, registerContent])
 
   useEffect(() => {
     const cached = loadCache()

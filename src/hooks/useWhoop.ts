@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 export interface WhoopData {
   connected:        boolean
@@ -83,9 +84,31 @@ function writePersisted(data: WhoopPayload) {
 }
 
 export function useWhoop(): WhoopData {
+  const { registerContent } = useDayBreakContext()
   const persisted = readPersisted()
   const [loading, setLoading] = useState(persisted == null)
   const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
+
+  useEffect(() => {
+    if (payload.connected) {
+      registerContent('whoop', {
+        recovery:         payload.recovery,
+        hrv:              payload.hrv,
+        rhr:              payload.rhr,
+        sleep_pct:        payload.sleep,
+        sleep_efficiency: payload.sleepEfficiency,
+        sleep_consistency:payload.sleepConsistency,
+        sleep_hours:      payload.sleepHours,
+        rem_hours:        payload.remHours,
+        deep_hours:       payload.deepHours,
+        strain:           payload.strain,
+        avg_hr_today:     payload.avgHr,
+        max_hr_today:     payload.maxHr,
+      })
+    } else {
+      registerContent('whoop', null)
+    }
+  }, [payload, registerContent])
 
   const fetchData = useCallback(async () => {
     const tokens = readTokens()
