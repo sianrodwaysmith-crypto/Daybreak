@@ -6,10 +6,11 @@ interface Props {
   subtitle: string
   accent: string
   fullWidth?: boolean | false
+  loading?: boolean
   onClick: () => void
 }
 
-export default function Tile({ icon, title, subtitle, accent, fullWidth, onClick }: Props) {
+export default function Tile({ icon, title, subtitle, accent, fullWidth, loading, onClick }: Props) {
   const [pressing, setPressing] = useState(false)
 
   return (
@@ -28,7 +29,14 @@ export default function Tile({ icon, title, subtitle, accent, fullWidth, onClick
         {icon}
       </div>
       <div className="tile-title" style={{ color: accent }}>{title}</div>
-      <div className="tile-subtitle">{subtitle}</div>
+      {loading
+        ? <div className="tile-dots">
+            <span className="tile-dot" style={{ background: accent, animationDelay: '0ms' }} />
+            <span className="tile-dot" style={{ background: accent, animationDelay: '180ms' }} />
+            <span className="tile-dot" style={{ background: accent, animationDelay: '360ms' }} />
+          </div>
+        : <div className="tile-subtitle">{subtitle}</div>
+      }
     </div>
   )
 }

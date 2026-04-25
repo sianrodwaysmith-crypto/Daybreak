@@ -1,4 +1,12 @@
-export default function ClientBriefScreen() {
+import type { TileAI } from '../hooks/useAIContent'
+import AIBlock from '../components/AIBlock'
+
+interface Props {
+  aiState: TileAI
+  onRetry: () => void
+}
+
+export default function ClientBriefScreen({ aiState, onRetry }: Props) {
   return (
     <div>
       <div className="client-active-box">
@@ -25,18 +33,7 @@ export default function ClientBriefScreen() {
       </div>
 
       <div className="screen-section">
-        <div className="screen-section-label">TODAY'S PRIORITIES</div>
-        <div className="screen-card">
-          {[
-            '→  Review integration spec v2.1 with dev team',
-            '→  Confirm data migration timeline with Aztec IT',
-            '→  Send weekly status update to James Henderson',
-          ].map((t, i) => (
-            <div key={i} className="detail-row">
-              <div className="detail-value" style={{ textAlign: 'left' }}>{t}</div>
-            </div>
-          ))}
-        </div>
+        <AIBlock state={aiState} accent="#64b5f6" onRetry={onRetry} />
       </div>
 
       <div className="screen-section">
