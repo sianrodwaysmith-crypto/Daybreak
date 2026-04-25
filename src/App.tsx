@@ -114,7 +114,6 @@ function HomeView() {
         />
         {whoopFlash.msg && (
           <div
-            onClick={whoopFlash.clear}
             style={{
               margin: '0 20px 12px',
               padding: '10px 14px',
@@ -122,14 +121,36 @@ function HomeView() {
               background: whoopFlash.msg.startsWith('✅') ? 'rgba(74,222,128,0.12)' : 'rgba(248,113,113,0.12)',
               border:     whoopFlash.msg.startsWith('✅') ? '1px solid rgba(74,222,128,0.35)' : '1px solid rgba(248,113,113,0.35)',
               color:      whoopFlash.msg.startsWith('✅') ? '#86efac' : '#fca5a5',
-              fontSize: 13,
-              lineHeight: 1.45,
-              cursor: 'pointer',
+              fontSize: 12,
+              lineHeight: 1.5,
               wordBreak: 'break-word',
+              whiteSpace: 'pre-wrap',
             }}
           >
-            {whoopFlash.msg}
-            <div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>tap to dismiss</div>
+            <div style={{ marginBottom: 8 }}>{whoopFlash.msg}</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => {
+                  navigator.clipboard?.writeText(whoopFlash.msg ?? '').catch(() => {})
+                  alert(whoopFlash.msg)
+                }}
+                style={{
+                  flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid currentColor',
+                  background: 'transparent', color: 'inherit', fontSize: 11, cursor: 'pointer',
+                }}
+              >
+                COPY / VIEW
+              </button>
+              <button
+                onClick={whoopFlash.clear}
+                style={{
+                  flex: 1, padding: '6px 10px', borderRadius: 6, border: '1px solid currentColor',
+                  background: 'transparent', color: 'inherit', fontSize: 11, cursor: 'pointer',
+                }}
+              >
+                DISMISS
+              </button>
+            </div>
           </div>
         )}
         {weather && <WeatherBanner weather={weather} />}
