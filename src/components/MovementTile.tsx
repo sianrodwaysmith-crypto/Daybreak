@@ -21,6 +21,11 @@ const source: MovementSource = new CompositeMovementSource([
 ==================================================================== */
 
 const DAY_LABELS = ['m', 't', 'w', 't', 'f', 's', 's']
+const ONE_DAY    = 24 * 60 * 60 * 1000
+const SHORT_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
 
 function recoveryLabel(score: number | null): string {
   if (score == null)   return ''
@@ -40,25 +45,44 @@ function todaySubLine(today: MovementEvent | null, recovery: number | null): str
   if (today.source === 'rest') return 'Honour it.'
   if (today.source === 'done') return 'Logged on Whoop.'
   if (today.source === 'booked' || today.source === 'planned') {
-    const where = today.location ? `Booked at ${today.location}.` : 'Booked.'
+    const verb = today.source === 'planned' ? 'Planned' : 'Booked'
+    const where = today.location ? `${verb} at ${today.location}.` : `${verb}.`
     const tone  = recovery == null
       ? ''
       : recovery >= 67
         ? ' Whoop says you can push it.'
         : ' Recovery low — listen to it.'
-    const verb = today.source === 'planned' ? 'Planned' : 'Booked'
-    return `${where.replace('Booked', verb)}${tone}`.trim()
+    return `${where}${tone}`.trim()
   }
   return ''
 }
 
 function cadenceFooter(usual: number, thisWeek: number, onTrack: boolean): string {
-  if (onTrack) return 'On track this week.'
+  if (onTrack && usual > 0) return 'On track this week.'
+  if (usual === 0 && thisWeek === 0) return 'No movement logged yet.'
+  if (usual === 0)                    return `${thisWeek} this week.`
   return `${thisWeek} of your usual ${usual} this week.`
 }
 
+function weekRangeLabel(weekStart: Date): string {
+  const end = new Date(weekStart.getTime() + 6 * ONE_DAY)
+  const sameMonth = weekStart.getMonth() === end.getMonth()
+  const sm = SHORT_MONTHS[weekStart.getMonth()]
+  const em = SHORT_MONTHS[end.getMonth()]
+  if (sameMonth) return `${sm} ${weekStart.getDate()} – ${end.getDate()}`
+  return `${sm} ${weekStart.getDate()} – ${em} ${end.getDate()}`
+}
+
+function relativeWeekLabel(weekStart: Date, todayWeekStart: Date): string {
+  const diff = Math.round((weekStart.getTime() - todayWeekStart.getTime()) / (7 * ONE_DAY))
+  if (diff === 0) return 'This week'
+  if (diff === -1) return 'Last week'
+  if (diff === 1)  return 'Next week'
+  return weekRangeLabel(weekStart)
+}
+
 /* ====================================================================
-   Week chart — 7 day columns over a horizon line
+   Week chart — CSS grid, fluid width, no SVG stretch
 ==================================================================== */
 
 interface ChartProps {
@@ -69,85 +93,29 @@ interface ChartProps {
 }
 
 function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
-  const W = 320
-  const H = 64
-  const padX = 14
-  const colWidth = (W - padX * 2) / 7
-  const horizonY = 38
-
   return (
-    <svg
-      className="movement-chart"
-      viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
-      role="img"
-      aria-label="Movement this week"
-    >
-      {/* Horizon */}
-      <line
-        x1={padX} y1={horizonY} x2={W - padX} y2={horizonY}
-        stroke="var(--line-strong)"
-        strokeWidth="0.75"
-      />
-
+    <div className="movement-week" role="group" aria-label="Movement this week">
+      <div className="movement-horizon" aria-hidden />
       {weekISO.map((iso, i) => {
-        const cx = padX + colWidth * i + colWidth / 2
         const ev = byDate.get(iso)
         const isToday = iso === today
-
         return (
-          <g
+          <button
             key={iso}
-            className="movement-day"
-            onPointerUp={(e) => { e.stopPropagation(); onTapDay(iso) }}
-            style={{ cursor: 'pointer' }}
+            type="button"
+            className={`movement-day${isToday ? ' is-today' : ''}`}
+            onClick={() => onTapDay(iso)}
+            aria-label={`${DAY_LABELS[i]} ${iso}`}
           >
-            {/* Tap target */}
-            <rect x={cx - colWidth / 2} y={0} width={colWidth} height={H} fill="transparent" />
-
-            {/* Today indicator (dotted vertical) */}
-            {isToday && (
-              <line
-                x1={cx} y1={6} x2={cx} y2={H - 12}
-                stroke="var(--line-strong)"
-                strokeWidth="0.75"
-                strokeDasharray="2 3"
-              />
-            )}
-
-            {/* Mark */}
-            {ev?.source === 'done' && (
-              <circle cx={cx} cy={horizonY - 12} r="4" fill="var(--ink)" />
-            )}
-            {ev?.source === 'booked' && (
-              <>
-                <circle cx={cx} cy={horizonY - 12} r="4" fill="none" stroke="var(--ink)" strokeWidth="1.2" />
-                <circle cx={cx} cy={horizonY - 12} r="1.4" fill="var(--ink)" />
-              </>
-            )}
-            {ev?.source === 'planned' && (
-              <circle cx={cx} cy={horizonY - 12} r="3.2" fill="none" stroke="var(--muted)" strokeWidth="1" />
-            )}
-            {ev?.source === 'rest' && (
-              <line x1={cx - 4} y1={horizonY} x2={cx + 4} y2={horizonY} stroke="var(--ink)" strokeWidth="1.2" strokeLinecap="round" />
-            )}
-
-            {/* Day label */}
-            <text
-              x={cx}
-              y={H - 4}
-              textAnchor="middle"
-              fontSize="10"
-              fontFamily="Inter, system-ui, sans-serif"
-              fill={isToday ? 'var(--ink)' : 'var(--faint)'}
-              fontWeight={isToday ? 500 : 400}
-            >
-              {DAY_LABELS[i]}
-            </text>
-          </g>
+            {ev?.source === 'done'    && <span className="movement-mark mark-done"    />}
+            {ev?.source === 'booked'  && <span className="movement-mark mark-booked"  />}
+            {ev?.source === 'planned' && <span className="movement-mark mark-planned" />}
+            {ev?.source === 'rest'    && <span className="movement-mark mark-rest"    />}
+            <span className="movement-day-label">{DAY_LABELS[i]}</span>
+          </button>
         )
       })}
-    </svg>
+    </div>
   )
 }
 
@@ -362,24 +330,37 @@ interface Props {
   recovery: number | null
 }
 
+const MAX_WEEKS_AHEAD = 8
+const MAX_WEEKS_BACK  = 8
+
 export default function MovementTile({ recovery }: Props) {
   const [events, setEvents]   = useState<MovementEvent[]>([])
   const [sheet,  setSheet]    = useState<SheetState | null>(null)
   const [bump,   setBump]     = useState(0)
 
-  // Pull events spanning 4 prior weeks + this week so cadence is meaningful.
+  const today = useMemo(() => new Date(), [])
+  const todayWeekStart = useMemo(() => startOfWeek(today), [today])
+
+  const [viewedWeekStart, setViewedWeekStart] = useState<Date>(() => startOfWeek(new Date()))
+
+  const weekOffset = useMemo(
+    () => Math.round((viewedWeekStart.getTime() - todayWeekStart.getTime()) / (7 * ONE_DAY)),
+    [viewedWeekStart, todayWeekStart],
+  )
+  const canGoBack    = weekOffset > -MAX_WEEKS_BACK
+  const canGoForward = weekOffset <  MAX_WEEKS_AHEAD
+
+  // Pull events spanning 4 prior weeks + the viewed week (so cadence still
+  // works regardless of where the user has scrolled to). Refresh on bump.
   useEffect(() => {
     let alive = true
-    const now   = new Date()
-    const start = isoDate(new Date(startOfWeek(now).getTime() - 4 * 7 * 24 * 60 * 60 * 1000))
-    const end   = isoDate(new Date(startOfWeek(now).getTime() + 7 * 24 * 60 * 60 * 1000))
+    const start = isoDate(new Date(todayWeekStart.getTime() - 4 * 7 * ONE_DAY))
+    const end   = isoDate(new Date(viewedWeekStart.getTime() + 7 * ONE_DAY))
     source.loadEvents(start, end).then(es => { if (alive) setEvents(es) })
     return () => { alive = false }
-  }, [bump])
+  }, [bump, todayWeekStart, viewedWeekStart])
 
-  const today = useMemo(() => new Date(), [])
-
-  const week    = useMemo(() => weekDates(startOfWeek(today)), [today])
+  const week    = useMemo(() => weekDates(viewedWeekStart), [viewedWeekStart])
   const byDate  = useMemo(() => {
     const m = new Map<string, MovementEvent>()
     for (const e of events) if (week.includes(e.date)) m.set(e.date, e)
@@ -398,8 +379,18 @@ export default function MovementTile({ recovery }: Props) {
   }
 
   function openNextEmpty() {
-    const next = week.find(d => !byDate.get(d) && d >= todayISO())
+    // Look in the viewed week first, then this week, for the next empty slot
+    // from today onwards. Falls back to today if everything is full.
+    const candidates = [
+      ...week.filter(d => d >= todayISO()),
+      ...weekDates(todayWeekStart).filter(d => d >= todayISO()),
+    ]
+    const next = candidates.find(d => !byDate.get(d))
     setSheet({ iso: next ?? todayISO(), ev: null })
+  }
+
+  function stepWeek(deltaWeeks: number) {
+    setViewedWeekStart(s => new Date(s.getTime() + deltaWeeks * 7 * ONE_DAY))
   }
 
   return (
@@ -413,6 +404,31 @@ export default function MovementTile({ recovery }: Props) {
         <span className="movement-today-line">{todayLine(session)}</span>
         <span className="movement-today-sub">{todaySubLine(session, recovery)}</span>
       </button>
+
+      <div className="movement-week-nav">
+        <button
+          type="button"
+          className="movement-nav-btn"
+          onClick={() => stepWeek(-1)}
+          disabled={!canGoBack}
+          aria-label="Previous week"
+        >
+          ←
+        </button>
+        <span className="movement-nav-label">
+          {relativeWeekLabel(viewedWeekStart, todayWeekStart)}
+          <span className="movement-nav-range"> · {weekRangeLabel(viewedWeekStart)}</span>
+        </span>
+        <button
+          type="button"
+          className="movement-nav-btn"
+          onClick={() => stepWeek(1)}
+          disabled={!canGoForward}
+          aria-label="Next week"
+        >
+          →
+        </button>
+      </div>
 
       <WeekChart
         weekISO={week}
@@ -430,7 +446,7 @@ export default function MovementTile({ recovery }: Props) {
 
       <div className="movement-foot">
         <span className="movement-foot-line">{cadenceFooter(cadence.usual, cadence.thisWeek, cadence.onTrack)}</span>
-        {!cadence.onTrack && (
+        {!(cadence.onTrack && cadence.usual > 0) && (
           <button className="movement-foot-cta" onClick={openNextEmpty}>
             Plan one →
           </button>

@@ -42,7 +42,9 @@ export interface MovementSource {
    so the user's edits survive reloads even though the seed is static.
 ------------------------------------------------------------------- */
 
-const STORE_KEY = 'daybreak-movement-events-v1'
+// Bumped to v2 when the seed JSON was cleared — old phones had the
+// hardcoded sessions written into localStorage on first run.
+const STORE_KEY = 'daybreak-movement-events-v2'
 
 function loadStore(): MovementEvent[] | null {
   try {

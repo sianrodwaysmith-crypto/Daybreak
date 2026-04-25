@@ -1,35 +1,4 @@
 {
-  "events": [
-    { "id": "m-2026-03-24", "date": "2026-03-24", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-1" },
-    { "id": "m-2026-03-26", "date": "2026-03-26", "source": "done", "title": "Strength", "intensity": "moderate", "externalId": "whoop-2" },
-    { "id": "m-2026-03-28", "date": "2026-03-28", "source": "done", "title": "5k run",   "intensity": "moderate", "externalId": "whoop-3" },
-
-    { "id": "m-2026-03-30", "date": "2026-03-30", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-4" },
-    { "id": "m-2026-04-01", "date": "2026-04-01", "source": "done", "title": "Strength", "intensity": "moderate", "externalId": "whoop-5" },
-    { "id": "m-2026-04-03", "date": "2026-04-03", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-6" },
-    { "id": "m-2026-04-05", "date": "2026-04-05", "source": "done", "title": "Long run", "intensity": "high",     "externalId": "whoop-7" },
-
-    { "id": "m-2026-04-07", "date": "2026-04-07", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-8" },
-    { "id": "m-2026-04-09", "date": "2026-04-09", "source": "done", "title": "Strength", "intensity": "moderate", "externalId": "whoop-9" },
-    { "id": "m-2026-04-11", "date": "2026-04-11", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-10" },
-    { "id": "m-2026-04-12", "date": "2026-04-12", "source": "done", "title": "5k run",   "intensity": "moderate", "externalId": "whoop-11" },
-
-    { "id": "m-2026-04-14", "date": "2026-04-14", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-12" },
-    { "id": "m-2026-04-15", "date": "2026-04-15", "source": "done", "title": "Strength", "intensity": "moderate", "externalId": "whoop-13" },
-    { "id": "m-2026-04-17", "date": "2026-04-17", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-14" },
-    { "id": "m-2026-04-18", "date": "2026-04-18", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-15" },
-
-    { "id": "m-2026-04-20", "date": "2026-04-20", "source": "rest", "title": "Rest day"                                                  },
-    { "id": "m-2026-04-21", "date": "2026-04-21", "source": "done", "title": "Padel",    "intensity": "moderate", "externalId": "whoop-16" },
-    { "id": "m-2026-04-22", "date": "2026-04-22", "source": "done", "title": "Strength", "intensity": "moderate", "externalId": "whoop-17" },
-    { "id": "m-2026-04-25", "date": "2026-04-25", "source": "booked", "title": "Padel",  "startTime": "17:30", "durationMinutes": 60, "location": "Rocket", "intensity": "moderate", "externalId": "dl-1234", "externalUrl": "https://www.davidlloyd.co.uk/" }
-  ],
-  "recovery": [
-    { "date": "2026-04-25", "score": 78 },
-    { "date": "2026-04-24", "score": 64 },
-    { "date": "2026-04-23", "score": 71 },
-    { "date": "2026-04-22", "score": 58 },
-    { "date": "2026-04-21", "score": 82 },
-    { "date": "2026-04-20", "score": 49 }
-  ]
+  "events": [],
+  "recovery": []
 }

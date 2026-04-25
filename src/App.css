@@ -1636,12 +1636,136 @@
   line-height: 1.45;
   color: var(--muted);
 }
-.movement-chart {
-  width: 100%;
-  height: 64px;
+/* ----- Week navigation ----- */
+.movement-week-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+.movement-nav-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.movement-nav-btn:disabled {
+  color: var(--faint);
+  border-color: var(--line);
+  opacity: 0.4;
+  cursor: default;
+}
+.movement-nav-label {
+  font-size: 12.5px;
+  color: var(--ink);
+  font-weight: 500;
+  text-align: center;
+  flex: 1;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+}
+.movement-nav-range {
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ----- Week chart (responsive CSS grid) ----- */
+.movement-week {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 56px;
+  padding: 0 6px;
+}
+.movement-horizon {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: 32px;
+  height: 1px;
+  background: var(--line-strong);
+  pointer-events: none;
+}
+.movement-day {
+  position: relative;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.movement-day::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  bottom: 16px;
+  width: 0;
+  border-left: 1px dashed transparent;
+  transform: translateX(-0.5px);
+}
+.movement-day.is-today::before {
+  border-left-color: var(--line-strong);
+}
+.movement-day:active { background: rgba(10,10,10,0.04); border-radius: 8px; }
+
+.movement-mark {
+  position: absolute;
+  left: 50%;
+  top: 18px;
+  transform: translateX(-50%);
   display: block;
 }
-.movement-day:active rect { fill: rgba(10,10,10,0.04); }
+.movement-mark.mark-done {
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.movement-mark.mark-booked {
+  width: 9px; height: 9px;
+  border-radius: 999px;
+  border: 1px solid var(--ink);
+}
+.movement-mark.mark-booked::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  background: var(--ink);
+}
+.movement-mark.mark-planned {
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  border: 1px solid var(--muted);
+}
+.movement-mark.mark-rest {
+  top: 30px;
+  width: 12px;
+  height: 1.6px;
+  border-radius: 1px;
+  background: var(--ink);
+}
+
+.movement-day-label {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  font-size: 10.5px;
+  color: var(--faint);
+}
+.movement-day.is-today .movement-day-label {
+  color: var(--ink);
+  font-weight: 500;
+}
 .movement-legend {
   display: flex;
   gap: 14px;
