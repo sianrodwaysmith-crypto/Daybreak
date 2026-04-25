@@ -43,13 +43,13 @@ function HomeView() {
   const { ai, retry } = useAIContent(READINESS_SCORE)
 
   const TILES = [
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',  subtitle: 'Ground yourself',                                     accent: '#f59e0b' },
     { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: `${READINESS_SCORE} · Good`,                           accent: readinessColor(READINESS_SCORE) },
     { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                           accent: '#4ade80', loading: ai.work.loading   },
     { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                  accent: '#64b5f6', loading: ai.client.loading },
     { id: 'biz',     icon: '📈', title: 'Business Pulse', subtitle: 'Markets and top stories',                             accent: '#ffc800', loading: ai.biz.loading    },
     { id: 'ai',      icon: '🤖', title: 'AI Briefing',    subtitle: 'Anthropic and AI news',                               accent: '#a78bfa', loading: ai.ai.loading     },
     { id: 'focus',   icon: '🎯', title: "Today's Focus",  subtitle: 'Your priority',                                       accent: '#f97316', loading: ai.focus.loading  },
-    { id: 'mindset', icon: '🙏', title: 'Mindset',        subtitle: 'Gratitude and intention',                             accent: '#f59e0b' },
     { id: 'schedule',icon: '📅', title: 'Schedule',       subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected), accent: '#38bdf8', fullWidth: true },
   ]
 
