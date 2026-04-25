@@ -70,8 +70,11 @@ export default async function handler(req: any, res: any) {
     }
 
     const cookieBase = 'HttpOnly; Secure; SameSite=Lax; Path=/'
+    // 30 days for both — server still respects underlying token expiry by
+    // refreshing on 401, but a longer cookie lifetime keeps the refresh
+    // token reachable across Safari sessions.
     res.setHeader('Set-Cookie', [
-      `whoop_access_token=${tokens.access_token}; Max-Age=${tokens.expires_in}; ${cookieBase}`,
+      `whoop_access_token=${tokens.access_token}; Max-Age=2592000; ${cookieBase}`,
       `whoop_refresh_token=${tokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
     ])
     res.writeHead(302, { Location: '/?whoop=connected' })

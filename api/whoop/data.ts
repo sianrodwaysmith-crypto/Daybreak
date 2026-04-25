@@ -68,7 +68,7 @@ export default async function handler(req: any, res: any) {
     }
     accessToken = newTokens.access_token
     res.setHeader('Set-Cookie', [
-      `whoop_access_token=${accessToken}; Max-Age=${newTokens.expires_in}; ${cookieBase}`,
+      `whoop_access_token=${accessToken}; Max-Age=2592000; ${cookieBase}`,
       `whoop_refresh_token=${newTokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
     ])
   }
@@ -90,7 +90,7 @@ export default async function handler(req: any, res: any) {
     }
     const newHeader = { Authorization: `Bearer ${newTokens.access_token}` }
     res.setHeader('Set-Cookie', [
-      `whoop_access_token=${newTokens.access_token}; Max-Age=${newTokens.expires_in}; ${cookieBase}`,
+      `whoop_access_token=${newTokens.access_token}; Max-Age=2592000; ${cookieBase}`,
       `whoop_refresh_token=${newTokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
     ])
     ;[recovRes, sleepRes, cycleRes] = await Promise.all([

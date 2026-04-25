@@ -42,25 +42,36 @@ const EMPTY: WhoopPayload = {
   strain: null, avgHr: null, maxHr: null,
 }
 
-const CACHE_KEY = `daybreak-whoop-v2-${new Date().toISOString().split('T')[0]}`
+const PERSIST_KEY = 'daybreak-whoop-last-v2'
+
+function readPersisted(): WhoopPayload | null {
+  try {
+    const raw = localStorage.getItem(PERSIST_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as { ts: number; data: WhoopPayload }
+    // Stale-while-revalidate: trust cache for up to 24 hours
+    if (Date.now() - parsed.ts > 24 * 60 * 60 * 1000) return null
+    return parsed.data
+  } catch {
+    return null
+  }
+}
+
+function writePersisted(data: WhoopPayload) {
+  try { localStorage.setItem(PERSIST_KEY, JSON.stringify({ ts: Date.now(), data })) } catch {}
+}
 
 export function useWhoop(): WhoopData {
-  const [loading, setLoading] = useState(true)
-  const [payload, setPayload] = useState<WhoopPayload>(EMPTY)
+  const persisted = readPersisted()
+  const [loading, setLoading] = useState(persisted == null)
+  const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
 
   const fetchData = useCallback(async () => {
-    const cached = sessionStorage.getItem(CACHE_KEY)
-    if (cached) {
-      try {
-        setPayload(JSON.parse(cached))
-        setLoading(false)
-        return
-      } catch {}
-    }
-
     try {
       const res = await fetch('/api/whoop/data')
       if (res.status === 401) {
+        // Auth lost — clear persisted state so UI reflects truth
+        try { localStorage.removeItem(PERSIST_KEY) } catch {}
         setPayload(EMPTY)
         setLoading(false)
         return
@@ -68,19 +79,20 @@ export function useWhoop(): WhoopData {
       if (!res.ok) throw new Error(`${res.status}`)
       const json: WhoopPayload = await res.json()
       setPayload(json)
-      if (json.connected) sessionStorage.setItem(CACHE_KEY, JSON.stringify(json))
+      if (json.connected) writePersisted(json)
     } catch {
-      setPayload(EMPTY)
+      // Network blip — keep showing persisted data, don't flash 'not connected'
+      if (!persisted) setPayload(EMPTY)
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [persisted])
 
   useEffect(() => { void fetchData() }, [fetchData])
 
   const disconnect = useCallback(async () => {
     await fetch('/api/whoop/data', { method: 'DELETE' })
-    sessionStorage.removeItem(CACHE_KEY)
+    try { localStorage.removeItem(PERSIST_KEY) } catch {}
     setPayload(EMPTY)
   }, [])
 
