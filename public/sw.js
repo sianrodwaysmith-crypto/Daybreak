@@ -1,4 +1,8 @@
-const CACHE_NAME = 'daybreak-v2';
+// Bump this cache name on any meaningful deploy — installed PWAs (especially
+// on iOS) hold onto old caches stubbornly, and only `activate` with a new
+// CACHE_NAME will evict them. Pair this with clients.claim() + reload-on-
+// activate so the home-screen WebView picks up the new bundle on next open.
+const CACHE_NAME = 'daybreak-v3';
 const APP_SHELL  = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -12,7 +16,15 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    ).then(() => self.clients.claim()).then(() =>
+      self.clients.matchAll({ type: 'window' }).then((clients) => {
+        // Force every open window/PWA to reload onto the new bundle.
+        for (const c of clients) {
+          // navigate() is supported in standalone WebViews on iOS 16+.
+          if ('navigate' in c) c.navigate(c.url);
+        }
+      })
+    )
   );
 });
 
