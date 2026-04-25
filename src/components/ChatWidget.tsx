@@ -155,16 +155,16 @@ export default function ChatWidget() {
             style={{ transform: `translateY(${-keyboardOffset}px)` }}
           >
             <header className="chat-panel-header">
-              <div className="chat-panel-title">Ask <em>daybreak</em></div>
+              <div className="chat-panel-title"><em>daybreak</em> life coach</div>
               <button className="chat-panel-close" onClick={handleClose} aria-label="Close chat">✕</button>
             </header>
 
             <div className="chat-messages" ref={scrollerRef}>
               {messages.length === 0 && !pending && (
                 <div className="chat-empty">
-                  <div className="chat-empty-title">Good morning.</div>
+                  <div className="chat-empty-title">Hey. I'm here.</div>
                   <div className="chat-empty-sub">
-                    Ask anything about your day — your readiness, schedule, news, or focus.
+                    Tell me what's on your mind, or ask me to coach you through something specific. I'll work from your day.
                   </div>
                 </div>
               )}
@@ -231,7 +231,7 @@ export default function ChatWidget() {
                     sendMessage(input)
                   }
                 }}
-                placeholder="Ask daybreak…"
+                placeholder="Talk to your coach…"
                 rows={1}
                 disabled={streaming}
               />

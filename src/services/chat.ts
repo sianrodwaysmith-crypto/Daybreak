@@ -25,11 +25,29 @@ export function buildSystemPrompt(ctx: Record<string, unknown>): string {
   const dateStr = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
 
   const lines = [
-    `You are DayBreak, a personal AI assistant. You have context about the user's day from their morning briefing app. Only reference data that is explicitly provided below — do not make up or assume anything that is not listed. Be direct, specific and concise — this is a mobile chat. Use bullet points for anything with more than two points. Today is ${dateStr}, ${dayName}.`,
+    `You are the Daybreak life coach — a warm, direct, motivational coach who knows this person well. You speak like a thoughtful, grounded coach who has known them for years: encouraging, unflinching, never saccharine. You mix practical, specific advice with the occasional motivational quote (Stoic, modern, or athletic) when it genuinely earns its place — never as filler. You believe in their capacity and you call them on their excuses.`,
+    '',
+    `Today is ${dayName}, ${dateStr}.`,
+    '',
+    `How you ground your coaching:`,
+    `- Use the live context below (their recovery, their one thing, their mindset entry, their schedule, their news, their client work) as the basis for everything you say. Reference it directly and specifically.`,
+    `- Never invent data that isn't listed below. If something isn't in the context, say you don't have it — don't guess.`,
+    `- When the user asks something open-ended, weave in what you already know about their day to make the answer about them, not generic advice.`,
+    '',
+    `Voice and style:`,
+    `- Speak in second person. Direct. Warm. No "great question!" preambles, no chatbot-speak.`,
+    `- Sentence case throughout. No SHOUTY caps, no heavy formatting.`,
+    `- Mobile chat — keep replies tight: usually 2-4 short paragraphs. Use a bulleted list only when the user explicitly asks for one or you're laying out concrete options.`,
+    `- A motivational quote, max one per reply, only when it lands. Attribute the source ("— Marcus Aurelius", "— Maya Angelou", etc.).`,
+    `- Push back when they're making excuses or playing small. Celebrate real wins, not effort theatre.`,
+    `- End most replies with a single, specific next action they can take in the next hour or the next day. Not a vague "go for a walk" — something concrete tied to their context.`,
+    '',
+    `Today's live context for this user:`,
     '',
   ]
 
   const keys = Object.keys(ctx).sort()
+  let any = false
   for (const key of keys) {
     const value = ctx[key]
     if (value == null || value === '') continue
@@ -37,6 +55,10 @@ export function buildSystemPrompt(ctx: Record<string, unknown>): string {
       typeof value === 'string' ? value : JSON.stringify(value, null, 2)
     lines.push(`[${key.toUpperCase()}]: ${formatted}`)
     lines.push('')
+    any = true
+  }
+  if (!any) {
+    lines.push('(No live context yet — the home tiles haven\'t loaded. Coach gently and ask them what\'s on their mind.)')
   }
 
   return lines.join('\n').trim()
@@ -126,34 +148,29 @@ export async function streamChat(
 
 export function suggestChips(ctx: Record<string, unknown>): string[] {
   const chips: string[] = []
+
   const whoop = ctx.whoop as { recovery?: number | null; sleepHours?: number | null } | undefined
   if (whoop?.recovery != null) {
-    chips.push(`What does my recovery of ${whoop.recovery} mean for today?`)
-  }
-  const cal = ctx.calendar_today as Array<{ title?: string }> | undefined
-  if (Array.isArray(cal) && cal.length > 0) {
-    chips.push('Help me prep for my first meeting today')
-  }
-  if (ctx['tile_pulse-anthropic']) {
-    chips.push("What's the most important Anthropic news today?")
-  } else if (ctx['tile_pulse-aiworld']) {
-    chips.push("What's the biggest AI story right now?")
-  } else if (ctx['tile_pulse-tech']) {
-    chips.push("What's moving the tech market today?")
-  }
-  if (ctx.mindset) {
-    chips.push('Reflect back what I shared in my mindset check-in')
-  }
-  if (ctx['tile_client']) {
-    chips.push("What's my top priority for Aztec today?")
+    chips.push(`How should I show up today on a ${whoop.recovery} recovery?`)
   }
 
-  if (chips.length === 0) {
-    return [
-      'How should I structure my morning?',
-      'Help me focus today',
-      'Give me a productivity tip',
-    ]
+  if (ctx.mindset) {
+    chips.push('Coach me on the intention I set this morning')
   }
+
+  const cal = ctx.calendar_today as Array<{ title?: string }> | undefined
+  if (Array.isArray(cal) && cal.length > 0) {
+    chips.push('What mindset should I bring into my first meeting?')
+  }
+
+  if (ctx['tile_client']) {
+    chips.push('Push me on what I\'m avoiding with Aztec')
+  }
+
+  // Always-useful coach prompts that don't need data
+  chips.push('I\'m feeling stuck — what do I need to hear?')
+  chips.push('Help me set one intention for today')
+  chips.push('What\'s a quote that fits today?')
+
   return chips.slice(0, 3)
 }
