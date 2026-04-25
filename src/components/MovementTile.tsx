@@ -61,8 +61,16 @@ function todaySubLine(today: MovementEvent | null, recovery: number | null): str
 function cadenceFooter(usual: number, thisWeek: number, onTrack: boolean): string {
   if (onTrack && usual > 0) return 'On track this week.'
   if (usual === 0 && thisWeek === 0) return 'No movement logged yet.'
-  if (usual === 0)                    return `${thisWeek} this week.`
-  return `${thisWeek} of your usual ${usual} this week.`
+  if (usual === 0)                    return `${thisWeek} done this week.`
+  return `${thisWeek} of your usual ${usual} done this week.`
+}
+
+function hoursLine(hours: number): string {
+  if (hours <= 0) return ''
+  if (hours === 1) return '1 hr completed.'
+  // Show "1.5 hrs" but drop a trailing .0 so whole numbers read cleanly.
+  const display = Number.isInteger(hours) ? hours.toFixed(0) : hours.toFixed(1)
+  return `${display} hrs completed.`
 }
 
 function weekRangeLabel(weekStart: Date): string {
@@ -213,6 +221,31 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
     } finally { setSaving(false) }
   }
 
+  async function handleMarkDone() {
+    if (!ev) return
+    setSaving(true)
+    try {
+      const payload: Omit<MovementEvent, 'id'> = {
+        date:             ev.date,
+        source:           'done',
+        title:            ev.title,
+        startTime:        ev.startTime,
+        durationMinutes:  ev.durationMinutes,
+        location:         ev.location,
+        intensity:        ev.intensity,
+      }
+      if (ev.source === 'planned') {
+        // Writable mock event — flip in place.
+        await source.updateEvent(ev.id, payload)
+      } else {
+        // Booked or external — create a local done sibling so we don't try to
+        // mutate a read-only source. The done takes precedence in the chart.
+        await source.createEvent(payload)
+      }
+      onSaved(); onClose()
+    } finally { setSaving(false) }
+  }
+
   const title0 = readonly
     ? (ev?.source === 'booked' ? 'Booked' : 'Logged')
     : (ev ? 'Edit session' : 'Plan a session')
@@ -244,6 +277,13 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
               >
                 {ev.source === 'booked' ? 'Open in David Lloyd ↗' : 'Open in Whoop ↗'}
               </a>
+            )}
+            {ev.source === 'booked' && (
+              <div className="movement-sheet-actions">
+                <button className="movement-btn-primary" onClick={handleMarkDone} disabled={saving}>
+                  {saving ? 'Saving…' : '✓ Mark as done'}
+                </button>
+              </div>
             )}
           </>
         )}
@@ -309,8 +349,17 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
             </div>
 
             <div className="movement-sheet-actions">
+              {ev && ev.source === 'planned' && (
+                <button
+                  className="movement-btn-primary"
+                  onClick={handleMarkDone}
+                  disabled={saving}
+                >
+                  {saving ? 'Saving…' : '✓ Mark as done'}
+                </button>
+              )}
               <button
-                className="movement-btn-primary"
+                className={ev && ev.source === 'planned' ? 'movement-btn-quiet' : 'movement-btn-primary'}
                 onClick={handleSave}
                 disabled={saving || !title.trim()}
               >
@@ -374,8 +423,17 @@ export default function MovementTile({ recovery }: Props) {
 
   const week    = useMemo(() => weekDates(viewedWeekStart), [viewedWeekStart])
   const byDate  = useMemo(() => {
+    // Prefer done > booked > planned > rest when multiple events share a day,
+    // so once you tick a planned/booked event off it shows as done in the chart.
+    const rank: Record<string, number> = { done: 4, booked: 3, planned: 2, rest: 1 }
     const m = new Map<string, MovementEvent>()
-    for (const e of events) if (week.includes(e.date)) m.set(e.date, e)
+    for (const e of events) {
+      if (!week.includes(e.date)) continue
+      const cur = m.get(e.date)
+      if (!cur || (rank[e.source] ?? 0) > (rank[cur.source] ?? 0)) {
+        m.set(e.date, e)
+      }
+    }
     return m
   }, [events, week])
 
@@ -460,7 +518,12 @@ export default function MovementTile({ recovery }: Props) {
       </div>
 
       <div className="movement-foot">
-        <span className="movement-foot-line">{cadenceFooter(cadence.usual, cadence.thisWeek, cadence.onTrack)}</span>
+        <div className="movement-foot-stack">
+          <span className="movement-foot-line">{cadenceFooter(cadence.usual, cadence.thisWeek, cadence.onTrack)}</span>
+          {hoursLine(cadence.hoursDone) && (
+            <span className="movement-foot-sub">{hoursLine(cadence.hoursDone)}</span>
+          )}
+        </div>
         {!(cadence.onTrack && cadence.usual > 0) && (
           <button className="movement-foot-cta" onClick={openNextEmpty}>
             Plan one →

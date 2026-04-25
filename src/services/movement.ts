@@ -192,18 +192,15 @@ export function todayISO(): string { return isoDate(new Date()) }
 
 /* -------------------------------------------------------------------
    Cadence — 'usual N' from the last 4 complete weeks (excluding
-   the current one), plus this week's count of done + booked + planned.
+   the current one), plus this week's done count and hours done.
 ------------------------------------------------------------------- */
 
 export interface Cadence {
-  usual:        number   // average sessions per week, rounded
-  thisWeek:     number   // done + booked + planned this week (rest excluded)
+  usual:        number   // average completed sessions per week, rounded
+  thisWeek:     number   // sessions actually completed this week (done only)
+  hoursDone:    number   // sum of durationMinutes for done events this week, in hours
   onTrack:      boolean
   shortfall:    number   // max(usual - thisWeek, 0)
-}
-
-function isCounted(s: Source): boolean {
-  return s === 'done' || s === 'booked' || s === 'planned'
 }
 
 export function computeCadence(events: MovementEvent[], today: Date): Cadence {
@@ -211,22 +208,28 @@ export function computeCadence(events: MovementEvent[], today: Date): Cadence {
   const thisWeekEnd   = new Date(thisWeekStart.getTime() + 6 * ONE_DAY_MS)
   const fourWeeksAgo  = new Date(thisWeekStart.getTime() - 4 * 7 * ONE_DAY_MS)
 
-  const inLast4Weeks = events.filter(e =>
+  // Usual = average completed sessions per week over the last 4 weeks.
+  const completedLast4 = events.filter(e =>
     e.date >= isoDate(fourWeeksAgo) &&
     e.date <  isoDate(thisWeekStart) &&
-    isCounted(e.source),
+    e.source === 'done',
   )
-  const usual = Math.round(inLast4Weeks.length / 4)
+  const usual = Math.round(completedLast4.length / 4)
 
-  const thisWeek = events.filter(e =>
+  // This week — done only, with hours from durationMinutes.
+  const completedThisWeek = events.filter(e =>
     e.date >= isoDate(thisWeekStart) &&
     e.date <= isoDate(thisWeekEnd) &&
-    isCounted(e.source),
-  ).length
+    e.source === 'done',
+  )
+  const thisWeek  = completedThisWeek.length
+  const minutes   = completedThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
+  const hoursDone = Math.round((minutes / 60) * 10) / 10
 
   return {
     usual,
     thisWeek,
+    hoursDone,
     onTrack:   thisWeek >= usual,
     shortfall: Math.max(usual - thisWeek, 0),
   }

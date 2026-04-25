@@ -1824,11 +1824,22 @@
   padding-top: 10px;
   border-top: 1px solid var(--line);
 }
+.movement-foot-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
 .movement-foot-line {
   font-family: 'DM Serif Display', serif;
   font-style: italic;
   font-size: 13.5px;
   color: var(--ink-2);
+}
+.movement-foot-sub {
+  font-size: 12px;
+  color: var(--muted);
 }
 .movement-foot-cta {
   font-size: 12.5px;
