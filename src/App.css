@@ -452,14 +452,51 @@
   pointer-events: none;
 }
 .splash-fade { opacity: 0; }
-.splash-mark {
-  font-family: 'DM Serif Display', serif;
-  font-size: 32px;
-  color: var(--ink);
-  letter-spacing: -0.01em;
-  animation: splash-fade 1.6s ease-in-out infinite;
+
+/* ---------- Brand stack (used by Splash) ---------- */
+.brand-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
 }
-@keyframes splash-fade {
+.brand-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.brand-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  display: inline-block;
+  animation: brand-pulse 2.2s ease-in-out infinite;
+}
+.brand-line {
+  width: 56px;
+  height: 1.5px;
+  border-radius: 2px;
+  background: var(--ink);
+  display: inline-block;
+}
+.brand-word {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 56px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1;
+}
+.brand-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  color: var(--muted);
+  text-transform: lowercase;
+}
+@keyframes brand-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.55; }
 }
@@ -525,10 +562,24 @@
   margin-bottom: 18px;
 }
 .header-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+.header-mark-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--ink);
+  display: inline-block;
+}
+.header-mark-word {
   font-family: 'DM Serif Display', serif;
-  font-size: 22px;
+  font-style: italic;
+  font-size: 24px;
   letter-spacing: -0.005em;
   color: var(--ink);
+  line-height: 1;
 }
 .header-settings {
   width: 34px;

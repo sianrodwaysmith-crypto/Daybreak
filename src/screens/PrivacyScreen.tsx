@@ -19,7 +19,7 @@ export default function PrivacyScreen() {
       <Link to="/" className="static-back">← Back</Link>
       <h1>Privacy</h1>
       <p>Last updated: April 2026.</p>
-      <p>Daybreak is a personal app built for private use by a single individual.</p>
+      <p><em>daybreak</em> is a personal app built for private use by a single individual.</p>
 
       <h2>Data accessed</h2>
       {DATA.map(({ label, text }) => (

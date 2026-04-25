@@ -14,7 +14,14 @@ export default function Splash() {
 
   return (
     <div className={`splash${fading ? ' splash-fade' : ''}`}>
-      <div className="splash-mark">Daybreak</div>
+      <div className="brand-stack">
+        <div className="brand-icon">
+          <span className="brand-dot" />
+          <span className="brand-line" />
+        </div>
+        <div className="brand-word">daybreak</div>
+        <div className="brand-tag">balance</div>
+      </div>
     </div>
   )
 }

@@ -13,7 +13,7 @@ export default function TermsScreen() {
       <Link to="/" className="static-back">← Back</Link>
       <h1>Terms</h1>
       <p>Last updated: April 2026.</p>
-      <p>Daybreak is a private personal productivity app for single-user private use only.</p>
+      <p><em>daybreak</em> is a private personal productivity app for single-user private use only.</p>
 
       <h2>Use</h2>
       {TERMS.map((item, i) => <p key={i}>{item}</p>)}

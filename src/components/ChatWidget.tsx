@@ -155,7 +155,7 @@ export default function ChatWidget() {
             style={{ transform: `translateY(${-keyboardOffset}px)` }}
           >
             <header className="chat-panel-header">
-              <div className="chat-panel-title">ASK DAYBREAK</div>
+              <div className="chat-panel-title">Ask <em>daybreak</em></div>
               <button className="chat-panel-close" onClick={handleClose} aria-label="Close chat">✕</button>
             </header>
 
@@ -231,7 +231,7 @@ export default function ChatWidget() {
                     sendMessage(input)
                   }
                 }}
-                placeholder="Ask DayBreak…"
+                placeholder="Ask daybreak…"
                 rows={1}
                 disabled={streaming}
               />

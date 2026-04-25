@@ -18,7 +18,10 @@ export default function Header({ readinessScore, readinessColor, onSettings }: P
   return (
     <header className="header">
       <div className="header-top">
-        <div className="header-mark">Daybreak</div>
+        <div className="header-mark">
+          <span className="header-mark-dot" aria-hidden />
+          <span className="header-mark-word">daybreak</span>
+        </div>
         <button className="header-settings" onClick={onSettings} aria-label="Settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
