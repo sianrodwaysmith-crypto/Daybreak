@@ -12,9 +12,7 @@ import { useWhoop } from './hooks/useWhoop'
 import ReadinessScreen from './screens/ReadinessScreen'
 import DeepWorkScreen from './screens/DeepWorkScreen'
 import ClientBriefScreen from './screens/ClientBriefScreen'
-import BusinessPulseScreen from './screens/BusinessPulseScreen'
-import AIBriefingScreen from './screens/AIBriefingScreen'
-import TodaysFocusScreen from './screens/TodaysFocusScreen'
+import PulseScreen from './screens/PulseScreen'
 import MindsetScreen from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
 import SettingsScreen from './screens/SettingsScreen'
@@ -72,17 +70,18 @@ function HomeView() {
   const whoopFlash = useWhoopFlash()
 
   const readinessScore = whoop.recovery
-  const { ai, retry } = useAIContent(readinessScore ?? 70)
+  const { ai, retry, refreshPulse } = useAIContent(readinessScore ?? 70)
+
+  const pulseLoading =
+    ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
   const TILES = [
-    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',  subtitle: 'Ground yourself',                                                                                                                    accent: '#f59e0b' },
-    { id: 'ready',   icon: '💚', title: 'Readiness',      subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop',     accent: readinessColor(readinessScore) },
-    { id: 'work',    icon: '🧠', title: 'Deep Work',      subtitle: 'Focus blocks and strategy',                                                                                                           accent: '#4ade80', loading: ai.work.loading   },
-    { id: 'client',  icon: '💼', title: 'Client Brief',   subtitle: 'Aztec · Salesforce',                                                                                                                 accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'biz',     icon: '📈', title: 'Business Pulse', subtitle: 'Markets and top stories',                                                                                                             accent: '#ffc800', loading: ai.biz.loading    },
-    { id: 'ai',      icon: '🤖', title: 'AI Briefing',    subtitle: 'Anthropic and AI news',                                                                                                               accent: '#a78bfa', loading: ai.ai.loading     },
-    { id: 'focus',   icon: '🎯', title: "Today's Focus",  subtitle: 'Your priority',                                                                                                                      accent: '#f97316', loading: ai.focus.loading  },
-    { id: 'schedule',icon: '📅', title: 'Schedule',       subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                              accent: '#38bdf8', fullWidth: true },
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset', subtitle: 'Ground yourself',                                                                                                              accent: '#f59e0b' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',     subtitle: whoop.connected && readinessScore != null ? `${readinessScore} · ${readinessLabel(readinessScore)}` : whoop.loading ? 'Loading…' : 'Tap to connect Whoop', accent: readinessColor(readinessScore) },
+    { id: 'work',    icon: '🧠', title: 'Deep Work',     subtitle: 'Focus blocks and strategy',                                                                                                     accent: '#4ade80', loading: ai.work.loading   },
+    { id: 'client',  icon: '💼', title: 'Client Brief',  subtitle: 'Aztec · Salesforce',                                                                                                            accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'pulse',   icon: '🌍', title: 'Pulse',         subtitle: 'Markets · AI · Tech — updated daily',                                                                                            accent: '#ffc800', loading: pulseLoading      },
+    { id: 'schedule',icon: '📅', title: 'Schedule',      subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected),                                                          accent: '#38bdf8', fullWidth: true },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -106,9 +105,13 @@ function HomeView() {
       />
       case 'work':     return <DeepWorkScreen  aiState={ai.work}   onRetry={() => retry('work')}   />
       case 'client':   return <ClientBriefScreen aiState={ai.client} onRetry={() => retry('client')} />
-      case 'biz':      return <BusinessPulseScreen aiState={ai.biz}  onRetry={() => retry('biz')}   />
-      case 'ai':       return <AIBriefingScreen aiState={ai.ai}    onRetry={() => retry('ai')}    />
-      case 'focus':    return <TodaysFocusScreen aiState={ai.focus} onRetry={() => retry('focus')} />
+      case 'pulse':    return <PulseScreen
+        anthropic={ai['pulse-anthropic']}
+        aiWorld={ai['pulse-aiworld']}
+        techMkt={ai['pulse-tech']}
+        onRetrySection={(id) => retry(id)}
+        onRefreshAll={refreshPulse}
+      />
       case 'mindset':  return <MindsetScreen />
       case 'schedule': return <ScheduleScreen events={calendar.events} loading={calendar.loading} connected={calendar.connected} />
       default:         return null

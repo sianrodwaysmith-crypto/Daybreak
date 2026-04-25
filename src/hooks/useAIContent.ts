@@ -1,20 +1,24 @@
 import { useState, useEffect } from 'react'
 import {
   fetchDeepWork, fetchClientBrief,
-  fetchBusinessPulse, fetchAIBriefing, fetchTodaysFocus,
+  fetchPulseAnthropic, fetchPulseAIWorld, fetchPulseTechMarket,
 } from '../services/ai'
 
-export type AITileId = 'work' | 'client' | 'biz' | 'ai' | 'focus'
+export type AITileId = 'work' | 'client' | 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
+export type PulseSectionId = 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
+
+export const PULSE_SECTIONS: PulseSectionId[] = ['pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
 
 export interface TileAI {
-  content: string | null
-  loading: boolean
-  error: boolean
+  content:    string | null
+  loading:    boolean
+  error:      boolean
+  fetchedAt:  number | null
 }
 
 type AIState = Record<AITileId, TileAI>
 
-const TILE_IDS: AITileId[] = ['work', 'client', 'biz', 'ai', 'focus']
+const TILE_IDS: AITileId[] = ['work', 'client', 'pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
 
 function todayStr(): string {
   return new Date().toISOString().slice(0, 10)
@@ -24,21 +28,43 @@ function cacheKey(id: AITileId): string {
   return `daybreak-ai-${id}-${todayStr()}`
 }
 
-function readCache(id: AITileId): string | null {
-  try { return sessionStorage.getItem(cacheKey(id)) } catch { return null }
+function tsKey(id: AITileId): string {
+  return `daybreak-ai-${id}-${todayStr()}-ts`
 }
 
-function writeCache(id: AITileId, value: string): void {
-  try { sessionStorage.setItem(cacheKey(id), value) } catch { /* noop */ }
+function readCache(id: AITileId): { content: string; fetchedAt: number } | null {
+  try {
+    const content = sessionStorage.getItem(cacheKey(id))
+    if (!content) return null
+    const tsRaw = sessionStorage.getItem(tsKey(id))
+    const fetchedAt = tsRaw ? Number(tsRaw) : Date.now()
+    return { content, fetchedAt }
+  } catch {
+    return null
+  }
+}
+
+function writeCache(id: AITileId, value: string, fetchedAt: number): void {
+  try {
+    sessionStorage.setItem(cacheKey(id), value)
+    sessionStorage.setItem(tsKey(id), String(fetchedAt))
+  } catch { /* noop */ }
+}
+
+function clearCache(id: AITileId): void {
+  try {
+    sessionStorage.removeItem(cacheKey(id))
+    sessionStorage.removeItem(tsKey(id))
+  } catch { /* noop */ }
 }
 
 function getPromise(id: AITileId, score: number): Promise<string> {
   switch (id) {
-    case 'work':   return fetchDeepWork(score)
-    case 'client': return fetchClientBrief()
-    case 'biz':    return fetchBusinessPulse()
-    case 'ai':     return fetchAIBriefing()
-    case 'focus':  return fetchTodaysFocus(score)
+    case 'work':            return fetchDeepWork(score)
+    case 'client':          return fetchClientBrief()
+    case 'pulse-anthropic': return fetchPulseAnthropic()
+    case 'pulse-aiworld':   return fetchPulseAIWorld()
+    case 'pulse-tech':      return fetchPulseTechMarket()
   }
 }
 
@@ -46,7 +72,9 @@ function buildInitialState(): AIState {
   const s = {} as AIState
   for (const id of TILE_IDS) {
     const cached = readCache(id)
-    s[id] = { content: cached, loading: !cached, error: false }
+    s[id] = cached
+      ? { content: cached.content, loading: false, error: false, fetchedAt: cached.fetchedAt }
+      : { content: null, loading: true, error: false, fetchedAt: null }
   }
   return s
 }
@@ -55,14 +83,15 @@ export function useAIContent(score: number) {
   const [state, setState] = useState<AIState>(buildInitialState)
 
   function fetchOne(id: AITileId) {
-    setState(s => ({ ...s, [id]: { content: null, loading: true, error: false } }))
+    setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, fetchedAt: null } }))
     getPromise(id, score)
       .then(text => {
-        writeCache(id, text)
-        setState(s => ({ ...s, [id]: { content: text, loading: false, error: false } }))
+        const fetchedAt = Date.now()
+        writeCache(id, text, fetchedAt)
+        setState(s => ({ ...s, [id]: { content: text, loading: false, error: false, fetchedAt } }))
       })
       .catch(() => {
-        setState(s => ({ ...s, [id]: { content: null, loading: false, error: true } }))
+        setState(s => ({ ...s, [id]: { content: null, loading: false, error: true, fetchedAt: null } }))
       })
   }
 
@@ -70,5 +99,16 @@ export function useAIContent(score: number) {
     TILE_IDS.filter(id => !readCache(id)).forEach(id => fetchOne(id))
   }, [])
 
-  return { ai: state, retry: (id: AITileId) => fetchOne(id) }
+  function refreshPulse() {
+    PULSE_SECTIONS.forEach(id => {
+      clearCache(id)
+      fetchOne(id)
+    })
+  }
+
+  return {
+    ai: state,
+    retry: (id: AITileId) => fetchOne(id),
+    refreshPulse,
+  }
 }

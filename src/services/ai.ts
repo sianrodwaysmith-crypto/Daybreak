@@ -81,64 +81,42 @@ CLIENT CONTEXT
   )
 }
 
-export function fetchBusinessPulse(): Promise<string> {
+const PULSE_FORMAT = `Surface the 2 most important stories. For each, use this exact format on two lines:
+
+**Headline in sentence case**
+Two sentences of context — what happened and why it matters.
+
+Two stories total. Leave a blank line between stories. No other commentary, no preamble, no closing remarks.`
+
+export function fetchPulseAnthropic(): Promise<string> {
   const { day, date } = dayInfo()
   return callClaude(
-    'You are a concise financial and business news briefer. Be accurate and succinct.',
-    `Today is ${day}, ${date}. Using web search, find today's actual market data and top business stories.
+    'You are a sharp AI industry analyst tracking Anthropic. Be accurate, succinct, and prioritise importance.',
+    `Today is ${day}, ${date}. Using web search, find the latest news specifically about Anthropic — new model releases, research papers, product announcements, company news, or safety updates. Prioritise stories from the last 48 hours; if nothing significant in 48 hours, expand up to the last 7 days.
 
-Give me a briefing with two sections:
-
-MARKETS
-[S&P 500 · value · change]
-[NASDAQ · value · change]
-[BTC/USD · value · change]
-[GBP/USD · value · change]
-
-TOP STORIES
-[Source] Headline of today's top story
-[Source] Headline of second story
-[Source] Headline of third story
-[Source] Headline of fourth story`,
+${PULSE_FORMAT}`,
     true,
   )
 }
 
-export function fetchAIBriefing(): Promise<string> {
+export function fetchPulseAIWorld(): Promise<string> {
   const { day, date } = dayInfo()
   return callClaude(
-    'You are an AI industry analyst. Cover the latest AI and technology news accurately and concisely.',
-    `Today is ${day}, ${date}. Using web search, find today's actual AI and technology news.
+    'You are a sharp AI industry analyst covering the broader AI ecosystem. Be accurate, succinct, and prioritise importance.',
+    `Today is ${day}, ${date}. Using web search, find the most important AI industry news from the last 48 hours, excluding Anthropic — covering OpenAI, Google DeepMind, Meta AI, Mistral, new research, AI regulation, or enterprise AI adoption trends.
 
-Give me 4 AI news items. For each use this exact format:
-[SOURCE TAG IN CAPS]
-Headline in sentence case
-Two-sentence summary.
-
-Cover one Anthropic story, one OpenAI story, one Google DeepMind story, and one broader AI industry story.`,
+${PULSE_FORMAT}`,
     true,
   )
 }
 
-export function fetchTodaysFocus(score: number): Promise<string> {
+export function fetchPulseTechMarket(): Promise<string> {
   const { day, date } = dayInfo()
-  const label = score >= 80 ? 'excellent' : score >= 60 ? 'good' : 'moderate'
   return callClaude(
-    'You are a productivity coach who helps professionals identify their single most important priority. Be direct and motivating.',
-    `Today is ${day}, ${date}. My readiness is ${score} (${label}). My active project is Aztec Salesforce CRM integration, Phase 2, deadline 15 May 2026.
+    'You are a concise tech-market and business analyst briefing a senior account executive who sells enterprise technology. Focus on what affects deals, budgets, and go-to-market strategy.',
+    `Today is ${day}, ${date}. Using web search, find the most important technology market and business news from the last 48 hours — big tech earnings, enterprise software deals, VC funding in AI, UK and global tech market movements, anything relevant to a senior AE selling tech.
 
-Give me a focus brief with three sections:
-
-TODAY'S SINGLE PRIORITY
-[one sentence — the single most important thing to accomplish today]
-
-SUPPORTING TASKS
-→ [first supporting task]
-→ [second supporting task]
-→ [third supporting task]
-→ [fourth supporting task]
-
-WHY THIS MATTERS
-[2-3 sentences on the stakes and leverage of this priority]`,
+${PULSE_FORMAT}`,
+    true,
   )
 }
