@@ -5,15 +5,16 @@ interface Props {
   title: string
   subtitle: string
   accent: string
+  fullWidth?: boolean | false
   onClick: () => void
 }
 
-export default function Tile({ icon, title, subtitle, accent, onClick }: Props) {
+export default function Tile({ icon, title, subtitle, accent, fullWidth, onClick }: Props) {
   const [pressing, setPressing] = useState(false)
 
   return (
     <div
-      className="tile"
+      className={`tile${fullWidth ? ' tile-full' : ''}`}
       style={{
         transform: pressing ? 'scale(0.96)' : 'scale(1)',
         borderColor: `${accent}28`,

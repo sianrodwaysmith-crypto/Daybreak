@@ -6,6 +6,7 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
 import { useWeather } from './hooks/useWeather'
+import { useCalendar } from './hooks/useCalendar'
 import StoicScreen from './screens/StoicScreen'
 import ReadinessScreen from './screens/ReadinessScreen'
 import DeepWorkScreen from './screens/DeepWorkScreen'
@@ -14,6 +15,8 @@ import BusinessPulseScreen from './screens/BusinessPulseScreen'
 import AIBriefingScreen from './screens/AIBriefingScreen'
 import TodaysFocusScreen from './screens/TodaysFocusScreen'
 import MindsetScreen from './screens/MindsetScreen'
+import ScheduleScreen from './screens/ScheduleScreen'
+import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
 
@@ -25,35 +28,47 @@ function readinessColor(score: number): string {
   return '#f87171'
 }
 
-const TILES = [
-  { id: 'stoic',    icon: '⚡', title: 'Stoic',          subtitle: "Today's principle",         accent: '#ffc800' },
-  { id: 'ready',   icon: '💚', title: 'Readiness',       subtitle: `${READINESS_SCORE} · Good`, accent: readinessColor(READINESS_SCORE) },
-  { id: 'work',    icon: '🧠', title: 'Deep Work',       subtitle: 'Focus blocks and strategy',  accent: '#4ade80' },
-  { id: 'client',  icon: '💼', title: 'Client Brief',    subtitle: 'Aztec · Salesforce',        accent: '#64b5f6' },
-  { id: 'biz',     icon: '📈', title: 'Business Pulse',  subtitle: 'Markets and top stories',   accent: '#ffc800' },
-  { id: 'ai',      icon: '🤖', title: 'AI Briefing',     subtitle: 'Anthropic and AI news',     accent: '#a78bfa' },
-  { id: 'focus',   icon: '🎯', title: "Today's Focus",   subtitle: 'Your priority',             accent: '#f97316' },
-  { id: 'mindset', icon: '🙏', title: 'Mindset',         subtitle: 'Gratitude and intention',   accent: '#f59e0b' },
-]
-
-function getContent(id: string | null) {
-  switch (id) {
-    case 'stoic':   return <StoicScreen />
-    case 'ready':   return <ReadinessScreen score={READINESS_SCORE} />
-    case 'work':    return <DeepWorkScreen />
-    case 'client':  return <ClientBriefScreen />
-    case 'biz':     return <BusinessPulseScreen />
-    case 'ai':      return <AIBriefingScreen />
-    case 'focus':   return <TodaysFocusScreen />
-    case 'mindset': return <MindsetScreen />
-    default:        return null
-  }
+function scheduleSubtitle(events: readonly { id: string }[], loading: boolean, connected: boolean): string {
+  if (!connected) return 'Tap to connect calendar'
+  if (loading)    return 'Loading…'
+  if (events.length === 0) return 'No events'
+  return `${events.length} event${events.length === 1 ? '' : 's'} today`
 }
 
 function HomeView() {
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeId, setActiveId]     = useState<string | null>(null)
+  const [showSettings, setSettings] = useState(false)
+  const weather  = useWeather()
+  const calendar = useCalendar()
+
+  const TILES = [
+    { id: 'stoic',    icon: '⚡', title: 'Stoic',          subtitle: "Today's principle",                                    accent: '#ffc800' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',       subtitle: `${READINESS_SCORE} · Good`,                           accent: readinessColor(READINESS_SCORE) },
+    { id: 'work',    icon: '🧠', title: 'Deep Work',       subtitle: 'Focus blocks and strategy',                           accent: '#4ade80' },
+    { id: 'client',  icon: '💼', title: 'Client Brief',    subtitle: 'Aztec · Salesforce',                                  accent: '#64b5f6' },
+    { id: 'biz',     icon: '📈', title: 'Business Pulse',  subtitle: 'Markets and top stories',                             accent: '#ffc800' },
+    { id: 'ai',      icon: '🤖', title: 'AI Briefing',     subtitle: 'Anthropic and AI news',                               accent: '#a78bfa' },
+    { id: 'focus',   icon: '🎯', title: "Today's Focus",   subtitle: 'Your priority',                                       accent: '#f97316' },
+    { id: 'mindset', icon: '🙏', title: 'Mindset',         subtitle: 'Gratitude and intention',                             accent: '#f59e0b' },
+    { id: 'schedule',icon: '📅', title: 'Schedule',        subtitle: scheduleSubtitle(calendar.events, calendar.loading, calendar.connected), accent: '#38bdf8', fullWidth: true },
+  ]
+
   const activeTile = TILES.find(t => t.id === activeId)
-  const weather = useWeather()
+
+  function getContent(id: string | null) {
+    switch (id) {
+      case 'stoic':    return <StoicScreen />
+      case 'ready':    return <ReadinessScreen score={READINESS_SCORE} />
+      case 'work':     return <DeepWorkScreen />
+      case 'client':   return <ClientBriefScreen />
+      case 'biz':      return <BusinessPulseScreen />
+      case 'ai':       return <AIBriefingScreen />
+      case 'focus':    return <TodaysFocusScreen />
+      case 'mindset':  return <MindsetScreen />
+      case 'schedule': return <ScheduleScreen events={calendar.events} loading={calendar.loading} connected={calendar.connected} />
+      default:         return null
+    }
+  }
 
   return (
     <div className="app">
@@ -62,7 +77,11 @@ function HomeView() {
       <div className="glow glow-b" />
 
       <div className="app-content">
-        <Header readinessScore={READINESS_SCORE} readinessColor={readinessColor(READINESS_SCORE)} />
+        <Header
+          readinessScore={READINESS_SCORE}
+          readinessColor={readinessColor(READINESS_SCORE)}
+          onSettings={() => setSettings(true)}
+        />
         {weather && <WeatherBanner weather={weather} />}
         <div className="tile-grid">
           {TILES.map(t => (
@@ -72,6 +91,7 @@ function HomeView() {
               title={t.title}
               subtitle={t.subtitle}
               accent={t.accent}
+              fullWidth={'fullWidth' in t && t.fullWidth}
               onClick={() => setActiveId(t.id)}
             />
           ))}
@@ -83,6 +103,7 @@ function HomeView() {
         </footer>
       </div>
 
+      {/* Tile modal */}
       <Modal
         isOpen={activeId !== null}
         onClose={() => setActiveId(null)}
@@ -90,6 +111,16 @@ function HomeView() {
         accent={activeTile?.accent ?? '#ffffff'}
       >
         {getContent(activeId)}
+      </Modal>
+
+      {/* Settings modal */}
+      <Modal
+        isOpen={showSettings}
+        onClose={() => setSettings(false)}
+        title="Settings"
+        accent="rgba(255,255,255,0.7)"
+      >
+        <SettingsScreen calendar={calendar} />
       </Modal>
     </div>
   )
