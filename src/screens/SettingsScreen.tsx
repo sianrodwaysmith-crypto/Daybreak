@@ -16,24 +16,18 @@ interface Props {
 
 type SaveState = 'idle' | 'connecting' | 'success' | 'error'
 
-function connectWhoop() {
+function buildWhoopAuthUrl(): string | null {
   const clientId = import.meta.env.VITE_WHOOP_CLIENT_ID as string | undefined
-  if (!clientId) {
-    alert(
-      'Whoop client ID is missing.\n\n' +
-      'Add VITE_WHOOP_CLIENT_ID in Vercel env vars and redeploy.'
-    )
-    return
-  }
+  if (!clientId) return null
   const redirectUri = `${window.location.origin}/api/whoop/callback`
   const scope       = 'read:recovery read:sleep read:cycles read:profile offline'
-  const url =
+  return (
     `https://api.prod.whoop.com/oauth/oauth2/auth` +
     `?client_id=${encodeURIComponent(clientId)}` +
     `&redirect_uri=${encodeURIComponent(redirectUri)}` +
     `&response_type=code` +
     `&scope=${encodeURIComponent(scope)}`
-  window.location.assign(url)
+  )
 }
 
 export default function SettingsScreen({ calendar, whoop }: Props) {
@@ -63,6 +57,8 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
 
   const canSave = email.trim().length > 0 && password.trim().length > 0 && saveState !== 'connecting'
 
+  const whoopAuthUrl = buildWhoopAuthUrl()
+
   return (
     <div>
       {/* ── Whoop ────────────────────────────────────────── */}
@@ -81,19 +77,25 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
               DISCONNECT WHOOP
             </button>
           </>
-        ) : (
+        ) : whoopAuthUrl ? (
           <>
             <p className="settings-note" style={{ marginBottom: 14 }}>
               Connect your Whoop band to see live recovery, HRV, resting heart rate, and sleep data.
-              You'll be taken to Whoop to authorise the connection.
+              Tap below — Whoop opens in Safari to authorise.
             </p>
-            <button
+            <a
               className="settings-btn settings-btn-save active"
-              onClick={connectWhoop}
+              href={whoopAuthUrl}
+              style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
             >
               CONNECT WHOOP →
-            </button>
+            </a>
           </>
+        ) : (
+          <div className="settings-msg settings-msg-error">
+            Whoop client ID is missing. Add <code>VITE_WHOOP_CLIENT_ID</code> in Vercel
+            environment variables (Production scope) and redeploy.
+          </div>
         )}
       </div>
 
