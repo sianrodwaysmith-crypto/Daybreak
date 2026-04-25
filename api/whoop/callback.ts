@@ -69,31 +69,36 @@ export default async function handler(req: any, res: any) {
       expires_in:    number
     }
 
-    const cookieBase = 'HttpOnly; Secure; SameSite=Lax; Path=/'
-    // Use a 200 HTML response with JS redirect rather than a 302.
-    // iOS Safari is unreliable about persisting cookies set on a 302
-    // redirect that crosses an external origin (Whoop -> us); a 200
-    // with an HTML body commits cookies before the browser navigates.
+    // Store tokens in localStorage (cookies are dropped by Safari ITP after
+    // an OAuth redirect chain). The HTML below writes them, then redirects.
+    const stored = JSON.stringify({
+      access_token:  tokens.access_token,
+      refresh_token: tokens.refresh_token,
+      expires_at:    Date.now() + tokens.expires_in * 1000,
+    })
+
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
-<meta http-equiv="refresh" content="0; url=/?whoop=connected">
 <title>Connecting…</title>
 <style>body{background:#080810;color:#fff;font:14px -apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
 </head><body><div>Connecting Whoop…</div>
-<script>setTimeout(function(){window.location.replace('/?whoop=connected')},50)</script>
+<script>
+try {
+  localStorage.setItem('daybreak-whoop-tokens', ${JSON.stringify(stored)});
+  setTimeout(function(){window.location.replace('/?whoop=connected')}, 50);
+} catch (e) {
+  window.location.replace('/?whoop=error&reason=' + encodeURIComponent('localStorage: ' + (e && e.message)));
+}
+</script>
 </body></html>`
 
     res.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Type':  'text/html; charset=utf-8',
       'Cache-Control': 'no-store',
-      'Set-Cookie': [
-        `whoop_access_token=${tokens.access_token}; Max-Age=2592000; ${cookieBase}`,
-        `whoop_refresh_token=${tokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
-      ],
     })
     res.end(html)
-  } catch (e) {
+  } catch (e: any) {
     console.error('Whoop callback error:', e)
-    res.writeHead(302, { Location: '/?whoop=error' })
+    res.writeHead(302, { Location: `/?whoop=error&reason=${encodeURIComponent(e?.message ?? 'unknown')}` })
     res.end()
   }
 }

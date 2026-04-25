@@ -1,14 +1,3 @@
-function parseCookies(header: string | undefined): Record<string, string> {
-  if (!header) return {}
-  return Object.fromEntries(
-    header.split(';').map(part => {
-      const idx = part.indexOf('=')
-      if (idx < 0) return [part.trim(), '']
-      return [part.slice(0, idx).trim(), part.slice(idx + 1).trim()]
-    })
-  )
-}
-
 async function exchangeRefresh(
   refreshToken: string,
   clientId: string,
@@ -32,55 +21,42 @@ async function exchangeRefresh(
 }
 
 export default async function handler(req: any, res: any) {
-  // Disconnect / logout
+  // Disconnect — client just clears localStorage; no server state to clean up.
   if (req.method === 'DELETE') {
-    const clear = 'HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'
-    res.setHeader('Set-Cookie', [
-      `whoop_access_token=; ${clear}`,
-      `whoop_refresh_token=; ${clear}`,
-    ])
     res.status(200).json({ ok: true })
     return
   }
 
-  const cookies = parseCookies(req.headers.cookie)
-  let accessToken: string | undefined  = cookies.whoop_access_token
-  const refreshToken: string | undefined = cookies.whoop_refresh_token
+  const authHeader   = (req.headers.authorization as string | undefined) ?? ''
+  const accessToken  = authHeader.replace(/^Bearer\s+/i, '').trim() || undefined
+  const refreshToken = (req.headers['x-whoop-refresh-token'] as string | undefined)?.trim() || undefined
 
   if (!accessToken && !refreshToken) {
-    res.status(401).json({
-      error: 'not_connected',
-      debug: {
-        cookie_header_present: !!req.headers.cookie,
-        cookie_names: Object.keys(cookies),
-        cookie_count: Object.keys(cookies).length,
-      },
-    })
+    res.status(401).json({ error: 'not_connected' })
     return
   }
 
-  const protocol    = (req.headers['x-forwarded-proto'] as string | undefined) ?? 'https'
-  const host        = req.headers.host as string
-  const redirectUri = `${protocol}://${host}/api/whoop/callback`
-  const clientId     = process.env.VITE_WHOOP_CLIENT_ID    ?? ''
-  const clientSecret = process.env.WHOOP_CLIENT_SECRET ?? ''
-  const cookieBase   = 'HttpOnly; Secure; SameSite=Lax; Path=/'
+  const protocol     = (req.headers['x-forwarded-proto'] as string | undefined) ?? 'https'
+  const host         = req.headers.host as string
+  const redirectUri  = `${protocol}://${host}/api/whoop/callback`
+  const clientId     = (process.env.VITE_WHOOP_CLIENT_ID    ?? '').trim()
+  const clientSecret = (process.env.WHOOP_CLIENT_SECRET ?? '').trim()
 
-  // Pre-emptive refresh if no access token
-  if (!accessToken && refreshToken) {
+  let currentAccess: string | undefined = accessToken
+  let returnedTokens: { access_token: string; refresh_token: string; expires_in: number } | null = null
+
+  // Pre-emptive refresh if we don't have an access token.
+  if (!currentAccess && refreshToken) {
     const newTokens = await exchangeRefresh(refreshToken, clientId, clientSecret, redirectUri)
     if (!newTokens) {
       res.status(401).json({ error: 'not_connected' })
       return
     }
-    accessToken = newTokens.access_token
-    res.setHeader('Set-Cookie', [
-      `whoop_access_token=${accessToken}; Max-Age=2592000; ${cookieBase}`,
-      `whoop_refresh_token=${newTokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
-    ])
+    currentAccess  = newTokens.access_token
+    returnedTokens = newTokens
   }
 
-  const authHeaders = { Authorization: `Bearer ${accessToken}` }
+  const authHeaders = { Authorization: `Bearer ${currentAccess}` }
 
   let [recovRes, sleepRes, cycleRes] = await Promise.all([
     fetch('https://api.prod.whoop.com/developer/v1/recovery?limit=1',       { headers: authHeaders }),
@@ -88,18 +64,15 @@ export default async function handler(req: any, res: any) {
     fetch('https://api.prod.whoop.com/developer/v1/cycle?limit=1',          { headers: authHeaders }),
   ])
 
-  // If any response is 401 and we have a refresh token, refresh and retry
+  // If access token was rejected mid-flight, refresh and retry.
   if ([recovRes, sleepRes, cycleRes].some(r => r.status === 401) && refreshToken) {
     const newTokens = await exchangeRefresh(refreshToken, clientId, clientSecret, redirectUri)
     if (!newTokens) {
       res.status(401).json({ error: 'not_connected' })
       return
     }
+    returnedTokens = newTokens
     const newHeader = { Authorization: `Bearer ${newTokens.access_token}` }
-    res.setHeader('Set-Cookie', [
-      `whoop_access_token=${newTokens.access_token}; Max-Age=2592000; ${cookieBase}`,
-      `whoop_refresh_token=${newTokens.refresh_token}; Max-Age=2592000; ${cookieBase}`,
-    ])
     ;[recovRes, sleepRes, cycleRes] = await Promise.all([
       fetch('https://api.prod.whoop.com/developer/v1/recovery?limit=1',       { headers: newHeader }),
       fetch('https://api.prod.whoop.com/developer/v1/activity/sleep?limit=1', { headers: newHeader }),
@@ -124,7 +97,7 @@ export default async function handler(req: any, res: any) {
     const round1 = (n: number | null | undefined): number | null =>
       n != null ? Math.round(n * 10) / 10 : null
 
-    res.status(200).json({
+    const payload: any = {
       connected:        true,
       recovery:         rec?.score?.recovery_score              ?? null,
       hrv:              round1(rec?.score?.hrv_rmssd_milli),
@@ -138,7 +111,17 @@ export default async function handler(req: any, res: any) {
       strain:           round1(cycle?.score?.strain),
       avgHr:            cycle?.score?.average_heart_rate ?? null,
       maxHr:            cycle?.score?.max_heart_rate     ?? null,
-    })
+    }
+
+    if (returnedTokens) {
+      payload.tokens = {
+        access_token:  returnedTokens.access_token,
+        refresh_token: returnedTokens.refresh_token,
+        expires_in:    returnedTokens.expires_in,
+      }
+    }
+
+    res.status(200).json(payload)
   } catch (e) {
     console.error('Whoop data parse error:', e)
     res.status(500).json({ error: 'parse_failed' })

@@ -34,6 +34,15 @@ interface WhoopPayload {
   maxHr:            number | null
 }
 
+interface StoredTokens {
+  access_token:  string
+  refresh_token: string
+  expires_at:    number
+}
+
+const TOKENS_KEY  = 'daybreak-whoop-tokens'
+const PERSIST_KEY = 'daybreak-whoop-last-v2'
+
 const EMPTY: WhoopPayload = {
   connected: false,
   recovery: null, hrv: null, rhr: null,
@@ -42,14 +51,26 @@ const EMPTY: WhoopPayload = {
   strain: null, avgHr: null, maxHr: null,
 }
 
-const PERSIST_KEY = 'daybreak-whoop-last-v2'
+function readTokens(): StoredTokens | null {
+  try {
+    const raw = localStorage.getItem(TOKENS_KEY)
+    return raw ? JSON.parse(raw) as StoredTokens : null
+  } catch { return null }
+}
+
+function writeTokens(t: StoredTokens) {
+  try { localStorage.setItem(TOKENS_KEY, JSON.stringify(t)) } catch {}
+}
+
+function clearTokens() {
+  try { localStorage.removeItem(TOKENS_KEY) } catch {}
+}
 
 function readPersisted(): WhoopPayload | null {
   try {
     const raw = localStorage.getItem(PERSIST_KEY)
     if (!raw) return null
     const parsed = JSON.parse(raw) as { ts: number; data: WhoopPayload }
-    // Stale-while-revalidate: trust cache for up to 24 hours
     if (Date.now() - parsed.ts > 24 * 60 * 60 * 1000) return null
     return parsed.data
   } catch {
@@ -67,21 +88,49 @@ export function useWhoop(): WhoopData {
   const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
 
   const fetchData = useCallback(async () => {
+    const tokens = readTokens()
+    if (!tokens) {
+      setPayload(EMPTY)
+      setLoading(false)
+      return
+    }
+
     try {
-      const res = await fetch('/api/whoop/data')
+      const res = await fetch('/api/whoop/data', {
+        headers: {
+          'Authorization':         `Bearer ${tokens.access_token}`,
+          'X-Whoop-Refresh-Token': tokens.refresh_token,
+        },
+      })
+
       if (res.status === 401) {
-        // Auth lost — clear persisted state so UI reflects truth
+        clearTokens()
         try { localStorage.removeItem(PERSIST_KEY) } catch {}
         setPayload(EMPTY)
         setLoading(false)
         return
       }
+
       if (!res.ok) throw new Error(`${res.status}`)
-      const json: WhoopPayload = await res.json()
-      setPayload(json)
-      if (json.connected) writePersisted(json)
+
+      const json = await res.json() as WhoopPayload & {
+        tokens?: { access_token: string; refresh_token: string; expires_in: number }
+      }
+
+      // Server refreshed tokens — persist the new pair so subsequent calls work.
+      if (json.tokens) {
+        writeTokens({
+          access_token:  json.tokens.access_token,
+          refresh_token: json.tokens.refresh_token,
+          expires_at:    Date.now() + json.tokens.expires_in * 1000,
+        })
+      }
+
+      const { tokens: _t, ...data } = json
+      setPayload(data)
+      if (data.connected) writePersisted(data)
     } catch {
-      // Network blip — keep showing persisted data, don't flash 'not connected'
+      // Network blip — keep persisted data, don't flash 'not connected'
       if (!persisted) setPayload(EMPTY)
     } finally {
       setLoading(false)
@@ -91,7 +140,7 @@ export function useWhoop(): WhoopData {
   useEffect(() => { void fetchData() }, [fetchData])
 
   const disconnect = useCallback(async () => {
-    await fetch('/api/whoop/data', { method: 'DELETE' })
+    clearTokens()
     try { localStorage.removeItem(PERSIST_KEY) } catch {}
     setPayload(EMPTY)
   }, [])
