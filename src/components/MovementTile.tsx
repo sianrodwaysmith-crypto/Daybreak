@@ -93,6 +93,16 @@ interface ChartProps {
   onTapDay:   (iso: string) => void
 }
 
+function intensityClass(ev: MovementEvent | undefined): string {
+  if (!ev || ev.source === 'rest') return ''
+  switch (ev.intensity) {
+    case 'low':      return ' intensity-low'
+    case 'high':     return ' intensity-high'
+    case 'moderate': return ' intensity-moderate'
+    default:         return ' intensity-moderate'
+  }
+}
+
 function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
   return (
     <div className="movement-week" role="group" aria-label="Movement this week">
@@ -100,6 +110,7 @@ function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
       {weekISO.map((iso, i) => {
         const ev = byDate.get(iso)
         const isToday = iso === today
+        const ic = intensityClass(ev)
         return (
           <button
             key={iso}
@@ -108,10 +119,10 @@ function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
             onClick={() => onTapDay(iso)}
             aria-label={`${DAY_LABELS[i]} ${iso}`}
           >
-            {ev?.source === 'done'    && <span className="movement-mark mark-done"    />}
-            {ev?.source === 'booked'  && <span className="movement-mark mark-booked"  />}
-            {ev?.source === 'planned' && <span className="movement-mark mark-planned" />}
-            {ev?.source === 'rest'    && <span className="movement-mark mark-rest"    />}
+            {ev?.source === 'done'    && <span className={`movement-mark mark-done${ic}`}    />}
+            {ev?.source === 'booked'  && <span className={`movement-mark mark-booked${ic}`}  />}
+            {ev?.source === 'planned' && <span className={`movement-mark mark-planned${ic}`} />}
+            {ev?.source === 'rest'    && <span className="movement-mark mark-rest"           />}
             <span className="movement-day-label">{DAY_LABELS[i]}</span>
           </button>
         )
@@ -398,7 +409,7 @@ export default function MovementTile({ recovery }: Props) {
     <section className="movement-tile">
       <div className="movement-head">
         <span className="movement-eyebrow">
-          <span className="movement-eyebrow-icon" aria-hidden><MovementIcon size={16} /></span>
+          <span className="movement-eyebrow-icon" aria-hidden><MovementIcon size={22} /></span>
           movement
         </span>
         {recovery != null && <span className="movement-recovery">{recoveryLabel(recovery)}</span>}

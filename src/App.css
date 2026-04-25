@@ -1613,11 +1613,12 @@
 }
 .movement-eyebrow-icon {
   display: inline-flex;
-  width: 16px;
-  height: 16px;
-  color: var(--ink-2);
+  align-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--ink);
 }
-.movement-eyebrow-icon svg { width: 100%; height: 100%; }
+.movement-eyebrow-icon svg { width: 100%; height: 100%; display: block; }
 .movement-recovery {
   font-size: 11px;
   color: var(--muted);
@@ -1733,26 +1734,36 @@
   top: 18px;
   transform: translateX(-50%);
   display: block;
+  /* default = moderate; intensity classes override --mark-size */
+  --mark-size: 9px;
+  --mark-inset: 2px;
 }
+.movement-mark.intensity-low      { --mark-size: 6px;  --mark-inset: 1.5px; top: 19px; }
+.movement-mark.intensity-moderate { --mark-size: 9px;  --mark-inset: 2px;   top: 18px; }
+.movement-mark.intensity-high     { --mark-size: 12px; --mark-inset: 3px;   top: 16px; }
+
 .movement-mark.mark-done {
-  width: 8px; height: 8px;
+  width: var(--mark-size);
+  height: var(--mark-size);
   border-radius: 999px;
   background: var(--ink);
 }
 .movement-mark.mark-booked {
-  width: 9px; height: 9px;
+  width: var(--mark-size);
+  height: var(--mark-size);
   border-radius: 999px;
   border: 1px solid var(--ink);
 }
 .movement-mark.mark-booked::after {
   content: '';
   position: absolute;
-  inset: 2px;
+  inset: var(--mark-inset);
   border-radius: 999px;
   background: var(--ink);
 }
 .movement-mark.mark-planned {
-  width: 8px; height: 8px;
+  width: var(--mark-size);
+  height: var(--mark-size);
   border-radius: 999px;
   border: 1px solid var(--muted);
 }
