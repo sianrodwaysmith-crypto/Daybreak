@@ -1,323 +1,164 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 import './App.css'
+import Header from './components/Header'
+import Tile from './components/Tile'
+import Modal from './components/Modal'
+import WeatherBanner from './components/WeatherBanner'
+import ChatWidget from './components/ChatWidget'
 import { useWeather } from './hooks/useWeather'
+import { useCalendar } from './hooks/useCalendar'
+import { useAIContent } from './hooks/useAIContent'
 import { useWhoop } from './hooks/useWhoop'
-import WhoopRings from './components/WhoopRings'
+import ReadinessScreen from './screens/ReadinessScreen'
+import ClientResearchScreen from './screens/ClientResearchScreen'
+import PulseScreen from './screens/PulseScreen'
+import MindsetScreen from './screens/MindsetScreen'
+import ScheduleScreen from './screens/ScheduleScreen'
+import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
 
-const USER_NAME = 'Sian'
-
-const DAYS = [
-  'Sunday', 'Monday', 'Tuesday', 'Wednesday',
-  'Thursday', 'Friday', 'Saturday',
-]
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
-
-function formatDate(d: Date): string {
-  return `${DAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}`
+function readinessColor(score: number | null): string {
+  if (score == null)   return 'rgba(10,10,10,0.18)'
+  if (score >= 67) return '#19a35a'
+  if (score >= 34) return '#c98a00'
+  return '#c2453a'
 }
 
-function greetingForHour(hour: number): string {
-  if (hour < 5)  return 'Still up'
-  if (hour < 12) return 'Good morning'
-  if (hour < 18) return 'Good afternoon'
-  return 'Good evening'
-}
-
-function buildWhoopAuthUrl(): string | null {
-  const clientId = import.meta.env.VITE_WHOOP_CLIENT_ID as string | undefined
-  if (!clientId) return null
-  const redirectUri = `${window.location.origin}/api/whoop/callback`
-  const scope = 'read:recovery read:sleep read:cycles read:profile offline'
-  const state = Math.random().toString(36).slice(2)
-  return (
-    `https://api.prod.whoop.com/oauth/oauth2/auth` +
-    `?client_id=${encodeURIComponent(clientId)}` +
-    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-    `&response_type=code` +
-    `&scope=${encodeURIComponent(scope)}` +
-    `&state=${state}`
-  )
-}
-
-/* ---------- Header ---------- */
-function EditorialHeader() {
-  const initial = USER_NAME[0].toLowerCase()
-  return (
-    <header className="eh">
-      <span className="eh-mark">Daybreak</span>
-      <span className="eh-avatar" aria-label="profile">{initial}</span>
-    </header>
-  )
-}
-
-/* ---------- Greeting ---------- */
-function Greeting({ now }: { now: Date }) {
-  const weather = useWeather()
-  const greeting = greetingForHour(now.getHours())
-
-  return (
-    <section className="greeting">
-      <div className="greeting-date">{formatDate(now)}</div>
-      <h1 className="greeting-text">{greeting}, {USER_NAME}.</h1>
-      {weather && (
-        <div className="greeting-weather">
-          <span className="greeting-weather-icon">{weather.emoji}</span>
-          <div className="greeting-weather-text">
-            <div>{weather.condition}, {weather.temp}°.</div>
-            <div className="greeting-weather-sub">High {weather.high}° · low {weather.low}°.</div>
-          </div>
-        </div>
-      )}
-    </section>
-  )
-}
-
-/* ---------- Today's word ---------- */
-const WORDS = [
-  'unhurried', 'precise', 'patient', 'open', 'grounded',
-  'curious', 'deliberate', 'measured', 'honest', 'still',
-]
-function TodaysWord({ now }: { now: Date }) {
-  const word = WORDS[(now.getMonth() * 31 + now.getDate()) % WORDS.length]
-  return (
-    <section className="todays-word">
-      <div className="label-caption">today's word</div>
-      <div className="todays-word-value">{word}.</div>
-    </section>
-  )
-}
-
-/* ---------- One thing ---------- */
-function OneThing() {
-  return (
-    <section className="one-thing">
-      <div className="one-thing-eyebrow">the one thing</div>
-      <div className="one-thing-text">Send the Salesforce POV deck to Aztec.</div>
-      <div className="one-thing-meta">
-        <span><span className="one-thing-meta-key">Best window</span><span className="one-thing-meta-val">9:30–11:30</span></span>
-        <span className="one-thing-meta-sep">·</span>
-        <span><span className="one-thing-meta-key">Due</span>14:00</span>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- From yesterday ---------- */
-function FromYesterday() {
-  return (
-    <section className="module">
-      <div className="module-label">From yesterday</div>
-      <div className="yesterday-grid">
-        <div className="yesterday-card">
-          <div className="yesterday-eyebrow">Carry forward</div>
-          <div className="yesterday-text">Camunda diagram for slide 7.</div>
-        </div>
-        <div className="yesterday-card">
-          <div className="yesterday-eyebrow">Let it go</div>
-          <div className="yesterday-text struck">Adam's tone in the 4pm.</div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Body pills ---------- */
-type BodyState = 'sluggish' | 'steady' | 'charged'
-function BodyPicker() {
-  const [v, setV] = useState<BodyState>('steady')
-  const opts: BodyState[] = ['sluggish', 'steady', 'charged']
-  return (
-    <section className="module">
-      <div className="module-label">How's the body?</div>
-      <div className="body-pills">
-        {opts.map(o => (
-          <button
-            key={o}
-            className={`body-pill${v === o ? ' is-on' : ''}`}
-            onClick={() => setV(o)}
-          >
-            {o}
-          </button>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Movement window ---------- */
-function MovementWindow() {
-  return (
-    <section className="module">
-      <div className="module-label">A window for movement</div>
-      <div className="movement-card">
-        <div className="movement-head">
-          <div className="movement-time">17:30 — 60 mins free</div>
-          <div className="movement-tag">auto-found</div>
-        </div>
-        <div className="movement-body">
-          Padel court at Rocket open 17:30. Three players nearby looking to play.
-        </div>
-        <div className="movement-actions">
-          <button className="btn-quiet">Book the court</button>
-          <button className="btn-quiet">Skip today</button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Worry parking lot ---------- */
-function WorryParkingLot() {
-  const [v, setV] = useState('The Aztec security review feedback…')
-  return (
-    <section className="module">
-      <div className="module-label">Worry parking lot</div>
-      <div className="module-help">Park what's spinning. We'll bring it back at 18:00.</div>
-      <textarea
-        className="worry-input"
-        rows={3}
-        value={v}
-        onChange={e => setV(e.target.value)}
-        placeholder="Drop it here…"
-      />
-    </section>
-  )
-}
-
-/* ---------- Someone in your orbit ---------- */
-function Orbit() {
-  return (
-    <section className="module">
-      <div className="module-label">Someone in your orbit</div>
-      <div className="orbit-card">
-        <div className="orbit-avatar">JM</div>
-        <div className="orbit-info">
-          <div className="orbit-name">Jamie Marshall</div>
-          <div className="orbit-meta">47 days quiet · birthday Tuesday</div>
-        </div>
-        <button className="btn-quiet">Draft</button>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Today's small things ---------- */
-function SmallThings() {
-  return (
-    <section className="module">
-      <div className="module-label">Today's small things</div>
-      <div className="small-grid">
-        <div className="small-card">
-          <div className="small-eyebrow">60-second curiosity</div>
-          <div className="small-text">Why do octopuses have three hearts?</div>
-          <a className="small-link" href="#" onClick={e => e.preventDefault()}>Read →</a>
-        </div>
-        <div className="small-card">
-          <div className="small-eyebrow">Look forward to</div>
-          <div className="small-text">The fig tart at Margot on the way home.</div>
-          <a className="small-link" href="#" onClick={e => e.preventDefault()}>Saved by you ↗</a>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ---------- Tonight's you ---------- */
-function TonightYou() {
-  return (
-    <section className="tonight-block">
-      <div className="hairline" />
-      <div className="tonight-eyebrow">tonight's you</div>
-      <p className="tonight-quote">
-        "wants to feel unhurried. the lever today: laptop closed by 18:30."
-      </p>
-    </section>
-  )
-}
-
-/* ---------- Whoop flash banner ---------- */
-function useWhoopFlash() {
+function useWhoopFlash(): { msg: string | null; clear: () => void } {
   const [msg, setMsg] = useState<string | null>(null)
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const w = params.get('whoop')
     if (!w) return
-    if (w === 'connected')      setMsg('Whoop connected.')
+    if (w === 'connected')      setMsg('✅ Whoop connected.')
     else if (w === 'cancelled') setMsg('Whoop connection cancelled.')
-    else if (w === 'error')     setMsg('Whoop connection failed.')
+    else if (w === 'error') {
+      const reason = params.get('reason')
+      setMsg(`Whoop connection failed${reason ? `: ${decodeURIComponent(reason)}` : '.'}`)
+    }
+    // Clean the URL so it doesn't keep showing on refresh
     const url = new URL(window.location.href)
     url.searchParams.delete('whoop')
     url.searchParams.delete('reason')
-    window.history.replaceState({}, '', url.pathname + (url.search || ''))
+    window.history.replaceState({}, '', url.pathname + (url.search ? url.search : ''))
   }, [])
   return { msg, clear: () => setMsg(null) }
 }
 
-/* ---------- Home ---------- */
 function HomeView() {
-  const now    = useMemo(() => new Date(), [])
-  const whoop  = useWhoop()
-  const flash  = useWhoopFlash()
+  const [activeId, setActiveId]     = useState<string | null>(null)
+  const [showSettings, setSettings] = useState(false)
+  const weather  = useWeather()
+  const calendar = useCalendar()
+  const whoop    = useWhoop()
+  const whoopFlash = useWhoopFlash()
 
-  function connectWhoop() {
-    const url = buildWhoopAuthUrl()
-    if (url) window.location.href = url
+  const readinessScore = whoop.recovery
+  const { ai, retry, refreshPulse } = useAIContent()
+
+  const pulseLoading =
+    ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
+
+  const TILES = [
+    { id: 'mindset', icon: '🙏', title: 'Daily Mindset',   accent: '#f59e0b' },
+    { id: 'ready',   icon: '💚', title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
+    { id: 'client',  icon: '💼', title: 'Client Research', accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'pulse',   icon: '🌍', title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
+    { id: 'schedule',icon: '📅', title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading },
+  ]
+
+  const activeTile = TILES.find(t => t.id === activeId)
+
+  function getContent(id: string | null) {
+    switch (id) {
+      case 'ready':    return <ReadinessScreen
+        score={readinessScore}
+        hrv={whoop.hrv}
+        rhr={whoop.rhr}
+        sleep={whoop.sleep}
+        sleepEfficiency={whoop.sleepEfficiency}
+        sleepConsistency={whoop.sleepConsistency}
+        sleepHours={whoop.sleepHours}
+        remHours={whoop.remHours}
+        deepHours={whoop.deepHours}
+        strain={whoop.strain}
+        avgHr={whoop.avgHr}
+        maxHr={whoop.maxHr}
+        connected={whoop.connected}
+      />
+      case 'client':   return <ClientResearchScreen aiState={ai.client} onRetry={() => retry('client')} />
+      case 'pulse':    return <PulseScreen
+        anthropic={ai['pulse-anthropic']}
+        aiWorld={ai['pulse-aiworld']}
+        techMkt={ai['pulse-tech']}
+        onRetrySection={(id) => retry(id)}
+        onRefreshAll={refreshPulse}
+      />
+      case 'mindset':  return <MindsetScreen />
+      case 'schedule': return <ScheduleScreen events={calendar.events} loading={calendar.loading} connected={calendar.connected} />
+      default:         return null
+    }
   }
 
   return (
-    <main className="editorial">
-      <EditorialHeader />
-      <Greeting now={now} />
-      {flash.msg && (
-        <div
-          style={{
-            margin: '0 0 18px',
-            padding: '10px 14px',
-            borderRadius: 10,
-            border: '1px solid var(--line)',
-            background: 'transparent',
-            color: 'var(--ink-2)',
-            fontSize: 13,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <span>{flash.msg}</span>
-          <button
-            onClick={flash.clear}
-            style={{ fontSize: 12, color: 'var(--muted)' }}
-            aria-label="Dismiss"
-          >
-            ×
-          </button>
+    <div className="app">
+      <div className="app-content">
+        <Header
+          readinessScore={readinessScore}
+          readinessColor={readinessColor(readinessScore)}
+          onSettings={() => setSettings(true)}
+        />
+        {whoopFlash.msg && (
+          <div className={`flash${whoopFlash.msg.startsWith('✅') ? ' flash-ok' : ' flash-err'}`}>
+            <span>{whoopFlash.msg}</span>
+            <button onClick={whoopFlash.clear} aria-label="Dismiss" className="flash-close">×</button>
+          </div>
+        )}
+        {weather && <WeatherBanner weather={weather} />}
+        <div className="tile-grid">
+          {TILES.map(t => (
+            <Tile
+              key={t.id}
+              icon={t.icon}
+              title={t.title}
+              accent={t.accent}
+              fullWidth={'fullWidth' in t && t.fullWidth}
+              loading={'loading' in t ? t.loading : false}
+              onClick={() => setActiveId(t.id)}
+            />
+          ))}
         </div>
-      )}
-      <div className="hairline" />
-      <TodaysWord now={now} />
-      <WhoopRings whoop={whoop} onConnect={connectWhoop} />
-      <OneThing />
-      <FromYesterday />
-      <BodyPicker />
-      <MovementWindow />
-      <WorryParkingLot />
-      <Orbit />
-      <SmallThings />
-      <TonightYou />
+        <footer className="home-footer">
+          <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
+          <span className="home-footer-sep">·</span>
+          <Link to="/terms" className="home-footer-link">Terms</Link>
+        </footer>
+      </div>
 
-      <footer className="editorial-footer">
-        <Link to="/privacy">Privacy</Link>
-        <span className="editorial-footer-sep">·</span>
-        <Link to="/terms">Terms</Link>
-      </footer>
-    </main>
+      {/* Tile modal */}
+      <Modal
+        isOpen={activeId !== null}
+        onClose={() => setActiveId(null)}
+        title={activeTile?.title ?? ''}
+        accent={activeTile?.accent ?? '#ffffff'}
+      >
+        {getContent(activeId)}
+      </Modal>
+
+      {/* Settings modal */}
+      <Modal
+        isOpen={showSettings}
+        onClose={() => setSettings(false)}
+        title="Settings"
+        accent="rgba(255,255,255,0.7)"
+      >
+        <SettingsScreen calendar={calendar} whoop={whoop} />
+      </Modal>
+
+      <ChatWidget />
+    </div>
   )
 }
 

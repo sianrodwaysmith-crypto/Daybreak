@@ -14,25 +14,20 @@ export default function Tile({ icon, title, accent, fullWidth, loading, onClick 
 
   return (
     <div
-      className={`tile${fullWidth ? ' tile-full' : ''}`}
-      style={{
-        transform: pressing ? 'scale(0.96)' : 'scale(1)',
-        borderColor: `${accent}28`,
-      }}
+      className={`tile${fullWidth ? ' tile-full' : ''}${pressing ? ' is-pressing' : ''}`}
       onPointerDown={() => setPressing(true)}
       onPointerUp={() => { setPressing(false); onClick() }}
       onPointerLeave={() => setPressing(false)}
       onPointerCancel={() => setPressing(false)}
     >
-      <div className="tile-icon" style={{ background: `${accent}16`, color: accent }}>
-        {icon}
-      </div>
-      <div className="tile-title" style={{ color: accent }}>{title}</div>
+      <div className="tile-icon">{icon}</div>
+      <div className="tile-title">{title}</div>
+      <span className="tile-dot" style={{ background: accent }} aria-hidden />
       {loading && (
-        <div className="tile-dots">
-          <span className="tile-dot" style={{ background: accent, animationDelay: '0ms' }} />
-          <span className="tile-dot" style={{ background: accent, animationDelay: '180ms' }} />
-          <span className="tile-dot" style={{ background: accent, animationDelay: '360ms' }} />
+        <div className="tile-loading">
+          <span className="tile-loading-dot" style={{ animationDelay: '0ms' }} />
+          <span className="tile-loading-dot" style={{ animationDelay: '180ms' }} />
+          <span className="tile-loading-dot" style={{ animationDelay: '360ms' }} />
         </div>
       )}
     </div>
