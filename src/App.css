@@ -1229,6 +1229,15 @@
 .schedule-grid-event.is-past {
   opacity: 0.42;
 }
+.schedule-grid-event.is-link {
+  text-decoration: none;
+  cursor: pointer;
+  display: block;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.schedule-grid-event.is-link:active {
+  transform: scale(0.98);
+}
 .schedule-grid-event.is-live {
   background: rgba(245, 158, 11, 0.12);
   border-color: rgba(245, 158, 11, 0.5);
@@ -1283,6 +1292,27 @@
   font-size: 13px;
   color: var(--muted);
   font-style: italic;
+}
+.schedule-tomorrow {
+  margin-top: 18px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.02);
+}
+.schedule-tomorrow-label {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.schedule-tomorrow-text {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--ink);
 }
 
 .schedule-empty {

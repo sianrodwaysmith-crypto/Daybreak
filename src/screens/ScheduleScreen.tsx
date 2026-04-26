@@ -2,8 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { type CalEvent } from '../hooks/useCalendar'
 
 interface Props {
-  events: CalEvent[]
-  loading: boolean
+  events:    CalEvent[]
+  tomorrow?: CalEvent[]
+  loading:   boolean
   connected: boolean
 }
 
@@ -143,7 +144,8 @@ function CalendarGrid({ timed, now }: GridProps) {
           return <div key={`hh-${h}`} className="schedule-grid-tick is-half" style={{ top }} />
         })}
 
-        {/* Event blocks */}
+        {/* Event blocks. Tappable when Google Calendar gives us an htmlLink
+            so the user can jump straight to the event detail. */}
         {positioned.map(p => {
           const startMins  = minutesFromMidnight(p.event.start) - startMin
           const durMins    = Math.max(15, (p.event.end.getTime() - p.event.start.getTime()) / 60000)
@@ -153,18 +155,15 @@ function CalendarGrid({ timed, now }: GridProps) {
           const leftPct    = p.column * widthPct
           const isPast     = p.event.end.getTime() <= now.getTime()
           const isLive     = p.event.start.getTime() <= now.getTime() && p.event.end.getTime() > now.getTime()
-          const cls = `schedule-grid-event${isPast ? ' is-past' : ''}${isLive ? ' is-live' : ''}`
-          return (
-            <div
-              key={p.event.id}
-              className={cls}
-              style={{
-                top,
-                height,
-                left:  `calc(${leftPct}% + 2px)`,
-                width: `calc(${widthPct}% - 4px)`,
-              }}
-            >
+          const cls = `schedule-grid-event${isPast ? ' is-past' : ''}${isLive ? ' is-live' : ''}${p.event.htmlLink ? ' is-link' : ''}`
+          const style = {
+            top,
+            height,
+            left:  `calc(${leftPct}% + 2px)`,
+            width: `calc(${widthPct}% - 4px)`,
+          }
+          const inner = (
+            <>
               <div className="schedule-grid-event-time">
                 {fmt12(p.event.start)} – {fmt12(p.event.end)}
               </div>
@@ -172,8 +171,23 @@ function CalendarGrid({ timed, now }: GridProps) {
               {p.event.location && height > 56 && (
                 <div className="schedule-grid-event-loc">{p.event.location}</div>
               )}
-            </div>
+            </>
           )
+          if (p.event.htmlLink) {
+            return (
+              <a
+                key={p.event.id}
+                className={cls}
+                style={style}
+                href={p.event.htmlLink}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {inner}
+              </a>
+            )
+          }
+          return <div key={p.event.id} className={cls} style={style}>{inner}</div>
         })}
 
         {/* Now line */}
@@ -187,7 +201,21 @@ function CalendarGrid({ timed, now }: GridProps) {
   )
 }
 
-export default function ScheduleScreen({ events, loading, connected }: Props) {
+function tomorrowSummary(events: CalEvent[]): string {
+  const timed = events.filter(e => !e.allDay).sort((a, b) => a.start.getTime() - b.start.getTime())
+  if (timed.length === 0) {
+    const allDay = events.filter(e => e.allDay)
+    if (allDay.length === 0) return 'Tomorrow is open.'
+    return `Tomorrow: ${allDay[0].title}${allDay.length > 1 ? ` (and ${allDay.length - 1} more)` : ''}.`
+  }
+  const first = timed[0]
+  const more = timed.length - 1
+  if (more === 0) return `Tomorrow starts with ${first.title} at ${fmt12(first.start)}.`
+  if (more === 1) return `Tomorrow starts with ${first.title} at ${fmt12(first.start)}. One more after.`
+  return `Tomorrow starts with ${first.title} at ${fmt12(first.start)}. ${more} more after.`
+}
+
+export default function ScheduleScreen({ events, tomorrow, loading, connected }: Props) {
   // Tick the clock every minute so the now-line and live highlights stay
   // accurate while the modal is open.
   const [now, setNow] = useState(() => new Date())
@@ -268,6 +296,13 @@ export default function ScheduleScreen({ events, loading, connected }: Props) {
 
       {freeBlurb && (
         <div className="schedule-foot">{freeBlurb}.</div>
+      )}
+
+      {tomorrow && tomorrow.length > 0 && (
+        <div className="schedule-tomorrow">
+          <div className="schedule-tomorrow-label">TOMORROW</div>
+          <div className="schedule-tomorrow-text">{tomorrowSummary(tomorrow)}</div>
+        </div>
       )}
     </div>
   )

@@ -19,6 +19,7 @@ export interface CalEvent {
   end:       Date
   allDay:    boolean
   location?: string
+  htmlLink?: string
 }
 
 export interface CalendarDebug {
@@ -36,7 +37,8 @@ export interface CalendarDebug {
 export interface CalendarHook {
   connected:        boolean
   loading:          boolean
-  events:           CalEvent[]
+  events:           CalEvent[]    // today only
+  tomorrow:         CalEvent[]    // tomorrow only, for the preview strip
   debug:            CalendarDebug | null
   cooldownSeconds:  number
   refresh:          () => Promise<void>
@@ -46,14 +48,23 @@ export interface CalendarHook {
 interface StoredTokens { access_token: string; refresh_token: string; expires_at: number }
 
 const TOKENS_KEY    = 'daybreak-google-tokens'
-const PERSIST_KEY   = 'daybreak-google-events-v1'
+// v2 — added htmlLink + window now spans today and tomorrow.
+const PERSIST_KEY   = 'daybreak-google-events-v2'
 const DEBUG_KEY     = 'daybreak-google-debug'
 const COOLDOWN_KEY  = 'daybreak-google-cooldown-until'
 
 const DEFAULT_COOLDOWN_SECS = 60
 const MIN_FRESH_AGE_MS      = 30 * 60 * 1000
 
-interface RawEvent { id: string; title: string; start: string; end: string; allDay: boolean; location?: string }
+interface RawEvent {
+  id:        string
+  title:     string
+  start:     string
+  end:       string
+  allDay:    boolean
+  location?: string
+  htmlLink?: string
+}
 interface PersistedEntry { events: RawEvent[]; ts: number }
 
 function readTokens(): StoredTokens | null {
@@ -105,6 +116,32 @@ function rehydrate(raw: RawEvent[]): CalEvent[] {
   return raw.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
 }
 
+function isoDateLocal(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+// Split a flat list of events into "today" and "tomorrow" buckets,
+// classifying by the start date in local time. Events that started
+// yesterday and bleed into today still count as today.
+function splitByDay(all: CalEvent[]): { today: CalEvent[]; tomorrow: CalEvent[] } {
+  const now = new Date()
+  const todayISO = isoDateLocal(now)
+  const tmw = new Date(now); tmw.setDate(tmw.getDate() + 1)
+  const tomorrowISO = isoDateLocal(tmw)
+
+  const today:    CalEvent[] = []
+  const tomorrow: CalEvent[] = []
+  for (const e of all) {
+    const sISO = isoDateLocal(e.start)
+    if (sISO === tomorrowISO) tomorrow.push(e)
+    else if (sISO === todayISO || (e.start.getTime() <= now.getTime() && e.end.getTime() > now.getTime())) today.push(e)
+    else if (sISO < todayISO && isoDateLocal(e.end) >= todayISO) today.push(e)
+  }
+  return { today, tomorrow }
+}
+
 let inflight: Promise<void> | null = null
 function singleFlight(run: () => Promise<void>): Promise<void> {
   if (inflight) return inflight
@@ -119,10 +156,12 @@ export function useCalendar(): CalendarHook {
   if (persistedRef.current === null) persistedRef.current = readPersistedEntry()
   const persisted = persistedRef.current
 
-  const initialEvents = persisted ? rehydrate(persisted.events) : []
+  const initialAll = persisted ? rehydrate(persisted.events) : []
+  const initialSplit = splitByDay(initialAll)
   const initialConnected = readTokens() !== null
 
-  const [events,    setEvents]    = useState<CalEvent[]>(initialEvents)
+  const [events,    setEvents]    = useState<CalEvent[]>(initialSplit.today)
+  const [tomorrow,  setTomorrow]  = useState<CalEvent[]>(initialSplit.tomorrow)
   const [connected, setConnected] = useState<boolean>(initialConnected)
   const [loading,   setLoading]   = useState<boolean>(persisted == null && initialConnected)
   const [debug,     setDebug]     = useState<CalendarDebug | null>(readDebug)
@@ -182,7 +221,9 @@ export function useCalendar(): CalendarHook {
     if (!force) {
       const entry = readPersistedEntry()
       if (entry && Date.now() - entry.ts < MIN_FRESH_AGE_MS) {
-        setEvents(rehydrate(entry.events))
+        const split = splitByDay(rehydrate(entry.events))
+        setEvents(split.today)
+        setTomorrow(split.tomorrow)
         setConnected(true)
         setLoading(false)
         return
@@ -203,6 +244,7 @@ export function useCalendar(): CalendarHook {
     const tokens = readTokens()
     if (!tokens) {
       setEvents([])
+      setTomorrow([])
       setConnected(false)
       setLoading(false)
       captureDebug({ source: 'no-tokens', ts: now(), hasTokens: false })
@@ -223,6 +265,7 @@ export function useCalendar(): CalendarHook {
           clearTokens()
           try { localStorage.removeItem(PERSIST_KEY) } catch {}
           setEvents([])
+          setTomorrow([])
           setConnected(false)
           setLoading(false)
           captureDebug({ source: '401', ts: now(), hasTokens: true, fetchOk: false, fetchStatus: 401 })
@@ -265,7 +308,9 @@ export function useCalendar(): CalendarHook {
         }
 
         const rehydrated = rehydrate(json.events ?? [])
-        setEvents(rehydrated)
+        const split = splitByDay(rehydrated)
+        setEvents(split.today)
+        setTomorrow(split.tomorrow)
         setConnected(true)
         if (json.events) writePersisted(json.events)
         captureDebug({
@@ -302,9 +347,10 @@ export function useCalendar(): CalendarHook {
     cooldownUntilRef.current = 0
     setCooldownSeconds(0)
     setEvents([])
+    setTomorrow([])
     setConnected(false)
     setDebug(null)
   }, [])
 
-  return { connected, loading, events, debug, cooldownSeconds, refresh, disconnect }
+  return { connected, loading, events, tomorrow, debug, cooldownSeconds, refresh, disconnect }
 }

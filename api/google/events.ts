@@ -36,6 +36,7 @@ interface GCalEvent {
   start?:      GCalEventDate
   end?:        GCalEventDate
   status?:     string
+  htmlLink?:   string
 }
 
 function startOfTodayLocal(): Date {
@@ -43,8 +44,11 @@ function startOfTodayLocal(): Date {
   d.setHours(0, 0, 0, 0)
   return d
 }
-function endOfTodayLocal(): Date {
+// Default window covers today and tomorrow so the Schedule modal can
+// show a "Tomorrow" preview without a second round-trip.
+function endOfTomorrowLocal(): Date {
   const d = new Date()
+  d.setDate(d.getDate() + 1)
   d.setHours(23, 59, 59, 999)
   return d
 }
@@ -96,7 +100,7 @@ export default async function handler(req: any, res: any) {
 
   const params = new URLSearchParams({
     timeMin:       (minOverride ?? startOfTodayLocal()).toISOString(),
-    timeMax:       (maxOverride ?? endOfTodayLocal()).toISOString(),
+    timeMax:       (maxOverride ?? endOfTomorrowLocal()).toISOString(),
     singleEvents:  'true',
     orderBy:       'startTime',
     maxResults:    '250',
@@ -147,6 +151,7 @@ export default async function handler(req: any, res: any) {
         end:      endISO,
         allDay,
         location: e.location,
+        htmlLink: e.htmlLink,
       }
     })
 

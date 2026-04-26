@@ -138,7 +138,8 @@ function HomeView() {
 
   // Anything that reads as exercise lives in the Movement tile, not the
   // schedule. Filter those events out so they don't show in both places.
-  const scheduleEvents = calendar.events.filter(e => !looksLikeMovement(e.title))
+  const scheduleEvents   = calendar.events.filter(e => !looksLikeMovement(e.title))
+  const tomorrowEvents   = calendar.tomorrow.filter(e => !looksLikeMovement(e.title))
 
   const scheduleSubtitle = summariseSchedule(
     scheduleEvents, calendar.loading, calendar.connected, new Date(),
@@ -180,7 +181,7 @@ function HomeView() {
         onRefreshAll={refreshPulse}
       />
       case 'mindset':  return <MindsetScreen />
-      case 'schedule': return <ScheduleScreen events={scheduleEvents} loading={calendar.loading} connected={calendar.connected} />
+      case 'schedule': return <ScheduleScreen events={scheduleEvents} tomorrow={tomorrowEvents} loading={calendar.loading} connected={calendar.connected} />
       default:         return null
     }
   }
