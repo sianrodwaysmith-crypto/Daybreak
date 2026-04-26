@@ -26,7 +26,7 @@ const TILE_IDS: AITileId[] = ['client', 'pulse-anthropic', 'pulse-aiworld', 'pul
 // Bump this when the prompt format or rendered shape changes so stale caches
 // don't survive a deploy. v5 also moves storage from sessionStorage to
 // localStorage so historic-day snapshots survive a tab close.
-const CACHE_VERSION = 'v5'
+const CACHE_VERSION = 'v6'
 
 function cacheKey(id: AITileId, iso: string): string {
   return `daybreak-ai-${CACHE_VERSION}-${id}-${iso}`

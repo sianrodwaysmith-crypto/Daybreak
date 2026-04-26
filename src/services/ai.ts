@@ -53,7 +53,7 @@ export function fetchClientBrief(): Promise<string> {
   const { day, date } = dayInfo()
   return callClaude(
     'You are a research analyst supporting a senior consultant. Be concise, professional, and insight-driven.',
-    `Today is ${day}, ${date}. My active client is Aztec, working on Salesforce CRM digital transformation, Phase 2 (Integration), deadline 15 May 2026, status On Track. Key contact: James Henderson (CPO). Also active: Salesforce — Discovery Phase, contact Rachel Ng.
+    `Today is ${day}, ${date}. My active client is Aztec, working on Salesforce CRM digital transformation, Phase 2 (Integration), deadline 15 May 2026, status On Track. Key contact: James Henderson (CPO). Also active: Salesforce, Discovery Phase, contact Rachel Ng.
 
 Using web search, research any relevant news about Aztec, Salesforce, or enterprise CRM today, then give me a research summary with two sections:
 
@@ -73,21 +73,22 @@ const PULSE_FORMAT_TAIL = `
 Output ONLY the two stories, in this exact format, with no other text:
 
 **Article title as the publication wrote it, in sentence case**
-What: One sentence — under 25 words — summarising what the article actually says. Factual, not editorial.
-Impact: One sentence — under 25 words — on what this means in practice for the reader. Concrete and applied: what changes day-to-day, what to consider, what action it prompts.
+What: One sentence, under 25 words, summarising what the article actually says. Factual, not editorial.
+Impact: One sentence, under 25 words, on what this means in practice for the reader. Concrete and applied: what changes day-to-day, what to consider, what action it prompts.
 Source: https://full-direct-url-to-the-original-article
 
 Separate the two stories with a single blank line and nothing else.
 
 Hard rules:
 - The bolded line is the article's actual title (or as close to it as you can get). Sentence case.
-- The What line is content — what the article reports. Don't add interpretation.
-- The Impact line is the so-what — concrete, in practice, applied. Avoid clichés like "this is significant" or "this changes everything"; say what specifically changes.
-- Both What and Impact must each be a single sentence and start with the literal label "What:" or "Impact:" followed by a space. Keep each under 25 words — succinct is the brief.
+- The What line is content. State what the article reports. Don't add interpretation.
+- The Impact line is the so-what. Be concrete, in practice, applied. Avoid clichés like "this is significant" or "this changes everything"; say what specifically changes.
+- Both What and Impact must each be a single sentence and start with the literal label "What:" or "Impact:" followed by a space. Keep each under 25 words.
 - The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage).
 - Your very first character must be the asterisk of the first headline. No preamble, no framing, no "here are the stories" line.
 - No closing line, summary, or commentary after the last Source.
-- No "---", "***", or any other separator between stories.`
+- No "---", "***", or any other separator between stories.
+- Punctuation rule, strict: never use em-dashes or en-dashes (the long dash characters) anywhere in your output. Use commas, periods, parentheses, or semicolons instead. Hyphens in compound words like "day-to-day" are fine.`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
@@ -156,7 +157,7 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
       const parsed = JSON.parse(errText)
       detail = parsed?.error?.message || parsed?.message || ''
     } catch { detail = errText.slice(0, 240) }
-    throw new Error(`API ${response.status}${detail ? ` — ${detail}` : ''}`)
+    throw new Error(`API ${response.status}${detail ? `: ${detail}` : ''}`)
   }
 
   const data = await response.json()
@@ -224,7 +225,7 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
     throw new Error(
       searchError
         ? `web_search error: ${searchError}`
-        : 'empty-response — model returned no text',
+        : 'Empty response. Model returned no text.',
     )
   }
 

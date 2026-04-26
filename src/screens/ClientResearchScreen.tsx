@@ -20,7 +20,7 @@ export default function ClientResearchScreen({ aiState, onRetry }: Props) {
           {[
             ['PROJECT',  'Digital Transformation Q2'],
             ['PLATFORM', 'Salesforce CRM'],
-            ['PHASE',    'Phase 2 — Integration'],
+            ['PHASE',    'Phase 2 (Integration)'],
             ['DEADLINE', '15 May 2026'],
             ['STATUS',   'On Track'],
           ].map(([k, v]) => (

@@ -2,18 +2,18 @@ const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Sat
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 const MARCUS_QUOTES: string[] = [
-  'You have power over your mind — not outside events. Realize this, and you will find strength.',
+  'You have power over your mind, not outside events. Realize this, and you will find strength.',
   'The happiness of your life depends upon the quality of your thoughts.',
   'Waste no more time arguing what a good man should be. Be one.',
-  'When you arise in the morning, think of what a precious privilege it is to be alive — to breathe, to think, to enjoy, to love.',
+  'When you arise in the morning, think of what a precious privilege it is to be alive: to breathe, to think, to enjoy, to love.',
   'What we do now echoes in eternity.',
   'The impediment to action advances action. What stands in the way becomes the way.',
   'Confine yourself to the present.',
   'Very little is needed to make a happy life; it is all within yourself, in your way of thinking.',
   'The soul becomes dyed with the color of its thoughts.',
-  'Begin — to begin is half the work.',
+  'Begin. To begin is half the work.',
   'It is not death that a man should fear, but he should fear never beginning to live.',
-  'You have to assemble your life yourself — action by action.',
+  'You have to assemble your life yourself, action by action.',
 ]
 
 function quoteForDay(d: Date): string {
@@ -42,7 +42,7 @@ export default function Header({
   const quote = quoteForDay(ref)
 
   const barWidth = readinessScore != null ? `${readinessScore}%` : '0%'
-  const labelText = readinessScore != null ? `Readiness ${readinessScore}` : 'Readiness —'
+  const labelText = readinessScore != null ? `Readiness ${readinessScore}` : 'Readiness'
 
   return (
     <header className="header">
@@ -61,7 +61,7 @@ export default function Header({
       <div className="header-greeting">Good morning, Siân.</div>
       <div className="header-quote">
         <span className="header-quote-text">“{quote}”</span>
-        <span className="header-quote-attr"> — Marcus Aurelius</span>
+        <span className="header-quote-attr"> Marcus Aurelius.</span>
       </div>
       <div className="header-date">
         {date}

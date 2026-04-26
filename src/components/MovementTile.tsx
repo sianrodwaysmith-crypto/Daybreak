@@ -31,7 +31,7 @@ const SHORT_MONTHS = [
 function recoveryLabel(score: number | null): string {
   if (score == null)   return ''
   if (score >= 70) return `${score}% recovered`
-  return `${score}% — take it easy`
+  return `${score}%, take it easy`
 }
 
 function todayLine(today: MovementEvent | null): string {
@@ -52,7 +52,7 @@ function todaySubLine(today: MovementEvent | null, recovery: number | null): str
       ? ''
       : recovery >= 67
         ? ' Whoop says you can push it.'
-        : ' Recovery low — listen to it.'
+        : ' Recovery is low. Listen to it.'
     return `${where}${tone}`.trim()
   }
   return ''
@@ -78,8 +78,8 @@ function weekRangeLabel(weekStart: Date): string {
   const sameMonth = weekStart.getMonth() === end.getMonth()
   const sm = SHORT_MONTHS[weekStart.getMonth()]
   const em = SHORT_MONTHS[end.getMonth()]
-  if (sameMonth) return `${sm} ${weekStart.getDate()} – ${end.getDate()}`
-  return `${sm} ${weekStart.getDate()} – ${em} ${end.getDate()}`
+  if (sameMonth) return `${sm} ${weekStart.getDate()} to ${end.getDate()}`
+  return `${sm} ${weekStart.getDate()} to ${em} ${end.getDate()}`
 }
 
 function relativeWeekLabel(weekStart: Date, todayWeekStart: Date): string {

@@ -77,7 +77,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         {whoop.connected ? (
           <>
             <div className="settings-msg settings-msg-success" style={{ marginBottom: 12 }}>
-              Connected · Recovery {whoop.recovery ?? '—'}%
+              Connected · Recovery {whoop.recovery ?? '·'}%
             </div>
             <button
               className="settings-btn settings-btn-disconnect"
@@ -90,7 +90,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
           <>
             <p className="settings-note" style={{ marginBottom: 14 }}>
               Connect your Whoop band to see live recovery, HRV, resting heart rate, and sleep data.
-              Tap below — Whoop opens in Safari to authorise.
+              Tap below. Whoop opens in Safari to authorise.
             </p>
             <a
               className="settings-btn settings-btn-save active"
@@ -139,7 +139,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         </div>
 
         <p className="settings-note">
-          You need an App-Specific Password — not your normal Apple ID password. Go to{' '}
+          You need an App-Specific Password, not your normal Apple ID password. Go to{' '}
           <a href="https://appleid.apple.com" target="_blank" rel="noreferrer" className="settings-note-link">
             appleid.apple.com
           </a>
@@ -163,7 +163,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
 
         {saveState === 'error' && (
           <div className="settings-msg settings-msg-error">
-            Connection failed — please check your App-Specific Password and try again.{' '}
+            Connection failed. Please check your App-Specific Password and try again.{' '}
             <a href="https://appleid.apple.com" target="_blank" rel="noreferrer" className="settings-error-link">
               Open appleid.apple.com ↗
             </a>

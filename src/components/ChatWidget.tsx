@@ -197,7 +197,7 @@ export default function ChatWidget() {
 
               {error && (
                 <div className="chat-error">
-                  Couldn't reach Claude — {error}
+                  Couldn't reach Claude. {error}
                 </div>
               )}
             </div>

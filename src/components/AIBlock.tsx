@@ -9,7 +9,7 @@ interface Props {
   retryAccent?: string
 }
 
-const DEFAULT_ERROR = 'Content unavailable — check your connection'
+const DEFAULT_ERROR = 'Content unavailable. Check your connection.'
 
 export default function AIBlock({ state, accent, onRetry, errorText, retryAccent }: Props) {
   if (state.loading) {

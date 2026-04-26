@@ -10,7 +10,7 @@ const HANDLING = [
   'No data is collected or stored on any external server.',
   'No data is shared with any third parties whatsoever.',
   'All data remains locally on the device in browser localStorage only.',
-  'This app has no public users — it is a strictly private personal tool.',
+  'This app has no public users. It is a strictly private personal tool.',
 ]
 
 export default function PrivacyScreen() {
@@ -23,7 +23,7 @@ export default function PrivacyScreen() {
 
       <h2>Data accessed</h2>
       {DATA.map(({ label, text }) => (
-        <p key={label}><strong>{label}</strong> — {text}</p>
+        <p key={label}><strong>{label}.</strong> {text}</p>
       ))}
 
       <h2>How data is handled</h2>

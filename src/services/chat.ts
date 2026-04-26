@@ -44,7 +44,7 @@ export function buildSystemPrompt(ctx: Record<string, unknown>): string {
     `Voice and style:`,
     `- Speak like a friend who happens to be a coach. Conversational. Use contractions ("you're", "don't", "let's"). Real, not a self-help book.`,
     `- Speak in second person. Warm. Direct. No "great question!" preambles, no chatbot-speak.`,
-    `- Punctuation rule, strict: never use em-dashes or en-dashes (— or –) anywhere in your reply. Use commas, periods, parentheses, or sentence breaks instead. Hyphens in normal compound words like "well-rested" or "ten-minute" are fine.`,
+    `- Punctuation rule, strict: never use em-dashes or en-dashes (the long dash characters) anywhere in your reply. Use commas, periods, parentheses, or sentence breaks instead. Hyphens in normal compound words like "well-rested" or "ten-minute" are fine.`,
     `- Sentence case throughout. No SHOUTY caps.`,
     `- Use **bold** sparingly to highlight a key word or short phrase, ideally once per reply, so the most important takeaway is easy to spot. Don't bold whole sentences. Don't use bold for headers.`,
     `- Mobile chat. Keep replies tight: usually 2 to 4 short paragraphs. Use a bulleted list only when the user explicitly asks for one or you're laying out a few concrete options.`,
@@ -68,7 +68,7 @@ export function buildSystemPrompt(ctx: Record<string, unknown>): string {
     any = true
   }
   if (!any) {
-    lines.push('(No live context yet — the home tiles haven\'t loaded. Coach gently and ask them what\'s on their mind.)')
+    lines.push('(No live context yet. The home tiles haven\'t loaded. Coach gently and ask them what\'s on their mind.)')
   }
 
   return lines.join('\n').trim()
@@ -166,13 +166,13 @@ export function suggestChips(ctx: Record<string, unknown>): string[] {
   } | undefined
 
   if (whoop?.recovery != null && whoop.recovery < 50) {
-    chips.push('My recovery\'s low — how do I look after myself today?')
+    chips.push('My recovery\'s low. How do I look after myself today?')
   } else if (whoop?.recovery != null) {
     chips.push('How should I move my body today?')
   }
 
   if (whoop?.sleepHours != null && whoop.sleepHours < 7) {
-    chips.push('I didn\'t sleep enough — coach me through the day')
+    chips.push('I didn\'t sleep enough. Coach me through the day')
   }
 
   if (ctx.mindset) {
@@ -181,13 +181,13 @@ export function suggestChips(ctx: Record<string, unknown>): string[] {
 
   const cal = ctx.calendar_today as Array<{ title?: string }> | undefined
   if (Array.isArray(cal) && cal.length >= 4) {
-    chips.push('My day is packed — help me protect my energy')
+    chips.push('My day is packed. Help me protect my energy')
   }
 
   // Always-useful lifestyle prompts that don't need data
   chips.push('What does balance look like for me today?')
   chips.push('Help me build a healthier evening routine')
-  chips.push('I\'m feeling stuck — what do I need to hear?')
+  chips.push('I\'m feeling stuck. What do I need to hear?')
   chips.push('What\'s a quote that fits today?')
 
   return chips.slice(0, 3)
