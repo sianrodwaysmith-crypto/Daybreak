@@ -26,9 +26,31 @@ function cleanUrl(raw: string): string {
   return raw.replace(/[).,;]+$/, '')
 }
 
-function stripBold(s: string): string {
-  return s.replace(/\*\*/g, '').trim()
+/**
+ * Cleans up the model's prose:
+ * - Removes inline web_search citation markers like [1], [2], [3], [1, 4],
+ *   [Source 2], and footnote-style ¹ ² ³.
+ * - Strips markdown emphasis tokens that the model occasionally leaks:
+ *   double asterisks (**bold**), single asterisks (*italics*), and
+ *   underscore italics (_italics_). The text inside is preserved.
+ * - Collapses any whitespace those edits leave behind, including the
+ *   awkward "  ," / "word ." / "word ?" patterns.
+ */
+function stripInline(s: string): string {
+  return s
+    .replace(/\[\s*(?:source\s*)?\d+(?:\s*,\s*\d+)*\s*\]/gi, '') // [1] [Source 2] [1, 4]
+    .replace(/[¹²³⁴⁵⁶⁷⁸⁹⁰]+/g, '')                              // unicode superscripts
+    .replace(/\*\*([^*]+)\*\*/g, '$1')                          // **bold** -> bold
+    .replace(/(?<!\w)\*([^*\n]+?)\*(?!\w)/g, '$1')              // *italic* -> italic
+    .replace(/(?<!\w)_([^_\n]+?)_(?!\w)/g, '$1')                // _italic_ -> italic
+    .replace(/\s+([.,;:!?])/g, '$1')                            // " ," / " ." cleanup
+    .replace(/\s{2,}/g, ' ')                                    // collapse runs
+    .trim()
 }
+
+// Kept as an alias so existing call sites still compile; new behaviour is
+// the broader stripInline above.
+function stripBold(s: string): string { return stripInline(s) }
 
 /**
  * Splits the model output into stories. Each story has a headline, a What
@@ -90,10 +112,10 @@ function parseStories(raw: string): Story[] {
 
         if (!headline) {
           const bolded = line.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
-          headline = bolded ? bolded[1] : stripBold(line)
+          headline = stripInline(bolded ? bolded[1] : line)
           continue
         }
-        otherLines.push(stripBold(line))
+        otherLines.push(stripInline(line))
       }
 
       // Fallback body if model didn't follow the What/Impact format

@@ -81,8 +81,6 @@ export default function MindsetScreen() {
 
   return (
     <div>
-      <div className="mindset-intro">60 seconds. Ground yourself before the day starts.</div>
-
       <div className="screen-section-label" style={{ marginBottom: 14 }}>THREE THINGS I'M GRATEFUL FOR</div>
 
       {GRATITUDE_FIELDS.map(({ num, val, set, placeholder }) => (
