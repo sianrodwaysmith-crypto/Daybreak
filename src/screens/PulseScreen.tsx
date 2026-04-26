@@ -1,5 +1,5 @@
 import type { TileAI } from '../hooks/useAIContent'
-import { formatRelativeDate } from '../clients/parse'
+import { formatRelativeDate, dateFromUrl } from '../clients/parse'
 
 interface Props {
   anthropic: TileAI
@@ -101,7 +101,7 @@ function parseStories(raw: string): Story[] {
     if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
     const dateMatch = dateRaw.match(/(\d{4}-\d{2}-\d{2})/)
-    const date = dateMatch ? dateMatch[1] : null
+    const date = (dateMatch ? dateMatch[1] : null) ?? dateFromUrl(url)
 
     if (!headline && !what && !impact) { i += 1; continue }
     stories.push({ headline, date, what, impact, body: '', url })
@@ -151,9 +151,9 @@ function Section({ label, state, onRetry }: SectionProps) {
           {parseStories(state.content).map((story, i) => {
             const hasStructured = story.what || story.impact
             const relDate = formatRelativeDate(story.date)
-            const meta = [relDate, story.url ? hostname(story.url) : null].filter(Boolean).join(' · ')
             const inner = (
               <>
+                {relDate && <div className="pulse-date">{relDate}</div>}
                 <h3 className="pulse-headline">{story.headline}</h3>
                 {hasStructured ? (
                   <dl className="pulse-facts">
@@ -173,8 +173,8 @@ function Section({ label, state, onRetry }: SectionProps) {
                 ) : (
                   story.body && <p className="pulse-body">{story.body}</p>
                 )}
-                {meta && (
-                  <span className="pulse-source">{meta}</span>
+                {story.url && (
+                  <span className="pulse-source">{hostname(story.url)}</span>
                 )}
                 {story.url && (
                   <span className="pulse-card-chevron" aria-hidden>↗</span>

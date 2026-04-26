@@ -74,7 +74,7 @@ export function parseAccountNews(raw: string): ParsedNews {
     if (urlMatch) url = cleanUrl(urlMatch[0])
     if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
-    const date = parseISODate(dateRaw)
+    const date = parseISODate(dateRaw) ?? dateFromUrl(url)
 
     if (!headline && !what && !impact) { i += 1; continue }
     stories.push({ headline, date, what, impact, url })
@@ -105,7 +105,7 @@ export function hostname(url: string): string {
    any trailing junk by extracting the first matching pattern. Bad
    dates collapse to null so the UI can simply hide them.
 ------------------------------------------------------------------ */
-function parseISODate(raw: string): string | null {
+export function parseISODate(raw: string | null | undefined): string | null {
   if (!raw) return null
   const m = raw.match(/(\d{4})-(\d{2})-(\d{2})/)
   if (!m) return null
@@ -113,6 +113,30 @@ function parseISODate(raw: string): string | null {
   const date = new Date(`${y}-${mo}-${d}T00:00:00Z`)
   if (Number.isNaN(date.getTime())) return null
   return `${y}-${mo}-${d}`
+}
+
+// Many news URLs include the publication date in the path:
+// /2026/04/15/, /2026-04-15/, /04-15-2026/, /apr/15/2026/.
+// Used as a fallback when the model didn't include a <date> tag,
+// so cards can still show a relative timestamp without a refetch.
+export function dateFromUrl(url: string | null): string | null {
+  if (!url) return null
+  // /YYYY/MM/DD or /YYYY-MM-DD
+  const slashy = url.match(/\/(20\d{2})[/-](\d{1,2})[/-](\d{1,2})\b/)
+  if (slashy) {
+    const y  = slashy[1]
+    const mo = slashy[2].padStart(2, '0')
+    const d  = slashy[3].padStart(2, '0')
+    return `${y}-${mo}-${d}`
+  }
+  // YYYY-MM in path with no day → assume the 1st.
+  const monthOnly = url.match(/\/(20\d{2})[/-](\d{1,2})\b/)
+  if (monthOnly) {
+    const y  = monthOnly[1]
+    const mo = monthOnly[2].padStart(2, '0')
+    return `${y}-${mo}-01`
+  }
+  return null
 }
 
 const SHORT_MONTHS = [

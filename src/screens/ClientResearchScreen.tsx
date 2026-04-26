@@ -75,9 +75,9 @@ function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps
       <div className="account-news-list">
         {stories.map((s, i) => {
           const relDate = formatRelativeDate(s.date)
-          const meta = [relDate, s.url ? hostname(s.url) : null].filter(Boolean).join(' · ')
           const inner = (
             <>
+              {relDate && <div className="account-news-date">{relDate}</div>}
               <h4 className="account-news-headline">{s.headline}</h4>
               <dl className="account-news-facts">
                 {s.what && (<>
@@ -89,9 +89,9 @@ function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps
                   <dd className="account-news-fact-text">{s.impact}</dd>
                 </>)}
               </dl>
-              {meta && (
+              {s.url && (
                 <span className="account-news-source">
-                  {meta}{s.url ? ' ↗' : ''}
+                  {hostname(s.url)} ↗
                 </span>
               )}
             </>
@@ -212,7 +212,6 @@ function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProp
           className="account-head-main"
           onClick={handleExpand}
         >
-          <span className={`account-star${isFocus ? ' is-on' : ''}`} aria-hidden>{isFocus ? '★' : '☆'}</span>
           <span className="account-head-text">
             <span className="account-name">{account.name}</span>
             {account.contact && <span className="account-contact">{account.contact}</span>}
@@ -317,7 +316,6 @@ export default function ClientResearchScreen() {
         <section className="account-card">
           <div className="account-head">
             <span className="account-head-main account-head-add">
-              <span className="account-star" aria-hidden>＋</span>
               <span className="account-head-text"><span className="account-name">New account</span></span>
             </span>
           </div>

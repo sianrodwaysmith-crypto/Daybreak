@@ -1500,6 +1500,15 @@
   touch-action: manipulation;
 }
 .account-news-card-link:active { transform: scale(0.99); }
+.account-news-date {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-variant-numeric: tabular-nums;
+}
 .account-news-headline {
   font-family: 'DM Serif Display', serif;
   font-size: 15.5px;
@@ -2506,6 +2515,15 @@ a.pulse-card-link:active { transform: scale(0.995); }
   pointer-events: none;
 }
 
+.pulse-date {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+}
 .pulse-headline {
   margin: 0 0 10px;
   font-family: 'DM Serif Display', serif;
