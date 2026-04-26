@@ -87,6 +87,20 @@ export default async function handler(req: any, res: any) {
       cycleRes.ok ? cycleRes.json() : Promise.resolve(null),
     ])
 
+    // Capture error bodies from any non-OK responses so the client can
+    // show them in the Whoop diagnostic panel.
+    const errorBodies: Record<string, string> = {}
+    async function captureError(name: string, response: Response) {
+      if (response.ok) return
+      try { errorBodies[name] = (await response.text()).slice(0, 240) }
+      catch { errorBodies[name] = '<unreadable>' }
+    }
+    await Promise.all([
+      captureError('recovery', recovRes),
+      captureError('sleep',    sleepRes),
+      captureError('cycle',    cycleRes),
+    ])
+
     const rec   = (recovData as any)?.records?.[0]
     const sleep = (sleepData as any)?.records?.[0]
     const cycle = (cycleData as any)?.records?.[0]
@@ -111,6 +125,16 @@ export default async function handler(req: any, res: any) {
       strain:           round1(cycle?.score?.strain),
       avgHr:            cycle?.score?.average_heart_rate ?? null,
       maxHr:            cycle?.score?.max_heart_rate     ?? null,
+      _debug: {
+        recoveryStatus: recovRes.status,
+        sleepStatus:    sleepRes.status,
+        cycleStatus:    cycleRes.status,
+        recoveryHasRecord: !!rec,
+        sleepHasRecord:    !!sleep,
+        cycleHasRecord:    !!cycle,
+        errors:         Object.keys(errorBodies).length > 0 ? errorBodies : undefined,
+        ts:             new Date().toISOString(),
+      },
     }
 
     if (returnedTokens) {

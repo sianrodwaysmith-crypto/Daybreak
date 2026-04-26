@@ -1,6 +1,72 @@
 import { useState } from 'react'
 import { testConnection } from '../services/caldav'
-import type { WhoopData } from '../hooks/useWhoop'
+import type { WhoopData, WhoopDebug } from '../hooks/useWhoop'
+
+/* -------------------------------------------------------------------
+   Whoop debug panel — surfaces what useWhoop's last fetch returned so
+   we can diagnose 'connected but no data' on a phone without a console.
+------------------------------------------------------------------- */
+
+function statusGlyph(status: number | undefined): string {
+  if (status == null)            return '?'
+  if (status >= 200 && status < 300) return '✓'
+  return String(status)
+}
+
+function timeAgo(iso: string): string {
+  try {
+    const ms = Date.now() - new Date(iso).getTime()
+    if (ms < 60_000)  return `${Math.round(ms / 1000)}s ago`
+    if (ms < 3600_000) return `${Math.round(ms / 60_000)}m ago`
+    return `${Math.round(ms / 3600_000)}h ago`
+  } catch { return iso }
+}
+
+function WhoopDebugPanel({ debug }: { debug: WhoopDebug }) {
+  const [showRaw, setShowRaw] = useState(false)
+  const lines: string[] = []
+  lines.push(`source ${debug.source}`)
+  lines.push(`tokens ${debug.hasTokens ? '✓' : '✗'}`)
+  if (debug.fetchStatus != null) lines.push(`fetch ${debug.fetchStatus}${debug.fetchOk ? ' ✓' : ' ✗'}`)
+  if (debug.fetchError) lines.push(`error ${debug.fetchError}`)
+  if (debug.recoveryStatus != null) lines.push(`recovery ${statusGlyph(debug.recoveryStatus)}${debug.recoveryHasRecord ? ' (record)' : ' (empty)'}`)
+  if (debug.sleepStatus    != null) lines.push(`sleep    ${statusGlyph(debug.sleepStatus)}${debug.sleepHasRecord ? ' (record)' : ' (empty)'}`)
+  if (debug.cycleStatus    != null) lines.push(`cycle    ${statusGlyph(debug.cycleStatus)}${debug.cycleHasRecord ? ' (record)' : ' (empty)'}`)
+
+  const errors = debug.errors ?? {}
+  const errorEntries = Object.entries(errors)
+
+  return (
+    <div className="settings-debug">
+      <div className="settings-debug-head">
+        <span className="settings-debug-title">whoop status</span>
+        <span className="settings-debug-time">{timeAgo(debug.ts)}</span>
+      </div>
+      <div className="settings-debug-lines">
+        {lines.map((l, i) => <div key={i}>{l}</div>)}
+      </div>
+      {errorEntries.length > 0 && (
+        <>
+          <button
+            type="button"
+            className="settings-debug-toggle"
+            onClick={() => setShowRaw(s => !s)}
+          >
+            {showRaw ? 'hide error bodies' : 'show error bodies'}
+          </button>
+          {showRaw && (
+            <pre className="settings-debug-raw">
+              {errorEntries.map(([k, v]) => `${k}\n${v}`).join('\n\n')}
+            </pre>
+          )}
+        </>
+      )}
+      {debug.rawResponseHead && (
+        <pre className="settings-debug-raw">{debug.rawResponseHead}</pre>
+      )}
+    </div>
+  )
+}
 
 interface CalendarHook {
   connected: boolean
@@ -80,6 +146,13 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
               Connected · Recovery {whoop.recovery ?? '–'}%
             </div>
             <button
+              className="settings-btn settings-btn-save active"
+              onClick={() => whoop.refresh()}
+              style={{ marginBottom: 8 }}
+            >
+              {whoop.loading ? 'REFRESHING…' : 'REFRESH NOW'}
+            </button>
+            <button
               className="settings-btn settings-btn-disconnect"
               onClick={() => whoop.disconnect()}
             >
@@ -106,6 +179,11 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
             environment variables (Production scope) and redeploy.
           </div>
         )}
+
+        {/* Diagnostic — visible whenever a debug snapshot exists, even if
+            the connection state is empty. Lets us see exactly which API
+            call is failing without needing a console on the phone PWA. */}
+        {whoop.debug && <WhoopDebugPanel debug={whoop.debug} />}
       </div>
 
       {/* ── Calendar ─────────────────────────────────────── */}

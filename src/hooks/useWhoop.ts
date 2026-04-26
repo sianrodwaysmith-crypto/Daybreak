@@ -1,6 +1,23 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
 
+export interface WhoopDebug {
+  source:            'api' | 'persisted' | 'no-tokens' | 'fetch-error' | '401' | 'http-error'
+  ts:                string                       // ISO timestamp of when this was captured
+  hasTokens:         boolean
+  fetchOk?:          boolean
+  fetchStatus?:      number
+  fetchError?:       string                       // network error message
+  recoveryStatus?:   number
+  sleepStatus?:      number
+  cycleStatus?:      number
+  recoveryHasRecord?: boolean
+  sleepHasRecord?:    boolean
+  cycleHasRecord?:    boolean
+  errors?:           Record<string, string>
+  rawResponseHead?:  string                       // first 240 chars of body if non-JSON
+}
+
 export interface WhoopData {
   connected:        boolean
   loading:          boolean
@@ -16,6 +33,8 @@ export interface WhoopData {
   strain:           number | null
   avgHr:            number | null
   maxHr:            number | null
+  debug:            WhoopDebug | null
+  refresh:          () => Promise<void>
   disconnect:       () => Promise<void>
 }
 
@@ -43,6 +62,17 @@ interface StoredTokens {
 
 const TOKENS_KEY  = 'daybreak-whoop-tokens'
 const PERSIST_KEY = 'daybreak-whoop-last-v2'
+const DEBUG_KEY   = 'daybreak-whoop-debug'
+
+function writeDebug(d: WhoopDebug) {
+  try { localStorage.setItem(DEBUG_KEY, JSON.stringify(d)) } catch {}
+}
+function readDebug(): WhoopDebug | null {
+  try {
+    const raw = localStorage.getItem(DEBUG_KEY)
+    return raw ? JSON.parse(raw) as WhoopDebug : null
+  } catch { return null }
+}
 
 const EMPTY: WhoopPayload = {
   connected: false,
@@ -88,6 +118,12 @@ export function useWhoop(): WhoopData {
   const persisted = readPersisted()
   const [loading, setLoading] = useState(persisted == null)
   const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
+  const [debug,   setDebug]   = useState<WhoopDebug | null>(readDebug)
+
+  function captureDebug(next: WhoopDebug) {
+    writeDebug(next)
+    setDebug(next)
+  }
 
   useEffect(() => {
     if (payload.connected) {
@@ -111,10 +147,12 @@ export function useWhoop(): WhoopData {
   }, [payload, registerContent])
 
   const fetchData = useCallback(async () => {
+    const now = () => new Date().toISOString()
     const tokens = readTokens()
     if (!tokens) {
       setPayload(EMPTY)
       setLoading(false)
+      captureDebug({ source: 'no-tokens', ts: now(), hasTokens: false })
       return
     }
 
@@ -124,6 +162,7 @@ export function useWhoop(): WhoopData {
           'Authorization':         `Bearer ${tokens.access_token}`,
           'X-Whoop-Refresh-Token': tokens.refresh_token,
         },
+        cache: 'no-store',
       })
 
       if (res.status === 401) {
@@ -131,13 +170,22 @@ export function useWhoop(): WhoopData {
         try { localStorage.removeItem(PERSIST_KEY) } catch {}
         setPayload(EMPTY)
         setLoading(false)
+        captureDebug({ source: '401', ts: now(), hasTokens: true, fetchOk: false, fetchStatus: 401 })
         return
       }
 
-      if (!res.ok) throw new Error(`${res.status}`)
+      if (!res.ok) {
+        const head = await res.text().catch(() => '').then(t => t.slice(0, 240))
+        captureDebug({
+          source: 'http-error', ts: now(), hasTokens: true,
+          fetchOk: false, fetchStatus: res.status, rawResponseHead: head,
+        })
+        throw new Error(`${res.status}`)
+      }
 
       const json = await res.json() as WhoopPayload & {
         tokens?: { access_token: string; refresh_token: string; expires_in: number }
+        _debug?: Omit<WhoopDebug, 'source' | 'ts' | 'hasTokens' | 'fetchOk' | 'fetchStatus'>
       }
 
       // Server refreshed tokens — persist the new pair so subsequent calls work.
@@ -149,24 +197,42 @@ export function useWhoop(): WhoopData {
         })
       }
 
-      const { tokens: _t, ...data } = json
+      const { tokens: _t, _debug, ...data } = json
       setPayload(data)
       if (data.connected) writePersisted(data)
-    } catch {
+      captureDebug({
+        source: 'api', ts: now(), hasTokens: true,
+        fetchOk: true, fetchStatus: res.status,
+        ..._debug,
+      })
+    } catch (err) {
       // Network blip — keep persisted data, don't flash 'not connected'
       if (!persisted) setPayload(EMPTY)
+      captureDebug({
+        source: 'fetch-error', ts: now(), hasTokens: true,
+        fetchOk: false,
+        fetchError: err instanceof Error ? err.message : String(err),
+      })
     } finally {
       setLoading(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [persisted])
 
   useEffect(() => { void fetchData() }, [fetchData])
 
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    await fetchData()
+  }, [fetchData])
+
   const disconnect = useCallback(async () => {
     clearTokens()
     try { localStorage.removeItem(PERSIST_KEY) } catch {}
+    try { localStorage.removeItem(DEBUG_KEY)   } catch {}
     setPayload(EMPTY)
+    setDebug(null)
   }, [])
 
-  return { ...payload, loading, disconnect }
+  return { ...payload, loading, debug, refresh, disconnect }
 }
