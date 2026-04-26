@@ -93,9 +93,9 @@ export function useAIContent() {
     }
   }, [state, registerContent])
 
-  function fetchOne(id: AITileId) {
+  function fetchOne(id: AITileId): Promise<void> {
     setState(s => ({ ...s, [id]: { content: null, loading: true, error: false, errorMsg: null, fetchedAt: null } }))
-    getPromise(id)
+    return getPromise(id)
       .then(text => {
         const fetchedAt = Date.now()
         writeCache(id, text, fetchedAt)
@@ -107,21 +107,32 @@ export function useAIContent() {
       })
   }
 
+  // Fire Pulse sections one at a time rather than in parallel. Each
+  // web_search round can carry 10-15k input tokens; three at once
+  // peaked at ~45k of the 50k/min Haiku quota and was the main reason
+  // 429s landed. Sequential keeps the morning's auto-fetch under the
+  // limit with room to spare for the per-account searches.
+  async function fetchSequential(ids: AITileId[]): Promise<void> {
+    for (const id of ids) {
+      try { await fetchOne(id) }
+      catch { /* fetchOne already captured the error into state */ }
+    }
+  }
+
   useEffect(() => {
-    TILE_IDS.filter(id => !readCache(id)).forEach(id => fetchOne(id))
+    const stale = TILE_IDS.filter(id => !readCache(id))
+    if (stale.length > 0) void fetchSequential(stale)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function refreshPulse() {
-    PULSE_SECTIONS.forEach(id => {
-      clearCache(id)
-      fetchOne(id)
-    })
+    PULSE_SECTIONS.forEach(id => clearCache(id))
+    void fetchSequential([...PULSE_SECTIONS])
   }
 
   return {
     ai: state,
-    retry: (id: AITileId) => fetchOne(id),
+    retry: (id: AITileId) => { void fetchOne(id) },
     refreshPulse,
   }
 }
