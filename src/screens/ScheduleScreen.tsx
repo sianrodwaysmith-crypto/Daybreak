@@ -47,7 +47,7 @@ export default function ScheduleScreen({ events, loading, connected }: Props) {
     return (
       <div className="schedule-empty">
         <div className="schedule-empty-text">
-          Connect your Apple Calendar in Settings to see today's events.
+          Connect Google in Settings to see today's events.
         </div>
       </div>
     )

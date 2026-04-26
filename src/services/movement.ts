@@ -399,11 +399,12 @@ export function todayISO(): string { return isoDate(new Date()) }
 ------------------------------------------------------------------- */
 
 export interface Cadence {
-  usual:        number   // average completed sessions per week, rounded
-  thisWeek:     number   // sessions actually completed this week (done only)
-  hoursDone:    number   // sum of durationMinutes for done events this week, in hours
-  onTrack:      boolean
-  shortfall:    number   // max(usual - thisWeek, 0)
+  usual:           number   // average completed sessions per week, rounded
+  thisWeek:        number   // sessions actually completed this week (done only)
+  plannedThisWeek: number   // unique dates this week with any non-rest movement
+  hoursDone:       number   // sum of durationMinutes for done events this week, in hours
+  onTrack:         boolean
+  shortfall:       number   // max(usual - thisWeek, 0)
 }
 
 export function computeCadence(events: MovementEvent[], today: Date): Cadence {
@@ -429,9 +430,22 @@ export function computeCadence(events: MovementEvent[], today: Date): Cadence {
   const minutes   = completedThisWeek.reduce((sum, e) => sum + (e.durationMinutes ?? 0), 0)
   const hoursDone = Math.round((minutes / 60) * 10) / 10
 
+  // Planned for the week = unique dates with any movement (planned, booked,
+  // or done — but not rest). Counts each day once even if multiple sources
+  // surface the same session.
+  const movementDates = new Set<string>()
+  for (const e of events) {
+    if (e.source === 'rest') continue
+    if (e.date < isoDate(thisWeekStart)) continue
+    if (e.date > isoDate(thisWeekEnd))   continue
+    movementDates.add(e.date)
+  }
+  const plannedThisWeek = movementDates.size
+
   return {
     usual,
     thisWeek,
+    plannedThisWeek,
     hoursDone,
     onTrack:   thisWeek >= usual,
     shortfall: Math.max(usual - thisWeek, 0),

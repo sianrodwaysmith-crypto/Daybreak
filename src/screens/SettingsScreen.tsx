@@ -207,9 +207,28 @@ function buildGoogleAuthUrl(): string | null {
   return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
 }
 
+const DEBUG_FLAG_KEY = 'daybreak-show-debug'
+function readDebugFlag(): boolean {
+  try { return localStorage.getItem(DEBUG_FLAG_KEY) === 'on' }
+  catch { return false }
+}
+function writeDebugFlag(on: boolean): void {
+  try { localStorage.setItem(DEBUG_FLAG_KEY, on ? 'on' : 'off') }
+  catch { /* noop */ }
+}
+
 export default function SettingsScreen({ calendar, whoop }: Props) {
   const whoopAuthUrl  = buildWhoopAuthUrl()
   const googleAuthUrl = buildGoogleAuthUrl()
+  const [showDebug, setShowDebug] = useState<boolean>(readDebugFlag())
+
+  function toggleDebug() {
+    setShowDebug(prev => {
+      const next = !prev
+      writeDebugFlag(next)
+      return next
+    })
+  }
 
   return (
     <div>
@@ -262,7 +281,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
           </div>
         )}
 
-        {whoop.debug && <WhoopDebugPanel debug={whoop.debug} />}
+        {showDebug && whoop.debug && <WhoopDebugPanel debug={whoop.debug} />}
       </div>
 
       {/* ── Calendar ─────────────────────────────────────── */}
@@ -318,7 +337,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
           </div>
         )}
 
-        {calendar.debug && <CalendarDebugPanel debug={calendar.debug} />}
+        {showDebug && calendar.debug && <CalendarDebugPanel debug={calendar.debug} />}
       </div>
 
       {/* ── Moments ──────────────────────────────────────── */}
@@ -326,10 +345,23 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         <div className="screen-section-label">MOMENTS</div>
         <p className="settings-note">
           Photos save to a private Google Drive folder when you're connected,
-          so they survive PWA reinstalls. The status below confirms which
-          backend is in use and how many photos Drive sees right now.
+          so they survive PWA reinstalls.
         </p>
-        <MomentsDebugPanel />
+        {showDebug && <MomentsDebugPanel />}
+      </div>
+
+      {/* ── Diagnostics toggle ───────────────────────────── */}
+      {/* Hidden by default so the screen stays calm. Tap to bring the
+          per-source status panels back if something's misbehaving. */}
+      <div className="settings-section">
+        <button
+          type="button"
+          className="settings-debug-toggle"
+          onClick={toggleDebug}
+          style={{ marginTop: 4 }}
+        >
+          {showDebug ? '✓ debug info on (tap to hide)' : 'show debug info'}
+        </button>
       </div>
     </div>
   )

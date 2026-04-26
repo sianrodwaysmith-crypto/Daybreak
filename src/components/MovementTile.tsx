@@ -60,19 +60,19 @@ function todaySubLine(today: MovementEvent | null, recovery: number | null): str
   return ''
 }
 
-function cadenceFooter(usual: number, thisWeek: number, onTrack: boolean): string {
-  if (onTrack && usual > 0) return 'On track this week.'
-  if (usual === 0 && thisWeek === 0) return 'No movement logged yet.'
-  if (usual === 0)                    return `${thisWeek} done this week.`
-  return `${thisWeek} of your usual ${usual} done this week.`
+function plannedLine(plannedThisWeek: number, doneThisWeek: number): string {
+  if (plannedThisWeek === 0) return 'Nothing on the calendar this week.'
+  const noun = plannedThisWeek === 1 ? 'session' : 'sessions'
+  if (doneThisWeek === 0) return `${plannedThisWeek} ${noun} planned this week.`
+  return `${plannedThisWeek} ${noun} planned, ${doneThisWeek} done.`
 }
 
 function hoursLine(hours: number): string {
-  if (hours <= 0) return ''
-  if (hours === 1) return '1 hr completed.'
+  if (hours <= 0) return 'No hours logged yet.'
+  if (hours === 1) return '1 hr exercised this week.'
   // Show "1.5 hrs" but drop a trailing .0 so whole numbers read cleanly.
   const display = Number.isInteger(hours) ? hours.toFixed(0) : hours.toFixed(1)
-  return `${display} hrs completed.`
+  return `${display} hrs exercised this week.`
 }
 
 function weekRangeLabel(weekStart: Date): string {
@@ -158,7 +158,6 @@ interface SheetProps {
 
 function MovementSheet({ state, onClose, onSaved }: SheetProps) {
   const [title,    setTitle]    = useState('')
-  const [time,     setTime]     = useState('')
   const [duration, setDuration] = useState('')
   const [intensity, setIntensity] = useState<'low' | 'moderate' | 'high' | ''>('')
   const [saving, setSaving] = useState(false)
@@ -167,11 +166,10 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
     if (!state) return
     if (state.ev) {
       setTitle(state.ev.title ?? '')
-      setTime(state.ev.startTime ?? '')
       setDuration(state.ev.durationMinutes ? String(state.ev.durationMinutes) : '')
       setIntensity(state.ev.intensity ?? '')
     } else {
-      setTitle(''); setTime(''); setDuration(''); setIntensity('')
+      setTitle(''); setDuration(''); setIntensity('')
     }
   }, [state])
 
@@ -192,7 +190,6 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
         date:             iso,
         source:           'planned' as const,
         title:            title.trim(),
-        startTime:        time.trim() || undefined,
         durationMinutes:  duration.trim() ? Number(duration) : undefined,
         intensity:        intensity || undefined,
       }
@@ -312,28 +309,16 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
               />
             </label>
 
-            <div className="movement-field-row">
-              <label className="movement-field">
-                <span className="movement-field-label">Time</span>
-                <input
-                  className="movement-input"
-                  value={time}
-                  onChange={e => setTime(e.target.value)}
-                  placeholder="17:30"
-                  inputMode="numeric"
-                />
-              </label>
-              <label className="movement-field">
-                <span className="movement-field-label">Duration (min)</span>
-                <input
-                  className="movement-input"
-                  value={duration}
-                  onChange={e => setDuration(e.target.value)}
-                  placeholder="60"
-                  inputMode="numeric"
-                />
-              </label>
-            </div>
+            <label className="movement-field">
+              <span className="movement-field-label">Duration (min)</span>
+              <input
+                className="movement-input"
+                value={duration}
+                onChange={e => setDuration(e.target.value)}
+                placeholder="60"
+                inputMode="numeric"
+              />
+            </label>
 
             <div className="movement-field">
               <span className="movement-field-label">Intensity</span>
@@ -521,12 +506,10 @@ export default function MovementTile({ recovery }: Props) {
 
       <div className="movement-foot">
         <div className="movement-foot-stack">
-          <span className="movement-foot-line">{cadenceFooter(cadence.usual, cadence.thisWeek, cadence.onTrack)}</span>
-          {hoursLine(cadence.hoursDone) && (
-            <span className="movement-foot-sub">{hoursLine(cadence.hoursDone)}</span>
-          )}
+          <span className="movement-foot-line">{plannedLine(cadence.plannedThisWeek, cadence.thisWeek)}</span>
+          <span className="movement-foot-sub">{hoursLine(cadence.hoursDone)}</span>
         </div>
-        {!(cadence.onTrack && cadence.usual > 0) && (
+        {cadence.plannedThisWeek === 0 && (
           <button className="movement-foot-cta" onClick={openNextEmpty}>
             Plan one →
           </button>

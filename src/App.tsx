@@ -44,58 +44,22 @@ interface MinimalCalEvent {
   allDay: boolean
 }
 
-function formatTime12h(d: Date): string {
-  const h = d.getHours()
-  const m = d.getMinutes()
-  const suffix = h >= 12 ? 'pm' : 'am'
-  const hour = h % 12 || 12
-  return m === 0 ? `${hour}${suffix}` : `${hour}:${String(m).padStart(2, '0')}${suffix}`
-}
-
+// The home tile keeps the prompt soft and conversational. Timings are
+// reserved for the modal view where the full schedule lives.
 function summariseSchedule(
   events:    readonly MinimalCalEvent[],
   loading:   boolean,
   connected: boolean,
-  now:       Date,
 ): string | undefined {
   if (loading)    return 'Loading your day…'
   if (!connected) return 'Tap to connect Google.'
-  if (events.length === 0) return 'Your day is open.'
 
-  const timed   = events.filter(e => !e.allDay)
-  const allDay  = events.filter(e =>  e.allDay)
-
-  const inProgress = timed.find(e => e.start <= now && e.end > now)
-  const upcoming   = timed.filter(e => e.start > now).sort((a, b) => a.start.getTime() - b.start.getTime())
-  const past       = timed.filter(e => e.end <= now)
-
-  if (inProgress) {
-    return `In ${inProgress.title} until ${formatTime12h(inProgress.end)}.`
-  }
-
-  if (upcoming.length > 0) {
-    const next = upcoming[0]
-    const time = formatTime12h(next.start)
-    if (upcoming.length === 1 && past.length === 0 && allDay.length === 0) {
-      return `One thing today: ${next.title} at ${time}.`
-    }
-    if (upcoming.length === 1) {
-      return `Just one left: ${next.title} at ${time}.`
-    }
-    return `${upcoming.length} more today, next is ${next.title} at ${time}.`
-  }
-
-  if (past.length > 0) {
-    return 'All wrapped up for today.'
-  }
-
-  if (allDay.length > 0) {
-    return allDay.length === 1
-      ? `${allDay[0].title}.`
-      : `${allDay[0].title} (and ${allDay.length - 1} more).`
-  }
-
-  return undefined
+  const count = events.length
+  if (count === 0) return 'Open day. What would make today feel good?'
+  if (count === 1) return 'Just one thing today. Have you thought about a walk?'
+  if (count === 2) return 'Two things today. Room for a movement break?'
+  if (count >= 5)  return `${count} things on. Have you carved out any time for yourself?`
+  return `${count} things today. Have you blocked time for lunch?`
 }
 
 function useWhoopFlash(): { msg: string | null; clear: () => void } {
@@ -138,15 +102,15 @@ function HomeView() {
   const scheduleEvents = calendar.events.filter(e => !looksLikeMovement(e.title))
 
   const scheduleSubtitle = summariseSchedule(
-    scheduleEvents, calendar.loading, calendar.connected, new Date(),
+    scheduleEvents, calendar.loading, calendar.connected,
   )
 
   const TILES = [
+    { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
     { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
