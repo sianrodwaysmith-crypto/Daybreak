@@ -1,0 +1,27 @@
+name: Trigger Vercel production deploy
+
+# Backup deploy trigger that bypasses Vercel's GitHub App webhook. If the
+# webhook is healthy, Vercel will already be building when this runs and
+# the second hit is a no-op. If the webhook is broken (e.g. after a
+# GitHub account / password change), this is what keeps prod current.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hit Vercel deploy hook
+        env:
+          HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "VERCEL_DEPLOY_HOOK_URL secret is not set."
+            echo "Add it under repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          curl --fail --silent --show-error -X POST "$HOOK"
+          echo "Deploy hook fired."
