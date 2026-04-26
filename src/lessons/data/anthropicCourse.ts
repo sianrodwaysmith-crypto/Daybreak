@@ -327,5 +327,223 @@ Alignment is the gap between what we say and what we mean.`,
         },
       ],
     },
+    {
+      id:               'anthropic-d5',
+      dayNumber:        5,
+      title:            'Why Anthropic exists',
+      hook:             'The siblings and researchers behind it.',
+      estimatedMinutes: 3,
+      conceptTags:      ['anthropic-history'],
+      body:
+`Anthropic was founded in 2021 by a group of researchers who left OpenAI together. The headline names were Dario Amodei, who had been OpenAI's Vice President of Research, and his sister Daniela Amodei. They were joined by Tom Brown (the lead author on the GPT-3 paper), Sam McCandlish, Jack Clark, Jared Kaplan, Chris Olah, and several others.
+
+The story behind the split is partly philosophical. The founders believed two things at once: that AI capabilities were going to keep improving rapidly, and that the field was not investing nearly enough in understanding what these systems were doing or how to keep them safe. They thought safety couldn't be a separate department staffed after the fact — it had to be the lab's central preoccupation, woven into how models were built.
+
+The founding bet was that safety research and capability research need each other. You can't make AI safer without working at the frontier; you can't responsibly work at the frontier without serious safety work. Anthropic was structured to do both, in the same building, with the same people.
+
+That conviction is still the most important thing to understand about Anthropic. Everything else (the constitution, the scaling policy, the interpretability work) follows from it.
+
+Anthropic was founded on the conviction that you cannot separate safety from capability.`,
+      takeaway:         'Anthropic was founded on the conviction that you cannot separate safety from capability.',
+      questions: [
+        {
+          id:           'anthropic-d5-q1',
+          prompt:       'When was Anthropic founded?',
+          options: ['2018', '2019', '2021', '2023'],
+          correctIndex: 2,
+          explanation:  'Anthropic was founded in 2021 by Dario Amodei, Daniela Amodei, and a group of fellow researchers who left OpenAI.',
+          difficulty:   'easy',
+          conceptTags:  ['anthropic-history'],
+        },
+        {
+          id:           'anthropic-d5-q2',
+          prompt:       'What was the founding bet behind Anthropic?',
+          options: [
+            'That smaller models would outperform large ones',
+            'That open-source AI would beat closed-source AI',
+            'That safety and capability research must be done together',
+            'That AI would plateau within five years',
+          ],
+          correctIndex: 2,
+          explanation:  'The founders believed safety could not be a separate, after-the-fact department — it had to live alongside frontier capability work in the same lab.',
+          difficulty:   'medium',
+          conceptTags:  ['anthropic-history'],
+        },
+        {
+          id:           'anthropic-d5-q3',
+          prompt:       'Where did most of the founding team come from immediately before Anthropic?',
+          options: ['Google DeepMind', 'OpenAI', 'Meta AI', 'Stanford'],
+          correctIndex: 1,
+          explanation:  'The founders left OpenAI together. Dario had been OpenAI\'s VP of Research; Tom Brown had led the GPT-3 paper.',
+          difficulty:   'easy',
+          conceptTags:  ['anthropic-history'],
+        },
+        {
+          id:           'anthropic-d5-q4',
+          prompt:       'Why does the founding philosophy still matter for understanding Anthropic today?',
+          options: [
+            'Everything else (constitutional AI, the RSP, interpretability) follows from it',
+            'It explains the choice of programming language',
+            'It determines which countries Anthropic can sell to',
+            'It only matters for HR decisions',
+          ],
+          correctIndex: 0,
+          explanation:  'The conviction that safety and capability are inseparable is the root from which Anthropic\'s technical and structural choices grow.',
+          difficulty:   'medium',
+          conceptTags:  ['anthropic-history'],
+        },
+      ],
+    },
+    {
+      id:               'anthropic-d6',
+      dayNumber:        6,
+      title:            'The Amodei siblings and the founding team',
+      hook:             'The legal structure that shapes how it is run.',
+      estimatedMinutes: 3,
+      conceptTags:      ['anthropic-team'],
+      body:
+`Dario Amodei is Anthropic's CEO. Before founding the company he was Vice President of Research at OpenAI and worked on systems including GPT-2 and GPT-3. He is a physicist by training, with a bias toward empirical work over theoretical predictions.
+
+Daniela Amodei is President. She runs operations, policy, and the day-to-day of the company. Where Dario is the public-facing voice on research, Daniela is the structural backbone — the one whose job it is to make sure the lab can actually function as it grows.
+
+The siblings being co-founders is unusual and worth noticing. It gives Anthropic a family-run quality at the top: trust pre-built, conflict-handled offline, decisions made fast.
+
+Around them sits a research-heavy founding team. Jared Kaplan co-authored the seminal scaling-laws paper that quantified how model performance grows with size and data. Chris Olah leads mechanistic interpretability — the project of looking inside neural networks. Tom Brown led the GPT-3 paper. Sam McCandlish, Jack Clark, and others fill out the original group.
+
+The character of the company reflects this team. Anthropic looks more like a research lab that happens to be a company than a company that has researchers. That distinction shapes hiring, culture, and how decisions get made.
+
+Anthropic is a research lab that happens to be a company.`,
+      takeaway:         'Anthropic is a research lab that happens to be a company.',
+      questions: [
+        {
+          id:           'anthropic-d6-q1',
+          prompt:       'Who is the CEO of Anthropic?',
+          options: ['Daniela Amodei', 'Dario Amodei', 'Chris Olah', 'Jared Kaplan'],
+          correctIndex: 1,
+          explanation:  'Dario Amodei, formerly VP of Research at OpenAI, is Anthropic\'s CEO. His sister Daniela is President.',
+          difficulty:   'easy',
+          conceptTags:  ['anthropic-team'],
+        },
+        {
+          id:           'anthropic-d6-q2',
+          prompt:       "What is Jared Kaplan known for in AI research?",
+          options: [
+            'Co-authoring the scaling-laws paper that quantified how performance grows with size',
+            'Inventing the transformer architecture',
+            'Founding OpenAI',
+            'Designing the first GPU specifically for AI',
+          ],
+          correctIndex: 0,
+          explanation:  'Kaplan co-authored the foundational paper showing language model performance scales predictably with compute, data, and parameters.',
+          difficulty:   'medium',
+          conceptTags:  ['anthropic-team'],
+        },
+        {
+          id:           'anthropic-d6-q3',
+          prompt:       'Which research direction is Chris Olah most associated with at Anthropic?',
+          options: [
+            'Mechanistic interpretability — looking inside neural networks',
+            'Reinforcement learning from human feedback',
+            'Speech-to-text systems',
+            'Robotics and embodied AI',
+          ],
+          correctIndex: 0,
+          explanation:  'Chris Olah leads interpretability work, which aims to make the internals of neural networks legible to humans.',
+          difficulty:   'medium',
+          conceptTags:  ['anthropic-team'],
+        },
+        {
+          id:           'anthropic-d6-q4',
+          prompt:       'What does the phrase "research lab that happens to be a company" capture about Anthropic?',
+          options: [
+            'It does not sell products commercially',
+            'Its culture, hiring, and decision-making lean research-first rather than product-first',
+            'It is funded entirely by academic grants',
+            'It does not employ engineers',
+          ],
+          correctIndex: 1,
+          explanation:  'Anthropic operates as a commercial company but its character — staffing, decisions, priorities — is shaped by its research-lab origins.',
+          difficulty:   'hard',
+          conceptTags:  ['anthropic-team'],
+        },
+      ],
+    },
+    {
+      id:               'anthropic-d7',
+      dayNumber:        7,
+      title:            'What "public benefit corporation" actually means',
+      hook:             'The technical bet that capability is mostly about scale.',
+      estimatedMinutes: 3,
+      conceptTags:      ['pbc', 'governance'],
+      body:
+`Anthropic is incorporated as a public benefit corporation, or PBC. Most US companies are organised as standard for-profit corporations, in which directors have a fiduciary duty to maximise shareholder value. A PBC is different: it is a for-profit company that legally permits — and in some interpretations requires — directors to weigh a stated public benefit alongside shareholder return when making decisions.
+
+Anthropic's stated public benefit is, paraphrased, the responsible development of advanced AI for the long-term benefit of humanity. That sentence sounds like marketing. Its presence in the legal charter is not. It means that if shareholders ever sued Anthropic for, say, slowing down a launch on safety grounds, the company has a structural defense: this is what the charter says we exist to do.
+
+There is a second piece. Anthropic is also governed by a body called the Long-Term Benefit Trust, which holds special voting rights over certain board appointments. The Trust is meant to be a counterweight to short-term commercial pressure — a body whose members are explicitly chosen for their independence from the company's investors.
+
+It is not a guarantee of good behaviour. It is a structural attempt to make good behaviour more legally defensible than the standard corporate form allows.
+
+A public benefit corporation legally allows mission to weigh against profit.`,
+      takeaway:         'A public benefit corporation legally allows mission to weigh against profit.',
+      questions: [
+        {
+          id:           'anthropic-d7-q1',
+          prompt:       'What is a public benefit corporation?',
+          options: [
+            'A nonprofit organisation that cannot earn revenue',
+            'A government agency dressed as a company',
+            'A for-profit company whose directors may weigh a stated public benefit alongside shareholder return',
+            'An open-source project with corporate sponsorship',
+          ],
+          correctIndex: 2,
+          explanation:  'A PBC is a for-profit corporation with a legal carve-out: directors can balance a defined public benefit against pure shareholder maximisation.',
+          difficulty:   'medium',
+          conceptTags:  ['pbc'],
+        },
+        {
+          id:           'anthropic-d7-q2',
+          prompt:       'What practical effect does the PBC structure have on Anthropic?',
+          options: [
+            'It exempts the company from paying taxes',
+            'It gives the company a structural defense if shareholders sue over mission-driven decisions',
+            'It requires the company to publish its source code',
+            'It limits the number of investors the company can have',
+          ],
+          correctIndex: 1,
+          explanation:  'The PBC charter is a legal cushion: shareholder lawsuits over mission-driven trade-offs run into the charter\'s explicit public-benefit language.',
+          difficulty:   'medium',
+          conceptTags:  ['pbc'],
+        },
+        {
+          id:           'anthropic-d7-q3',
+          prompt:       'What is the Long-Term Benefit Trust?',
+          options: [
+            'Anthropic\'s charitable giving arm',
+            'A separate company that owns Anthropic\'s patents',
+            'A governance body with special voting rights over certain board appointments',
+            'A retirement plan for employees',
+          ],
+          correctIndex: 2,
+          explanation:  'The LTBT is an independent body that holds special voting rights over particular board seats, intended as a counterweight to short-term commercial pressure.',
+          difficulty:   'hard',
+          conceptTags:  ['governance'],
+        },
+        {
+          id:           'anthropic-d7-q4',
+          prompt:       'How does a PBC differ from a standard for-profit corporation?',
+          options: [
+            'A PBC cannot raise venture capital',
+            'A PBC must pay no dividends to shareholders',
+            'A PBC permits directors to weigh public benefit alongside shareholder value',
+            'A PBC must be majority-owned by employees',
+          ],
+          correctIndex: 2,
+          explanation:  'The defining feature of a PBC is that directors\' fiduciary duty is broadened to include a stated public benefit — not just shareholder return.',
+          difficulty:   'medium',
+          conceptTags:  ['pbc', 'governance'],
+        },
+      ],
+    },
   ],
 }
