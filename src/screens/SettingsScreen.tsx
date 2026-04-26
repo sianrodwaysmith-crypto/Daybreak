@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { WhoopData, WhoopDebug } from '../hooks/useWhoop'
 import type { CalendarHook, CalendarDebug } from '../hooks/useCalendar'
+import { moments, type MomentsStorageDebug } from '../moments'
 
 /* -------------------------------------------------------------------
    Diagnostic helpers shared between Whoop + Calendar panels.
@@ -64,6 +65,59 @@ function WhoopDebugPanel({ debug }: { debug: WhoopDebug }) {
       {debug.rawResponseHead && (
         <pre className="settings-debug-raw">{debug.rawResponseHead}</pre>
       )}
+    </div>
+  )
+}
+
+function MomentsDebugPanel() {
+  const [debug, setDebug] = useState<MomentsStorageDebug | null>(null)
+  const [loading, setLoading] = useState(false)
+
+  async function probe() {
+    setLoading(true)
+    try { setDebug(await moments.probe('sian')) }
+    finally { setLoading(false) }
+  }
+
+  // Auto-probe on first render so the panel always has fresh state.
+  useEffect(() => { void probe() }, [])
+
+  const lines: string[] = []
+  if (debug) {
+    lines.push(`backend ${debug.backend}`)
+    lines.push(`google tokens ${debug.hasGoogleTokens ? '✓' : '✗'}`)
+    if (debug.driveListedOk != null) {
+      lines.push(`drive list ${debug.driveListedOk ? '✓' : '✗'}`)
+    }
+    if (debug.driveListCount != null) {
+      lines.push(`drive files ${debug.driveListCount}`)
+    }
+    if (debug.driveListError) lines.push(`drive err ${debug.driveListError.slice(0, 80)}`)
+    if (debug.fetchOk != null) lines.push(`load ${debug.fetchOk ? '✓' : '✗'}`)
+    if (debug.count != null) lines.push(`moments ${debug.count}`)
+    if (debug.fetchError) lines.push(`load err ${debug.fetchError.slice(0, 80)}`)
+  }
+
+  return (
+    <div className="settings-debug">
+      <div className="settings-debug-head">
+        <span className="settings-debug-title">moments status</span>
+        {debug && <span className="settings-debug-time">{timeAgo(debug.ts)}</span>}
+      </div>
+      {!debug && <div className="settings-debug-lines"><div>probing…</div></div>}
+      {debug && (
+        <div className="settings-debug-lines">
+          {lines.map((l, i) => <div key={i}>{l}</div>)}
+        </div>
+      )}
+      <button
+        type="button"
+        className="settings-debug-toggle"
+        onClick={probe}
+        disabled={loading}
+      >
+        {loading ? 'probing…' : 're-probe'}
+      </button>
     </div>
   )
 }
@@ -265,6 +319,17 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         )}
 
         {calendar.debug && <CalendarDebugPanel debug={calendar.debug} />}
+      </div>
+
+      {/* ── Moments ──────────────────────────────────────── */}
+      <div className="settings-section">
+        <div className="screen-section-label">MOMENTS</div>
+        <p className="settings-note">
+          Photos save to a private Google Drive folder when you're connected,
+          so they survive PWA reinstalls. The status below confirms which
+          backend is in use and how many photos Drive sees right now.
+        </p>
+        <MomentsDebugPanel />
       </div>
     </div>
   )

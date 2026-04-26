@@ -9,10 +9,12 @@
 import './styles.css'
 
 import type { Moment, MemorySurface, PhotoRef } from './types'
-import { getStorage } from './storage'
+import { getStorage, probeStorage } from './storage'
+import type { MomentsStorageDebug } from './storage'
 import { evaluateMemoryRules } from './core/memoryRules'
 
 export type { Moment, MemorySurface, PhotoRef } from './types'
+export type { MomentsStorageDebug } from './storage'
 
 export { MomentsTile }       from './components/MomentsTile'
 export { MomentsCollection } from './components/MomentsCollection'
@@ -48,5 +50,9 @@ export const moments = {
   },
   clearAll(userId: string): Promise<void> {
     return getStorage().clearAll(userId)
+  },
+  /** Diagnostic probe — returns storage backend, Drive file count, etc. */
+  probe(userId: string): Promise<MomentsStorageDebug> {
+    return probeStorage(userId)
   },
 }
