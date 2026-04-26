@@ -388,3 +388,373 @@
   touch-action: manipulation;
 }
 .recap-cta:active { transform: scale(0.98); }
+
+/* ---------- Library ---------- */
+
+.lessons-library {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.lessons-library-empty {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+  margin: 12px 0 0 0;
+  text-align: center;
+}
+.lessons-library-empty-sub {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  margin: 0;
+}
+.lessons-library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lessons-library-heading {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 2px 0;
+  font-weight: 400;
+  text-transform: lowercase;
+}
+.lessons-library-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+.lessons-library-card:hover { border-color: var(--line-strong); }
+.lessons-library-card:active { transform: scale(0.99); }
+.lessons-library-card.is-active {
+  border-color: rgba(10, 10, 10, 0.4);
+}
+.lessons-library-card.is-available {
+  border-style: dashed;
+}
+.lessons-library-card-badge {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.lessons-library-card-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.lessons-library-card-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.lessons-library-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 4px 0;
+  letter-spacing: 0.04em;
+}
+.lessons-library-back:hover { color: var(--ink); }
+
+.lessons-library-confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--ink);
+  font-style: italic;
+  font-family: 'DM Serif Display', serif;
+}
+.lessons-library-confirm-actions {
+  display: inline-flex;
+  gap: 8px;
+}
+.lessons-library-confirm-actions button {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lessons-library-confirm-actions button.is-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+/* ---------- Active course view ---------- */
+
+.lessons-active-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.lessons-active-head { display: flex; flex-direction: column; gap: 6px; }
+.lessons-active-title {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--ink);
+  margin: 0;
+  line-height: 1.2;
+}
+.lessons-active-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.lessons-progress {
+  display: grid;
+  grid-template-columns: repeat(var(--lessons-progress-cols, 14), 1fr);
+  gap: 4px;
+  margin-top: 4px;
+}
+.lessons-progress-seg {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(10, 10, 10, 0.08);
+  border: 1px solid transparent;
+}
+.lessons-progress-seg.is-done    { background: var(--ink); }
+.lessons-progress-seg.is-current {
+  background: rgba(10, 10, 10, 0.0);
+  border-color: var(--ink);
+}
+.lessons-progress-label {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: -8px;
+}
+
+.lessons-takeaways {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.lessons-takeaways-label {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lessons-takeaways-empty {
+  font-style: italic;
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+.lessons-takeaway-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lessons-takeaway-item.is-open .lessons-takeaway-button {
+  border-color: var(--line-strong);
+  background: rgba(0, 0, 0, 0.02);
+}
+.lessons-takeaway-button {
+  width: 100%;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  touch-action: manipulation;
+}
+.lessons-takeaway-day {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lessons-takeaway-text {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.lessons-takeaway-body {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 12px 14px 14px;
+  margin-top: -2px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.lessons-takeaway-body p { margin: 0; }
+.lessons-takeaway-body-title {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 16px;
+  margin: 0;
+  color: var(--ink);
+}
+
+.lessons-active-foot {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+.lessons-active-switch {
+  background: none;
+  border: none;
+  font: inherit;
+  font-style: italic;
+  font-family: 'DM Serif Display', serif;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  text-transform: lowercase;
+  padding: 4px 0;
+}
+.lessons-active-switch:hover { color: var(--ink); }
+
+/* ---------- Course summary ---------- */
+
+.lessons-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.lessons-summary-label {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 11.5px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+.lessons-summary-title {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 24px;
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.2;
+}
+.lessons-summary-meta {
+  font-size: 12.5px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lessons-summary-meta-sep { color: var(--faint); }
+.lessons-summary-journey {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.lessons-summary-journey-label {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lessons-summary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lessons-summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+}
+.lessons-summary-day {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.lessons-summary-text {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+.lessons-summary-foot {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.lessons-summary-quiet {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lessons-summary-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 9px 14px;
+  font: inherit;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
