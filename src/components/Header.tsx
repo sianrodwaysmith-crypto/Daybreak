@@ -27,16 +27,10 @@ interface Props {
   readinessScore: number | null
   readinessColor: string
   onSettings: () => void
-  viewedDate?:    Date
-  isToday?:       boolean
-  onReturnToToday?: () => void
 }
 
-export default function Header({
-  readinessScore, readinessColor, onSettings,
-  viewedDate, isToday = true, onReturnToToday,
-}: Props) {
-  const ref  = viewedDate ?? new Date()
+export default function Header({ readinessScore, readinessColor, onSettings }: Props) {
+  const ref  = new Date()
   const day  = DAYS[ref.getDay()]
   const date = `${day}, ${ref.getDate()} ${MONTHS[ref.getMonth()]}`
   const quote = quoteForDay(ref)
@@ -63,14 +57,7 @@ export default function Header({
         <span className="header-quote-text">“{quote}”</span>
         <span className="header-quote-attr"> Marcus Aurelius.</span>
       </div>
-      <div className="header-date">
-        {date}
-        {!isToday && onReturnToToday && (
-          <button type="button" className="header-today-pill" onClick={onReturnToToday}>
-            today
-          </button>
-        )}
-      </div>
+      <div className="header-date">{date}</div>
 
       <div className="header-readiness">
         <div className="header-readiness-bar">

@@ -1,5 +1,4 @@
 import type { TileAI } from '../hooks/useAIContent'
-import { useDay } from '../contexts/DayContext'
 
 interface Props {
   anthropic: TileAI
@@ -7,7 +6,6 @@ interface Props {
   techMkt:   TileAI
   onRetrySection: (id: 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech') => void
   onRefreshAll:   () => void
-  isHistoric?:    boolean
 }
 
 interface Story {
@@ -359,39 +357,25 @@ function lastUpdated(states: TileAI[]): number | null {
   return ts.length === 0 ? null : Math.min(...ts)
 }
 
-const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const SHORT_MONTHS = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-]
-function formatShortDate(d: Date): string {
-  return `${SHORT_DAYS[d.getDay()]} ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`
-}
-
-export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll, isHistoric }: Props) {
+export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
   const updated    = lastUpdated([anthropic, aiWorld, techMkt])
   const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
-  const { viewedDate } = useDay()
 
   return (
     <div className="pulse-screen">
       <div className="pulse-toolbar">
         <span className="pulse-toolbar-meta">
-          {isHistoric
-            ? `Snapshot · ${formatShortDate(viewedDate)}`
-            : updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
+          {updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
         </span>
-        {!isHistoric && (
-          <button
-            onClick={onRefreshAll}
-            disabled={anyLoading}
-            aria-label="Refresh Pulse"
-            className="pulse-refresh-btn"
-          >
-            <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
-            <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
-          </button>
-        )}
+        <button
+          onClick={onRefreshAll}
+          disabled={anyLoading}
+          aria-label="Refresh Pulse"
+          className="pulse-refresh-btn"
+        >
+          <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
+          <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
+        </button>
       </div>
 
       <Section label="Anthropic"   state={anthropic} onRetry={() => onRetrySection('pulse-anthropic')} />
