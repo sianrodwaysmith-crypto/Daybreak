@@ -8,6 +8,7 @@ import { MomentsSubmitFlow } from './MomentsSubmitFlow'
 import { MomentsDayCard } from './MomentsDayCard'
 import { MomentsModal } from './MomentsModal'
 import { MomentsCollection } from './MomentsCollection'
+import { MomentsIcon } from './icons'
 
 const EVENING_HOUR = 18
 
@@ -84,7 +85,10 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
     <>
       <section className="moments-tile">
         <div className="moments-head">
-          <span className="moments-eyebrow">{copy.sectionLabel}</span>
+          <span className="moments-eyebrow">
+            <span className="moments-eyebrow-icon" aria-hidden><MomentsIcon size={22} /></span>
+            {copy.sectionLabel}
+          </span>
           <button
             type="button"
             className="moments-collection-link"
