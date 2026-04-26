@@ -70,7 +70,9 @@ export const copy = {
     clearLink:            () => 'Clear collection',
     clearConfirm:         (n: number) =>
       `This will delete all ${n} saved ${n === 1 ? 'moment' : 'moments'}. There's no undo.`,
-    clearCta:             () => 'Delete everything',
+    clearCta:             () => 'Hold to delete',
+    clearCtaHolding:      () => 'Keep holding…',
+    clearCtaDeleting:     () => 'Deleting…',
     clearCancel:          () => 'Keep them',
   },
 

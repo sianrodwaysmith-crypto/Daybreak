@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Moment } from '../types'
 import { copy } from '../copy'
 import { getStorage } from '../storage'
@@ -11,16 +11,26 @@ interface Props {
   userId:  string
 }
 
+const HOLD_MS = 1500
+
 /**
  * Reverse-chronological grid of every moment. Tap a thumbnail to open a
  * day card; tap the close on the day card to return to the grid.
+ *
+ * The destructive Clear-collection action is two-gated:
+ *   1. Tap a small underlined link to expand the warning card.
+ *   2. Press AND HOLD the destructive button for 1500 ms; releasing
+ *      early cancels and resets the progress bar. This makes the action
+ *      foolproof against accidental taps.
  */
 export function MomentsCollection({ isOpen, onClose, userId }: Props) {
   const [moments,    setMoments]    = useState<Moment[]>([])
   const [loaded,     setLoaded]     = useState(false)
   const [active,     setActive]     = useState<Moment | null>(null)
   const [confirming, setConfirming] = useState(false)
+  const [holding,    setHolding]    = useState(false)
   const [clearing,   setClearing]   = useState(false)
+  const holdTimer = useRef<number | null>(null)
 
   useEffect(() => {
     if (!isOpen) return
@@ -32,7 +42,32 @@ export function MomentsCollection({ isOpen, onClose, userId }: Props) {
     return () => { alive = false }
   }, [isOpen, userId])
 
-  async function handleClear() {
+  // Reset any in-flight hold whenever the modal closes or the confirm
+  // card collapses, so a half-pressed button can't fire later.
+  useEffect(() => {
+    if (!isOpen || !confirming) cancelHold()
+  }, [isOpen, confirming])
+
+  function startHold() {
+    if (clearing) return
+    setHolding(true)
+    if (holdTimer.current != null) window.clearTimeout(holdTimer.current)
+    holdTimer.current = window.setTimeout(() => {
+      holdTimer.current = null
+      setHolding(false)
+      void runClear()
+    }, HOLD_MS)
+  }
+
+  function cancelHold() {
+    if (holdTimer.current != null) {
+      window.clearTimeout(holdTimer.current)
+      holdTimer.current = null
+    }
+    setHolding(false)
+  }
+
+  async function runClear() {
     setClearing(true)
     try {
       await getStorage().clearAll(userId)
@@ -42,6 +77,12 @@ export function MomentsCollection({ isOpen, onClose, userId }: Props) {
       setClearing(false)
     }
   }
+
+  const dangerLabel = clearing
+    ? copy.collection.clearCtaDeleting()
+    : holding
+      ? copy.collection.clearCtaHolding()
+      : copy.collection.clearCta()
 
   return (
     <MomentsModal isOpen={isOpen} onClose={onClose} title={copy.collection.title()}>
@@ -84,18 +125,25 @@ export function MomentsCollection({ isOpen, onClose, userId }: Props) {
             <button
               type="button"
               className="moments-btn-quiet"
-              onClick={() => setConfirming(false)}
+              onClick={() => { cancelHold(); setConfirming(false) }}
               disabled={clearing}
             >
               {copy.collection.clearCancel()}
             </button>
             <button
               type="button"
-              className="moments-btn-danger"
-              onClick={handleClear}
+              className={`moments-btn-danger moments-btn-hold${holding ? ' is-holding' : ''}`}
               disabled={clearing}
+              onPointerDown={startHold}
+              onPointerUp={cancelHold}
+              onPointerLeave={cancelHold}
+              onPointerCancel={cancelHold}
+              // Prevent the default click handler from firing — we only fire
+              // the destructive action when the hold timer completes.
+              onClick={e => e.preventDefault()}
             >
-              {copy.collection.clearCta()}
+              <span className="moments-btn-hold-fill" aria-hidden />
+              <span className="moments-btn-hold-label">{dangerLabel}</span>
             </button>
           </div>
         </div>

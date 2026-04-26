@@ -386,8 +386,8 @@
   flex: 1;
   padding: 10px 14px;
   border-radius: 999px;
-  background: #c2453a;
-  color: #fff;
+  background: transparent;
+  color: #c2453a;
   border: 1px solid #c2453a;
   font-family: var(--font-sans);
   font-size: 13px;
@@ -398,6 +398,41 @@
   color: var(--faint);
   border-color: var(--line);
   cursor: default;
+}
+
+/* Hold-to-confirm: the button stays inert on tap. A fill bar grows
+   left-to-right over 1.5s while the user keeps the button pressed.
+   Releasing before completion cancels the timer and the fill snaps
+   back to zero. Only when the fill reaches 100% does the JS timer
+   fire the destructive action. */
+.moments-btn-hold {
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+.moments-btn-hold-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: #c2453a;
+  border-radius: 999px;
+  transition: width 0s linear;
+  pointer-events: none;
+}
+.moments-btn-hold.is-holding .moments-btn-hold-fill {
+  width: 100%;
+  transition: width 1.5s linear;
+}
+.moments-btn-hold-label {
+  position: relative;
+  z-index: 1;
+  transition: color 0.18s ease;
+}
+.moments-btn-hold.is-holding .moments-btn-hold-label {
+  color: #fff;
 }
 
 /* ---------- Day card ---------- */
