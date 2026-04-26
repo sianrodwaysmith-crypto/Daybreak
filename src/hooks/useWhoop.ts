@@ -35,6 +35,8 @@ export interface WhoopData {
   avgHr:            number | null
   maxHr:            number | null
   debug:            WhoopDebug | null
+  /** Seconds remaining on the local cool-down. 0 means refresh is allowed. */
+  cooldownSeconds:  number
   refresh:          () => Promise<void>
   disconnect:       () => Promise<void>
 }
@@ -61,9 +63,31 @@ interface StoredTokens {
   expires_at:    number
 }
 
-const TOKENS_KEY  = 'daybreak-whoop-tokens'
-const PERSIST_KEY = 'daybreak-whoop-last-v2'
-const DEBUG_KEY   = 'daybreak-whoop-debug'
+const TOKENS_KEY    = 'daybreak-whoop-tokens'
+const PERSIST_KEY   = 'daybreak-whoop-last-v2'
+const DEBUG_KEY     = 'daybreak-whoop-debug'
+const COOLDOWN_KEY  = 'daybreak-whoop-cooldown-until'
+
+// Default wait when Whoop returns 429 without a Retry-After header. Their
+// edge limiter often returns empty 429s with no guidance; 2 minutes is long
+// enough to clear most short-window limits without making the user wait
+// forever for the next manual refresh.
+const DEFAULT_COOLDOWN_SECS = 120
+
+function readCooldownUntil(): number {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_KEY)
+    if (!raw) return 0
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : 0
+  } catch { return 0 }
+}
+function writeCooldownUntil(t: number) {
+  try { localStorage.setItem(COOLDOWN_KEY, String(t)) } catch {}
+}
+function clearCooldown() {
+  try { localStorage.removeItem(COOLDOWN_KEY) } catch {}
+}
 
 function writeDebug(d: WhoopDebug) {
   try { localStorage.setItem(DEBUG_KEY, JSON.stringify(d)) } catch {}
@@ -130,9 +154,38 @@ export function useWhoop(): WhoopData {
   const [debug,   setDebug]   = useState<WhoopDebug | null>(readDebug)
 
   // Cool-down gate: if Whoop has rate-limited us, refuse to refetch until
-  // their Retry-After window has passed. Stops a render or button-mash from
-  // re-tripping the limit.
-  const cooldownUntilRef = useRef<number>(0)
+  // their Retry-After window has passed. Persisted to localStorage so the
+  // gate survives PWA reloads (the SW activate handler reloads clients,
+  // which would otherwise wipe the in-memory ref and let us hit Whoop
+  // again immediately).
+  const cooldownUntilRef = useRef<number>(readCooldownUntil())
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(() => {
+    const ms = readCooldownUntil() - Date.now()
+    return ms > 0 ? Math.ceil(ms / 1000) : 0
+  })
+
+  function setCooldown(secs: number) {
+    const until = Date.now() + secs * 1000
+    cooldownUntilRef.current = until
+    writeCooldownUntil(until)
+    setCooldownSeconds(secs)
+  }
+
+  // Tick the displayed cool-down down to zero so the Settings button can
+  // show a live countdown and re-enable itself when the gate clears.
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return
+    const id = window.setInterval(() => {
+      const ms = cooldownUntilRef.current - Date.now()
+      const secs = ms > 0 ? Math.ceil(ms / 1000) : 0
+      setCooldownSeconds(secs)
+      if (secs === 0) {
+        clearCooldown()
+        window.clearInterval(id)
+      }
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [cooldownSeconds])
 
   function captureDebug(next: WhoopDebug) {
     writeDebug(next)
@@ -217,16 +270,16 @@ export function useWhoop(): WhoopData {
       }
 
       // If any of the per-endpoint statuses came back 429, Whoop has rate-
-      // limited us. Set a cool-down based on Retry-After (or default to 60s)
-      // so we don't keep hammering them.
+      // limited us. Set a cool-down based on Retry-After (or a generous
+      // default for empty 429s where Whoop's edge limiter gives no guidance).
       const statuses = [
         json._debug?.recoveryStatus,
         json._debug?.sleepStatus,
         json._debug?.cycleStatus,
       ]
       if (statuses.some(s => s === 429)) {
-        const retryAfter = json._debug?.retryAfter ?? 60
-        cooldownUntilRef.current = Date.now() + retryAfter * 1000
+        const retryAfter = json._debug?.retryAfter ?? DEFAULT_COOLDOWN_SECS
+        setCooldown(retryAfter)
       }
 
       // Server refreshed tokens — persist the new pair so subsequent calls work.
@@ -271,9 +324,12 @@ export function useWhoop(): WhoopData {
     clearTokens()
     try { localStorage.removeItem(PERSIST_KEY) } catch {}
     try { localStorage.removeItem(DEBUG_KEY)   } catch {}
+    clearCooldown()
+    cooldownUntilRef.current = 0
+    setCooldownSeconds(0)
     setPayload(EMPTY)
     setDebug(null)
   }, [])
 
-  return { ...payload, loading, debug, refresh, disconnect }
+  return { ...payload, loading, debug, cooldownSeconds, refresh, disconnect }
 }

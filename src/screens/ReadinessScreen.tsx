@@ -78,6 +78,7 @@ export default function ReadinessScreen(props: Props) {
     avgHr: avgHr ?? null,
     maxHr: maxHr ?? null,
     debug: null,
+    cooldownSeconds: 0,
     refresh:    async () => {},
     disconnect: async () => {},
   }

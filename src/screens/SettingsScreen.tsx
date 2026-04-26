@@ -147,11 +147,16 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
               Connected · Recovery {whoop.recovery ?? '–'}%
             </div>
             <button
-              className="settings-btn settings-btn-save active"
+              className={`settings-btn settings-btn-save${whoop.cooldownSeconds > 0 ? '' : ' active'}`}
               onClick={() => whoop.refresh()}
+              disabled={whoop.cooldownSeconds > 0 || whoop.loading}
               style={{ marginBottom: 8 }}
             >
-              {whoop.loading ? 'REFRESHING…' : 'REFRESH NOW'}
+              {whoop.cooldownSeconds > 0
+                ? `WAIT ${whoop.cooldownSeconds}s`
+                : whoop.loading
+                  ? 'REFRESHING…'
+                  : 'REFRESH NOW'}
             </button>
             <button
               className="settings-btn settings-btn-disconnect"
