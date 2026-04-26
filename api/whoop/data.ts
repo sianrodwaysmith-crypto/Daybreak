@@ -101,6 +101,22 @@ export default async function handler(req: any, res: any) {
       captureError('cycle',    cycleRes),
     ])
 
+    // If any endpoint returned 429, surface the Retry-After header (in
+    // seconds) so the client can hold off until Whoop's cool-down clears.
+    let retryAfterSecs: number | undefined
+    for (const r of [recovRes, sleepRes, cycleRes]) {
+      if (r.status !== 429) continue
+      const ra = r.headers.get('retry-after')
+      if (!ra) continue
+      // Retry-After can be either seconds or an HTTP date.
+      const asNumber = Number(ra)
+      if (!Number.isNaN(asNumber)) retryAfterSecs = Math.max(retryAfterSecs ?? 0, asNumber)
+      else {
+        const t = Date.parse(ra)
+        if (!Number.isNaN(t)) retryAfterSecs = Math.max(retryAfterSecs ?? 0, Math.ceil((t - Date.now()) / 1000))
+      }
+    }
+
     const rec   = (recovData as any)?.records?.[0]
     const sleep = (sleepData as any)?.records?.[0]
     const cycle = (cycleData as any)?.records?.[0]
@@ -133,6 +149,7 @@ export default async function handler(req: any, res: any) {
         sleepHasRecord:    !!sleep,
         cycleHasRecord:    !!cycle,
         errors:         Object.keys(errorBodies).length > 0 ? errorBodies : undefined,
+        retryAfter:     retryAfterSecs,
         ts:             new Date().toISOString(),
       },
     }

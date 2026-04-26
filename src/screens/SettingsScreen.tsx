@@ -32,6 +32,7 @@ function WhoopDebugPanel({ debug }: { debug: WhoopDebug }) {
   if (debug.recoveryStatus != null) lines.push(`recovery ${statusGlyph(debug.recoveryStatus)}${debug.recoveryHasRecord ? ' (record)' : ' (empty)'}`)
   if (debug.sleepStatus    != null) lines.push(`sleep    ${statusGlyph(debug.sleepStatus)}${debug.sleepHasRecord ? ' (record)' : ' (empty)'}`)
   if (debug.cycleStatus    != null) lines.push(`cycle    ${statusGlyph(debug.cycleStatus)}${debug.cycleHasRecord ? ' (record)' : ' (empty)'}`)
+  if (debug.retryAfter != null)     lines.push(`retry-after ${debug.retryAfter}s`)
 
   const errors = debug.errors ?? {}
   const errorEntries = Object.entries(errors)

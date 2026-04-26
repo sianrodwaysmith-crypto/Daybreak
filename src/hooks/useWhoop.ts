@@ -1,13 +1,14 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
 
 export interface WhoopDebug {
-  source:            'api' | 'persisted' | 'no-tokens' | 'fetch-error' | '401' | 'http-error'
+  source:            'api' | 'persisted' | 'no-tokens' | 'fetch-error' | '401' | 'http-error' | 'rate-limited'
   ts:                string                       // ISO timestamp of when this was captured
   hasTokens:         boolean
   fetchOk?:          boolean
   fetchStatus?:      number
   fetchError?:       string                       // network error message
+  retryAfter?:       number                       // seconds, when known (Retry-After header)
   recoveryStatus?:   number
   sleepStatus?:      number
   cycleStatus?:      number
@@ -115,10 +116,23 @@ function writePersisted(data: WhoopPayload) {
 
 export function useWhoop(): WhoopData {
   const { registerContent } = useDayBreakContext()
-  const persisted = readPersisted()
+  // Read persisted state ONCE at mount via a ref. Reading on every render
+  // produced a new object reference, which churned the fetchData useCallback
+  // dep array, which re-fired the auto-fetch effect on every render. Whoop's
+  // per-user rate limit kicks in at ~100 req/min so a few fast renders was
+  // enough to trip a 429 cool-down.
+  const persistedRef = useRef<WhoopPayload | null>(null)
+  if (persistedRef.current === null) persistedRef.current = readPersisted()
+  const persisted = persistedRef.current
+
   const [loading, setLoading] = useState(persisted == null)
   const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
   const [debug,   setDebug]   = useState<WhoopDebug | null>(readDebug)
+
+  // Cool-down gate: if Whoop has rate-limited us, refuse to refetch until
+  // their Retry-After window has passed. Stops a render or button-mash from
+  // re-tripping the limit.
+  const cooldownUntilRef = useRef<number>(0)
 
   function captureDebug(next: WhoopDebug) {
     writeDebug(next)
@@ -148,6 +162,20 @@ export function useWhoop(): WhoopData {
 
   const fetchData = useCallback(async () => {
     const now = () => new Date().toISOString()
+
+    // Honour Whoop's cool-down. If we're inside the window, leave the
+    // existing state untouched and update the debug timestamp so the user
+    // can see the gate is active.
+    if (Date.now() < cooldownUntilRef.current) {
+      const secondsLeft = Math.ceil((cooldownUntilRef.current - Date.now()) / 1000)
+      captureDebug({
+        source: 'rate-limited', ts: now(), hasTokens: !!readTokens(),
+        fetchOk: false, fetchStatus: 429, retryAfter: secondsLeft,
+      })
+      setLoading(false)
+      return
+    }
+
     const tokens = readTokens()
     if (!tokens) {
       setPayload(EMPTY)
@@ -188,6 +216,19 @@ export function useWhoop(): WhoopData {
         _debug?: Omit<WhoopDebug, 'source' | 'ts' | 'hasTokens' | 'fetchOk' | 'fetchStatus'>
       }
 
+      // If any of the per-endpoint statuses came back 429, Whoop has rate-
+      // limited us. Set a cool-down based on Retry-After (or default to 60s)
+      // so we don't keep hammering them.
+      const statuses = [
+        json._debug?.recoveryStatus,
+        json._debug?.sleepStatus,
+        json._debug?.cycleStatus,
+      ]
+      if (statuses.some(s => s === 429)) {
+        const retryAfter = json._debug?.retryAfter ?? 60
+        cooldownUntilRef.current = Date.now() + retryAfter * 1000
+      }
+
       // Server refreshed tokens — persist the new pair so subsequent calls work.
       if (json.tokens) {
         writeTokens({
@@ -207,7 +248,7 @@ export function useWhoop(): WhoopData {
       })
     } catch (err) {
       // Network blip — keep persisted data, don't flash 'not connected'
-      if (!persisted) setPayload(EMPTY)
+      if (!persistedRef.current) setPayload(EMPTY)
       captureDebug({
         source: 'fetch-error', ts: now(), hasTokens: true,
         fetchOk: false,
@@ -216,8 +257,8 @@ export function useWhoop(): WhoopData {
     } finally {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [persisted])
+  }, [])  // empty deps: this function is stable across renders, the auto-
+          // fetch effect below fires exactly once on mount.
 
   useEffect(() => { void fetchData() }, [fetchData])
 
