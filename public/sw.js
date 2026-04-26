@@ -2,7 +2,7 @@
 // on iOS) hold onto old caches stubbornly, and only `activate` with a new
 // CACHE_NAME will evict them. Pair this with clients.claim() + reload-on-
 // activate so the home-screen WebView picks up the new bundle on next open.
-const CACHE_NAME = 'daybreak-v7';
+const CACHE_NAME = 'daybreak-v8';
 const APP_SHELL  = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -34,6 +34,11 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  // API routes must always hit the network. We previously cached every
+  // same-origin GET, which silently broke Whoop / weather / anything
+  // dynamic — the first response stuck around forever.
+  if (url.pathname.startsWith('/api/')) return;
 
   // Navigation / HTML: network-first so a new deploy is picked up immediately,
   // fall back to cache only when offline.
