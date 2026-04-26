@@ -2107,6 +2107,20 @@ a.pulse-card-link:active { transform: scale(0.995); }
   line-height: 1.5;
   color: var(--ink-2);
 }
+
+/* Stack label above text on narrow screens so the right column has room
+   for longer Impact sentences. iPhone SE is 375px; the modal eats ~44px
+   of horizontal padding, so 360px is the threshold below which the
+   side-by-side layout starts to crowd. */
+@media (max-width: 380px) {
+  .pulse-facts {
+    grid-template-columns: 1fr;
+    row-gap: 2px;
+  }
+  .pulse-fact-label { padding-top: 2px; }
+  .pulse-fact-text  { margin-bottom: 6px; }
+  .pulse-fact-text:last-of-type { margin-bottom: 0; }
+}
 .pulse-source {
   margin-top: 12px;
   font-size: 11px;

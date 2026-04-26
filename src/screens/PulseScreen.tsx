@@ -1,4 +1,5 @@
 import type { TileAI } from '../hooks/useAIContent'
+import { useDay } from '../contexts/DayContext'
 
 interface Props {
   anthropic: TileAI
@@ -333,16 +334,26 @@ function lastUpdated(states: TileAI[]): number | null {
   return ts.length === 0 ? null : Math.min(...ts)
 }
 
+const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const SHORT_MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
+function formatShortDate(d: Date): string {
+  return `${SHORT_DAYS[d.getDay()]} ${d.getDate()} ${SHORT_MONTHS[d.getMonth()]}`
+}
+
 export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll, isHistoric }: Props) {
   const updated    = lastUpdated([anthropic, aiWorld, techMkt])
   const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
+  const { viewedDate } = useDay()
 
   return (
     <div className="pulse-screen">
       <div className="pulse-toolbar">
         <span className="pulse-toolbar-meta">
           {isHistoric
-            ? 'Snapshot'
+            ? `Snapshot · ${formatShortDate(viewedDate)}`
             : updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
         </span>
         {!isHistoric && (
