@@ -1532,6 +1532,18 @@
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+.account-news-empty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.account-news-empty-text { font-style: italic; }
 .account-news-error {
   display: flex;
   align-items: center;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Account, NewsState } from '../clients/types'
 import { useAccounts } from '../hooks/useAccounts'
 import { loadAccountNews, readAccountNews } from '../clients/news'
@@ -14,11 +14,17 @@ import { parseAccountNews, hostname } from '../clients/parse'
 
 interface NewsBlockProps {
   state:    NewsState
-  onRetry?: () => void
+  onLoad:   () => void
+  onRetry:  () => void
   showTalkingPoints: boolean
 }
 
-function NewsBlock({ state, onRetry, showTalkingPoints }: NewsBlockProps) {
+function isRateLimited(msg: string | null): boolean {
+  if (!msg) return false
+  return /\b429\b|rate[- ]?limit|tokens per minute/i.test(msg)
+}
+
+function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps) {
   if (state.loading) {
     return (
       <div className="account-news-loading">
@@ -29,18 +35,30 @@ function NewsBlock({ state, onRetry, showTalkingPoints }: NewsBlockProps) {
   }
 
   if (state.error) {
+    const limited = isRateLimited(state.errorMsg)
     return (
       <div className="account-news-error">
         <div className="account-news-error-stack">
-          <span>Couldn't fetch news for this account.</span>
-          {state.errorMsg && <span className="account-news-error-detail">{state.errorMsg}</span>}
+          <span>{limited ? 'Daily token quota hit.' : "Couldn't fetch news for this account."}</span>
+          <span className="account-news-error-detail">
+            {limited
+              ? 'Wait a minute or two before retrying. The Pulse and per-account searches share the same Anthropic budget.'
+              : state.errorMsg}
+          </span>
         </div>
-        {onRetry && <button className="account-news-retry" onClick={onRetry}>↻ Retry</button>}
+        <button className="account-news-retry" onClick={onRetry}>↻ Retry</button>
       </div>
     )
   }
 
-  if (!state.content) return null
+  if (!state.content) {
+    return (
+      <div className="account-news-empty">
+        <span className="account-news-empty-text">No news loaded yet.</span>
+        <button className="account-news-retry" onClick={onLoad}>Load today's news</button>
+      </div>
+    )
+  }
 
   const { stories, talkingPoints } = parseAccountNews(state.content)
   if (stories.length === 0 && talkingPoints.length === 0) {
@@ -164,17 +182,11 @@ interface CardProps {
 
 function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProps) {
   const [news,     setNews]     = useState<NewsState>(() => readAccountNews(account.id))
-  const [expanded, setExpanded] = useState<boolean>(isFocus || news.content != null)
+  // Cards expand by default if they already have cached news from
+  // earlier today; otherwise they stay collapsed until the user taps in.
+  // Nothing auto-fetches — every API call is the result of a tap.
+  const [expanded, setExpanded] = useState<boolean>(news.content != null)
   const [editing,  setEditing]  = useState(false)
-
-  // The focus account auto-loads news on mount (or when the focus
-  // changes). Other accounts wait for the user to expand them.
-  useEffect(() => {
-    if (!isFocus) return
-    if (news.content) { setExpanded(true); return }
-    setNews(s => ({ ...s, loading: true }))
-    loadAccountNews(account, true).then(setNews)
-  }, [account.id, isFocus])
 
   function load(force: boolean) {
     setNews(s => ({ ...s, loading: true, error: false }))
@@ -183,12 +195,7 @@ function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProp
 
   function handleExpand() {
     if (editing) return
-    if (!expanded) {
-      setExpanded(true)
-      if (!news.content) load(false)
-    } else {
-      setExpanded(false)
-    }
+    setExpanded(e => !e)
   }
 
   return (
@@ -247,7 +254,12 @@ function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProp
 
       {expanded && !editing && (
         <div className="account-body">
-          <NewsBlock state={news} onRetry={() => load(true)} showTalkingPoints={isFocus} />
+          <NewsBlock
+            state={news}
+            onLoad={() => load(false)}
+            onRetry={() => load(true)}
+            showTalkingPoints={isFocus}
+          />
         </div>
       )}
     </section>
