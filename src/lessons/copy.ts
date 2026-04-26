@@ -40,8 +40,10 @@ export const copy = {
   recap: {
     label:           (n: number) => `day ${n} done`,
     takeawayLabel:   "today's takeaway",
-    accuracyLine:    (got: number, total: number) => `accuracy today: ${got} of ${total}`,
-    progressLine:    (done: number, total: number) => `progress: ${done} of ${total}`,
+    accuracyHeading: 'accuracy today',
+    accuracyValue:   (got: number, total: number) => `${got} of ${total}`,
+    progressHeading: 'progress',
+    progressValue:   (done: number, total: number) => `${done} of ${total}`,
     transitionLine:  (nextTitle: string, hook: string) => `Tomorrow: ${nextTitle}. ${hook}`,
     finishedLine:    'You finished the course. Tomorrow opens the recap.',
     backCta:         'Back to Daybreak',
