@@ -163,8 +163,8 @@ function HomeView() {
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
     { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', subtitle: lessonsSubtitle },
-    { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
     { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.' },
+    { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
