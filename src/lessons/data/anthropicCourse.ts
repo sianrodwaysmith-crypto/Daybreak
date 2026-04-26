@@ -545,5 +545,233 @@ A public benefit corporation legally allows mission to weigh against profit.`,
         },
       ],
     },
+    {
+      id:               'anthropic-d8',
+      dayNumber:        8,
+      title:            'The scaling hypothesis',
+      hook:             'How Anthropic teaches a model to behave.',
+      estimatedMinutes: 3,
+      conceptTags:      ['scaling', 'capability'],
+      body:
+`The scaling hypothesis is the idea that the path to more capable AI runs through making models bigger, training them on more data, and giving them more compute. Not necessarily through fundamentally new ideas. Just more of the existing recipe, executed at scale.
+
+This is more counterintuitive than it sounds. For decades, AI progress was assumed to depend on conceptual breakthroughs — new architectures, new theories of intelligence. The scaling hypothesis says: the architectures from a few years ago, if scaled aggressively, will keep producing surprises. And so far, it has been broadly right.
+
+The empirical backing came from a 2020 paper Jared Kaplan co-authored, often just called "Scaling Laws." It showed that loss (a measure of how well a model predicts text) follows a clean, predictable curve as you add parameters, data, and compute. Not vague heuristics — actual numbers you can extrapolate.
+
+This is the technical conviction Anthropic was built on. If scaling works, then capability will keep improving fast, and the safety problem becomes urgent rather than academic. The research agenda follows: don't bet against scale, but don't deploy what scale produces without understanding it.
+
+The hypothesis is not infinite. Most researchers believe scaling alone runs into limits eventually. But the field has not found that limit yet, and Anthropic plans accordingly.
+
+At AI scale, more is qualitatively different, not just quantitatively.`,
+      takeaway:         'At AI scale, more is qualitatively different, not just quantitatively.',
+      questions: [
+        {
+          id:           'anthropic-d8-q1',
+          prompt:       'What does the scaling hypothesis claim?',
+          options: [
+            'New architectures are the only path to better AI',
+            'Bigger models, more data, and more compute keep producing better results',
+            'Models can only improve if humans label more data',
+            'Smaller models trained longer beat larger ones',
+          ],
+          correctIndex: 1,
+          explanation:  'The scaling hypothesis is the empirical claim that scaling existing recipes — parameters, data, compute — keeps yielding capability gains.',
+          difficulty:   'easy',
+          conceptTags:  ['scaling'],
+        },
+        {
+          id:           'anthropic-d8-q2',
+          prompt:       'What did the 2020 "Scaling Laws" paper contribute?',
+          options: [
+            'A proof that scaling will continue indefinitely',
+            'Predictable curves showing how performance improves with size, data, and compute',
+            'A new neural network architecture',
+            'A regulatory framework for large models',
+          ],
+          correctIndex: 1,
+          explanation:  'Kaplan et al. demonstrated that loss follows clean, extrapolatable curves as scale grows — turning rough intuition into measurable laws.',
+          difficulty:   'medium',
+          conceptTags:  ['scaling', 'capability'],
+        },
+        {
+          id:           'anthropic-d8-q3',
+          prompt:       'Why does the scaling hypothesis make safety urgent?',
+          options: [
+            'It makes models cheaper to train',
+            'It implies capability improves predictably and fast, so safety must keep pace',
+            'It forces all labs to share their weights',
+            'It eliminates the need for fine-tuning',
+          ],
+          correctIndex: 1,
+          explanation:  'If capability scales predictably, the gap between today and the next generation is short — safety becomes a near-term problem, not a far-future one.',
+          difficulty:   'hard',
+          conceptTags:  ['scaling', 'capability'],
+        },
+        {
+          id:           'anthropic-d8-q4',
+          prompt:       'What is the standard caveat to the scaling hypothesis?',
+          options: [
+            'It only works for image models',
+            'Most researchers believe scale alone will eventually hit limits',
+            'It has been disproven',
+            'It requires open-source training data',
+          ],
+          correctIndex: 1,
+          explanation:  'The hypothesis is not infinite. It has not yet found a limit, but most researchers expect one — the question is when.',
+          difficulty:   'medium',
+          conceptTags:  ['scaling'],
+        },
+      ],
+    },
+    {
+      id:               'anthropic-d9',
+      dayNumber:        9,
+      title:            'Constitutional AI',
+      hook:             'Looking inside the model to see what it is doing.',
+      estimatedMinutes: 3,
+      conceptTags:      ['constitutional-ai', 'training'],
+      body:
+`Constitutional AI is Anthropic's distinctive approach to training models to behave well. The shorthand is in the name: rather than relying entirely on human raters to score every output, the model is given a "constitution" — a written set of principles — and trained to critique and revise its own responses against those principles.
+
+In practice, training proceeds in stages. The model produces a draft response. It is then prompted with a constitutional principle ("avoid helping with harm," "be honest about uncertainty," etc.) and asked to evaluate whether its draft followed the principle. If not, it rewrites. The rewritten version becomes training data. Over many iterations, this teaches the model to internalise the principles without a human watching every step.
+
+The benefits are practical and philosophical. Practically, it reduces the cost and bottleneck of human labelling — humans can write principles much faster than they can rate millions of outputs. Philosophically, it forces the lab to be explicit about what behaviour is wanted. The constitution is a public document, not a private rulebook.
+
+Constitutional AI is not the whole training story. RLHF still plays a role; humans still rate outputs at scale. But the constitutional layer adds a way for the model to learn from principles, not just preferences.
+
+Constitutional AI teaches a model to police itself against principles.`,
+      takeaway:         'Constitutional AI teaches a model to police itself against principles.',
+      questions: [
+        {
+          id:           'anthropic-d9-q1',
+          prompt:       "What is a 'constitution' in Constitutional AI?",
+          options: [
+            'The model\'s neural network architecture',
+            'A written set of principles the model is trained to follow and self-critique against',
+            'The legal charter of the company',
+            'A set of test prompts used in evaluation',
+          ],
+          correctIndex: 1,
+          explanation:  'The constitution is a written set of principles. The model uses them to critique and revise its own outputs during training.',
+          difficulty:   'easy',
+          conceptTags:  ['constitutional-ai'],
+        },
+        {
+          id:           'anthropic-d9-q2',
+          prompt:       'What practical advantage does Constitutional AI have over relying purely on RLHF?',
+          options: [
+            'Humans can write principles much faster than they can rate millions of outputs',
+            'It eliminates the need for any pre-training',
+            'It makes models cheaper to deploy',
+            'It removes the need for safety testing',
+          ],
+          correctIndex: 0,
+          explanation:  'Writing principles is fast; rating outputs at scale is slow. CAI substitutes principle-based self-critique for some of the rating work.',
+          difficulty:   'medium',
+          conceptTags:  ['constitutional-ai', 'training'],
+        },
+        {
+          id:           'anthropic-d9-q3',
+          prompt:       'In Constitutional AI, what does the model do during training?',
+          options: [
+            'Drafts responses, evaluates them against principles, and rewrites where needed',
+            'Memorises a list of forbidden words',
+            'Only learns from human-written outputs verbatim',
+            'Generates random outputs and waits for human approval',
+          ],
+          correctIndex: 0,
+          explanation:  'The training loop: draft, critique against the constitution, revise. The revised output becomes new training data.',
+          difficulty:   'medium',
+          conceptTags:  ['constitutional-ai'],
+        },
+        {
+          id:           'anthropic-d9-q4',
+          prompt:       'Does Constitutional AI replace RLHF entirely?',
+          options: [
+            'Yes — RLHF is no longer used at Anthropic',
+            'No — both are used together, with the constitutional layer adding principle-based learning',
+            'Yes, but only for safety-critical models',
+            'No — Constitutional AI is purely theoretical',
+          ],
+          correctIndex: 1,
+          explanation:  'Constitutional AI complements RLHF rather than replacing it. Both are part of the training stack.',
+          difficulty:   'hard',
+          conceptTags:  ['constitutional-ai', 'training'],
+        },
+      ],
+    },
+    {
+      id:               'anthropic-d10',
+      dayNumber:        10,
+      title:            'Mechanistic interpretability',
+      hook:             'How safety thresholds gate deployment.',
+      estimatedMinutes: 3,
+      conceptTags:      ['interpretability'],
+      body:
+`Mechanistic interpretability is the project of opening up a neural network and figuring out, in mechanical detail, what its internal parts are computing. Not just "this model can write Python," but "this specific group of neurons activates on indented code blocks, and these connections funnel into an output that predicts a closing bracket."
+
+The motivation is straightforward. We trust systems we understand. Right now, even the labs that build these models cannot fully explain why a particular response came out the way it did. Interpretability is the long-running effort to change that — to make a model's reasoning legible to humans, neuron by neuron, circuit by circuit.
+
+Chris Olah leads this research at Anthropic and was working on it long before joining. The work is slow and often beautiful. Researchers find a small circuit that recognises a concept, name it, and watch how it interacts with the rest of the model. Over years, a vocabulary builds up: induction heads, feature visualisations, polysemanticity, sparse autoencoders.
+
+It is genuinely hard. A modern model has billions of parameters and computations across dozens of layers; the search space is enormous. But the field has gone from "the model is a black box" to "we can identify and label specific computations" — a real, if partial, victory.
+
+Interpretability is the project of opening the box, one circuit at a time.`,
+      takeaway:         'Interpretability is the project of opening the box, one circuit at a time.',
+      questions: [
+        {
+          id:           'anthropic-d10-q1',
+          prompt:       'What is mechanistic interpretability trying to do?',
+          options: [
+            'Make models run faster on smaller hardware',
+            'Understand, in mechanical detail, what specific parts of a neural network compute',
+            'Translate a model\'s outputs into other languages',
+            'Reduce the size of training data needed',
+          ],
+          correctIndex: 1,
+          explanation:  'Interpretability is the effort to identify what specific neurons and circuits inside a model are doing — turning the black box into something legible.',
+          difficulty:   'easy',
+          conceptTags:  ['interpretability'],
+        },
+        {
+          id:           'anthropic-d10-q2',
+          prompt:       'Who leads interpretability research at Anthropic?',
+          options: ['Dario Amodei', 'Jared Kaplan', 'Chris Olah', 'Tom Brown'],
+          correctIndex: 2,
+          explanation:  'Chris Olah, a co-founder, leads mechanistic interpretability — research he was known for well before Anthropic existed.',
+          difficulty:   'easy',
+          conceptTags:  ['interpretability', 'anthropic-team'],
+        },
+        {
+          id:           'anthropic-d10-q3',
+          prompt:       'Why is interpretability a safety priority, not just curiosity?',
+          options: [
+            'It makes models cheaper to deploy',
+            'You cannot reliably trust or correct a system you cannot understand',
+            'It is required by law in most jurisdictions',
+            'It speeds up training',
+          ],
+          correctIndex: 1,
+          explanation:  'If we cannot tell what a model is computing, we cannot reliably tell when it is misbehaving, fix it, or trust it in high-stakes settings.',
+          difficulty:   'medium',
+          conceptTags:  ['interpretability'],
+        },
+        {
+          id:           'anthropic-d10-q4',
+          prompt:       'Which of these is a real technique in interpretability research?',
+          options: [
+            'Sparse autoencoders for finding features inside layers',
+            'A confidence dial users can adjust at inference',
+            'A module that converts the model into a decision tree',
+            'A function that prints the model\'s thoughts in plain English on request',
+          ],
+          correctIndex: 0,
+          explanation:  'Sparse autoencoders are a real, currently active interpretability tool for discovering interpretable features inside model layers.',
+          difficulty:   'hard',
+          conceptTags:  ['interpretability'],
+        },
+      ],
+    },
   ],
 }
