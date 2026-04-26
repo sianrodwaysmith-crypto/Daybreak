@@ -24,27 +24,23 @@ function quoteForDay(d: Date): string {
 }
 
 interface Props {
-  readinessScore: number | null
-  readinessColor: string
+  // readinessScore + readinessColor still accepted for backwards-compat with
+  // any other surface that might mount this header, but the in-header bar
+  // has been removed: the Readiness tile already carries that information.
+  readinessScore?: number | null
+  readinessColor?: string
   onSettings: () => void
 }
 
-export default function Header({ readinessScore, readinessColor, onSettings }: Props) {
+export default function Header({ onSettings }: Props) {
   const ref  = new Date()
   const day  = DAYS[ref.getDay()]
   const date = `${day}, ${ref.getDate()} ${MONTHS[ref.getMonth()]}`
   const quote = quoteForDay(ref)
 
-  const barWidth = readinessScore != null ? `${readinessScore}%` : '0%'
-  const labelText = readinessScore != null ? `Readiness ${readinessScore}` : 'Readiness'
-
   return (
     <header className="header">
       <div className="header-top">
-        <div className="header-mark">
-          <span className="header-mark-dot" aria-hidden />
-          <span className="header-mark-word">daybreak</span>
-        </div>
         <button className="header-settings" onClick={onSettings} aria-label="Settings">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
@@ -52,18 +48,14 @@ export default function Header({ readinessScore, readinessColor, onSettings }: P
           </svg>
         </button>
       </div>
-      <div className="header-greeting">Good morning, Siân.</div>
-      <div className="header-quote">
-        <span className="header-quote-text">“{quote}”</span>
-        <span className="header-quote-attr"> Marcus Aurelius.</span>
-      </div>
-      <div className="header-date">{date}</div>
 
-      <div className="header-readiness">
-        <div className="header-readiness-bar">
-          <div className="header-readiness-fill" style={{ width: barWidth, background: readinessColor }} />
+      <div className="header-greeting-block">
+        <div className="header-date">{date}</div>
+        <div className="header-greeting">Good morning, Siân.</div>
+        <div className="header-quote">
+          <span className="header-quote-text">“{quote}”</span>
+          <span className="header-quote-attr"> Marcus Aurelius.</span>
         </div>
-        <div className="header-readiness-label">{labelText}</div>
       </div>
     </header>
   )

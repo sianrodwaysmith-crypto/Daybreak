@@ -110,11 +110,7 @@ function HomeView() {
   return (
     <div className="app">
       <div className="app-content">
-        <Header
-          readinessScore={readinessScore}
-          readinessColor={readinessColor(readinessScore)}
-          onSettings={() => setSettings(true)}
-        />
+        <Header onSettings={() => setSettings(true)} />
         {whoopFlash.msg && (
           <div className={`flash${whoopFlash.msg.startsWith('✅') ? ' flash-ok' : ' flash-err'}`}>
             <span>{whoopFlash.msg}</span>

@@ -514,28 +514,8 @@
 .header-top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-}
-.header-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-}
-.header-mark-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--ink);
-  display: inline-block;
-}
-.header-mark-word {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
-  font-size: 24px;
-  letter-spacing: -0.005em;
-  color: var(--ink);
-  line-height: 1;
+  justify-content: flex-end;
+  margin-bottom: 16px;
 }
 .header-settings {
   width: 34px;
@@ -550,54 +530,38 @@
   transition: background 0.12s ease;
 }
 .header-settings:active { background: var(--bg-soft); }
+
+.header-greeting-block {
+  display: flex;
+  flex-direction: column;
+}
+.header-date {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
 .header-greeting {
   font-family: 'DM Serif Display', serif;
   font-size: 32px;
   line-height: 1.15;
   letter-spacing: -0.01em;
   color: var(--ink);
-  margin-bottom: 4px;
+  margin-bottom: 8px;
 }
 .header-quote {
   font-family: 'DM Serif Display', serif;
   font-style: italic;
-  font-size: 14.5px;
+  font-size: 14px;
   line-height: 1.5;
-  color: var(--ink-2);
-  margin-bottom: 10px;
+  color: var(--muted);
 }
 .header-quote-attr {
   font-style: normal;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
-  color: var(--muted);
+  font-size: 11.5px;
+  color: var(--faint);
   white-space: nowrap;
-}
-.header-date {
-  font-size: 14px;
-  color: var(--muted);
-  margin-bottom: 16px;
-}
-.header-readiness {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.header-readiness-bar {
-  height: 3px;
-  background: var(--line);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.header-readiness-fill {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.6s ease, background 0.3s ease;
-}
-.header-readiness-label {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.01em;
 }
 
 /* ---------- Flash banner ---------- */
