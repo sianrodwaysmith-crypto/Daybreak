@@ -563,6 +563,19 @@
   color: var(--faint);
   white-space: nowrap;
 }
+.header-weather {
+  margin-top: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.header-weather-emoji { font-size: 14px; line-height: 1; }
+.header-weather-sep   { color: var(--faint); }
 
 /* ---------- Flash banner ---------- */
 .flash {
@@ -585,23 +598,6 @@
   color: var(--muted);
   line-height: 1;
 }
-
-/* ---------- Weather ---------- */
-.weather-banner {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 14px;
-  color: var(--ink-2);
-  padding: 10px 0 18px;
-}
-.weather-emoji  { font-size: 16px; }
-.weather-temp   { font-weight: 500; color: var(--ink); }
-.weather-sep    { color: var(--faint); }
-.weather-cond   { color: var(--ink-2); }
-.weather-range  { color: var(--muted); }
-.weather-rain   { color: var(--muted); }
 
 /* ---------- Tile grid ---------- */
 .tile-grid {

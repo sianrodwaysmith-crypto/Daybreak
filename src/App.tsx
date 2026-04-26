@@ -4,7 +4,6 @@ import './App.css'
 import Header from './components/Header'
 import Tile from './components/Tile'
 import Modal from './components/Modal'
-import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
 import { MomentsTile } from './moments'
@@ -110,14 +109,13 @@ function HomeView() {
   return (
     <div className="app">
       <div className="app-content">
-        <Header onSettings={() => setSettings(true)} />
+        <Header onSettings={() => setSettings(true)} weather={weather} />
         {whoopFlash.msg && (
           <div className={`flash${whoopFlash.msg.startsWith('✅') ? ' flash-ok' : ' flash-err'}`}>
             <span>{whoopFlash.msg}</span>
             <button onClick={whoopFlash.clear} aria-label="Dismiss" className="flash-close">×</button>
           </div>
         )}
-        {weather && <WeatherBanner weather={weather} />}
         <div className="tile-grid">
           {TILES.map(t => (
             <Tile

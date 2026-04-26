@@ -1,3 +1,5 @@
+import type { WeatherData } from '../hooks/useWeather'
+
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -29,10 +31,11 @@ interface Props {
   // has been removed: the Readiness tile already carries that information.
   readinessScore?: number | null
   readinessColor?: string
+  weather?:        WeatherData | null
   onSettings: () => void
 }
 
-export default function Header({ onSettings }: Props) {
+export default function Header({ onSettings, weather }: Props) {
   const ref  = new Date()
   const day  = DAYS[ref.getDay()]
   const date = `${day}, ${ref.getDate()} ${MONTHS[ref.getMonth()]}`
@@ -56,6 +59,16 @@ export default function Header({ onSettings }: Props) {
           <span className="header-quote-text">“{quote}”</span>
           <span className="header-quote-attr"> Marcus Aurelius.</span>
         </div>
+        {weather && (
+          <div className="header-weather">
+            <span className="header-weather-emoji" aria-hidden>{weather.emoji}</span>
+            <span>{weather.temp}°</span>
+            <span className="header-weather-sep" aria-hidden>·</span>
+            <span>{weather.condition.toLowerCase()}</span>
+            <span className="header-weather-sep" aria-hidden>·</span>
+            <span>low {weather.low}°</span>
+          </div>
+        )}
       </div>
     </header>
   )
