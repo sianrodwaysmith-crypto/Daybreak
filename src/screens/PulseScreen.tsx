@@ -53,6 +53,83 @@ function stripInline(s: string): string {
 function stripBold(s: string): string { return stripInline(s) }
 
 /**
+ * Sentence splitter that respects common abbreviations and decimals.
+ * Returns trimmed sentences, including the trailing punctuation.
+ */
+function splitSentences(text: string): string[] {
+  const out: string[] = []
+  // Match runs ending in . ! or ? not preceded by a space-letter abbreviation
+  // and not in the middle of a number (1.5).
+  const re = /[^.!?]+[.!?]+(?=\s|$)/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    const s = m[0].trim()
+    if (s) out.push(s)
+  }
+  // Trailing fragment with no terminator
+  const lastEnd = out.length > 0 ? text.lastIndexOf(out[out.length - 1]) + out[out.length - 1].length : 0
+  const tail = text.slice(lastEnd).trim()
+  if (tail) out.push(tail)
+  return out
+}
+
+// Keywords that strongly suggest a sentence is the "so-what" / Impact.
+const IMPACT_HINTS = [
+  'mean', 'means', 'meaning',
+  'matter', 'matters',
+  'allow', 'allows', 'enable', 'enables',
+  'change', 'changes', 'changing',
+  'signal', 'signals', 'signalling',
+  'suggest', 'suggests',
+  'imply', 'implies',
+  'expect', 'expected', 'likely',
+  'will ', 'could ', 'may ', 'might ',
+  'for users', 'for buyers', 'for consumers', 'for businesses',
+  'for the industry', 'for the market', 'for investors',
+  'in practice', 'practically', 'puts pressure',
+  'raises the bar', 'sets up', 'opens the door',
+  'risk', 'risks',
+]
+
+function impactScore(sentence: string): number {
+  const lower = sentence.toLowerCase()
+  let score = 0
+  for (const k of IMPACT_HINTS) if (lower.includes(k)) score += 1
+  return score
+}
+
+/**
+ * Picks one sentence from the body to use as the "Impact" line and bundles
+ * the rest into "What". Heuristic, in priority order:
+ *   1. If body has 0 or 1 sentence, it all becomes What.
+ *   2. If exactly 2 sentences, first is What, second is Impact.
+ *   3. If 3+ sentences, score each by impact-ish keyword density. The
+ *      highest-scoring sentence becomes Impact (preferring later sentences
+ *      to break ties — the so-what usually lands at the end). The remainder,
+ *      in original order, becomes What.
+ */
+function synthesiseWhatImpact(body: string): { what: string; impact: string } {
+  const sentences = splitSentences(body)
+  if (sentences.length === 0) return { what: body.trim(), impact: '' }
+  if (sentences.length === 1) return { what: sentences[0], impact: '' }
+  if (sentences.length === 2) return { what: sentences[0], impact: sentences[1] }
+
+  let bestIdx = sentences.length - 1   // default to the last sentence
+  let bestScore = -1
+  sentences.forEach((s, i) => {
+    const score = impactScore(s)
+    // Prefer later sentences on ties so the so-what tends to be Impact, not setup.
+    if (score > bestScore || (score === bestScore && i > bestIdx)) {
+      bestScore = score
+      bestIdx = i
+    }
+  })
+  const impactSentence = sentences[bestIdx]
+  const whatSentences  = sentences.filter((_, i) => i !== bestIdx)
+  return { what: whatSentences.join(' '), impact: impactSentence }
+}
+
+/**
  * Splits the model output into stories. Each story has a headline, a What
  * sentence, an Impact sentence, and a source URL. URLs are resolved in
  * priority order: explicit "Source: <url>" line → inline URL in the body →
@@ -139,19 +216,13 @@ function parseStories(raw: string): Story[] {
       if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
       // If the model skipped the What:/Impact: labels, synthesise them from
-      // the body so every card renders with the same structure. Split on the
-      // first sentence terminator; first sentence becomes What, the rest
-      // becomes Impact. If only one sentence is present, it all goes into
-      // What and Impact stays empty (still consistent — labelled row).
+      // the body. We try to pick the sentence that reads as the "so-what"
+      // (the impact) and bundle the rest as the "what".
       if (!what && !impact && body) {
-        const splitMatch = body.match(/^(.+?[.!?])\s+(.+)$/s)
-        if (splitMatch) {
-          what   = splitMatch[1].trim()
-          impact = splitMatch[2].trim()
-        } else {
-          what = body.trim()
-        }
-        body = ''
+        const synth = synthesiseWhatImpact(body)
+        what   = synth.what
+        impact = synth.impact
+        body   = ''
       }
 
       if (!headline && !what && !impact && !body) return null
