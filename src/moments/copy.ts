@@ -22,6 +22,19 @@ function ordinal(n: number): string {
   return `${n}${suffix}`
 }
 
+function dayKindFromOffset(daysAgo: number): 'today' | 'yesterday' | 'older' {
+  if (daysAgo === 0) return 'today'
+  if (daysAgo === 1) return 'yesterday'
+  return 'older'
+}
+
+function dayLabelFromOffset(daysAgo: number, date: Date): string {
+  const kind = dayKindFromOffset(daysAgo)
+  if (kind === 'today')     return "Today"
+  if (kind === 'yesterday') return 'Yesterday'
+  return `${ordinal(date.getDate())} ${monthName(date.getMonth())}`
+}
+
 export const copy = {
   // Surface labels
   sectionLabel: 'moments',
@@ -35,6 +48,7 @@ export const copy = {
     submittedFor:         (date: Date) =>
       `${ordinal(date.getDate())} ${monthName(date.getMonth())}.`,
     collectionLink:       () => 'collection',
+    postYesterdayLink:    () => 'post yesterday',
   },
 
   // Memory resurface captions. Caption builders take whatever values they
@@ -50,16 +64,25 @@ export const copy = {
 
   // Submission flow
   submit: {
-    pickTitle:            () => 'Pick a photo',
-    pickHelp:             () => 'Choose one image from today.',
+    pickTitleFor:         (daysAgo: number, date: Date) =>
+      `Pick a photo for ${dayLabelFromOffset(daysAgo, date).toLowerCase()}`,
+    pickHelpFor:          (daysAgo: number) => {
+      const kind = dayKindFromOffset(daysAgo)
+      if (kind === 'today')     return 'Choose one image from today.'
+      if (kind === 'yesterday') return "Choose one image from yesterday."
+      return 'Choose one image from that day.'
+    },
     pickCta:              () => 'Choose photo',
-    confirmTitle:         () => "Today's moment",
+    confirmTitleFor:      (daysAgo: number, date: Date) =>
+      `${dayLabelFromOffset(daysAgo, date)}'s moment`,
     notePlaceholder:      () => 'Add a thought, if you like.',
     save:                 () => 'Save',
     saving:               () => 'Saving…',
     cancel:               () => 'Cancel',
-    overwriteWarning:     () =>
-      'You already saved a moment for today. Saving will replace it.',
+    overwriteWarningFor:  (daysAgo: number) => {
+      const label = dayKindFromOffset(daysAgo) === 'today' ? 'today' : 'this day'
+      return `You already saved a moment for ${label}. Saving will replace it.`
+    },
   },
 
   // Collection + day card

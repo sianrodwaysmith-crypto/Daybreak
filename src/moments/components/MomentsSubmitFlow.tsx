@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Moment, PhotoRef, PhotoPickerSource } from '../types'
 import { copy } from '../copy'
+import { fromISO, daysBetween } from '../core/dateHelpers'
 import { getPicker } from '../pickers'
 import { BrowserPhotoPicker } from '../pickers/BrowserPhotoPicker'
 import { MomentsModal } from './MomentsModal'
@@ -31,6 +32,13 @@ export function MomentsSubmitFlow({
   const [saving, setSaving] = useState(false)
   const [error,  setError]  = useState<string | null>(null)
   const fileRef = useRef<HTMLInputElement | null>(null)
+
+  // How many whole days between today and the target date. Used by copy
+  // to pick "today", "yesterday", or a longer-form label.
+  const { daysAgo, dateObj } = useMemo(() => {
+    const d = fromISO(date)
+    return { daysAgo: daysBetween(new Date(), d), dateObj: d }
+  }, [date])
 
   // Reset internal state every time the flow re-opens so it starts clean.
   useEffect(() => {
@@ -82,13 +90,17 @@ export function MomentsSubmitFlow({
     <MomentsModal
       isOpen={isOpen}
       onClose={onClose}
-      title={step === 'pick' ? copy.submit.pickTitle() : copy.submit.confirmTitle()}
+      title={
+        step === 'pick'
+          ? copy.submit.pickTitleFor(daysAgo, dateObj)
+          : copy.submit.confirmTitleFor(daysAgo, dateObj)
+      }
     >
       {step === 'pick' && (
         <div className="moments-submit-pick">
-          <p className="moments-help">{copy.submit.pickHelp()}</p>
+          <p className="moments-help">{copy.submit.pickHelpFor(daysAgo)}</p>
           {existing && (
-            <p className="moments-warning">{copy.submit.overwriteWarning()}</p>
+            <p className="moments-warning">{copy.submit.overwriteWarningFor(daysAgo)}</p>
           )}
           <button
             type="button"

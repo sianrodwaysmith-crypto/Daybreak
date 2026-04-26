@@ -3,7 +3,7 @@ import type { Moment, MemorySurface, PhotoRef } from '../types'
 import { copy } from '../copy'
 import { getStorage } from '../storage'
 import { evaluateMemoryRules } from '../core/memoryRules'
-import { isAfterHourLocal, todayISO } from '../core/dateHelpers'
+import { addDays, isAfterHourLocal, isoDate, todayISO } from '../core/dateHelpers'
 import { MomentsSubmitFlow } from './MomentsSubmitFlow'
 import { MomentsDayCard } from './MomentsDayCard'
 import { MomentsModal } from './MomentsModal'
@@ -33,9 +33,13 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
 
   const [state,           setState]           = useState<TileState>({ kind: 'loading' })
   const [submitOpen,      setSubmitOpen]      = useState(false)
+  const [submitDate,      setSubmitDate]      = useState<string>(() => todayISO(now))
   const [openedMoment,    setOpenedMoment]    = useState<Moment | null>(null)
   const [collectionOpen,  setCollectionOpen]  = useState(false)
   const [refreshKey,      setRefreshKey]      = useState(0)
+  const [yesterdayMoment, setYesterdayMoment] = useState<Moment | null>(null)
+
+  const yesterdayISOValue = useMemo(() => isoDate(addDays(now, -1)), [now])
 
   const refresh = useCallback(() => setRefreshKey(k => k + 1), [])
 
@@ -46,9 +50,11 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
 
     Promise.all([
       storage.getByDate(userId, today),
+      storage.getByDate(userId, yesterdayISOValue),
       storage.getAll(userId),
-    ]).then(([todays, all]) => {
+    ]).then(([todays, yest, all]) => {
       if (!alive) return
+      setYesterdayMoment(yest)
       const isEvening = forceEvening ?? isAfterHourLocal(now, EVENING_HOUR)
 
       if (isEvening) {
@@ -64,14 +70,19 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
     })
 
     return () => { alive = false }
-  }, [userId, now, forceEvening, refreshKey])
+  }, [userId, now, yesterdayISOValue, forceEvening, refreshKey])
+
+  function openSubmitFor(date: string) {
+    setSubmitDate(date)
+    setSubmitOpen(true)
+  }
 
   function openTile() {
     switch (state.kind) {
       case 'morning_resurface':   setOpenedMoment(state.memory.moment); break
       case 'evening_submitted':   setOpenedMoment(state.moment);        break
-      case 'evening_prompt':      setSubmitOpen(true);                  break
-      case 'morning_empty':       setSubmitOpen(true);                  break
+      case 'evening_prompt':      openSubmitFor(todayISO(now));         break
+      case 'morning_empty':       openSubmitFor(todayISO(now));         break
     }
   }
 
@@ -81,6 +92,14 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
     return created
   }
 
+  // Existing moment for the date we're about to submit against — drives
+  // the overwrite warning shown by the submission flow.
+  const existingForSubmit: Moment | null = (() => {
+    if (submitDate === todayISO(now) && state.kind === 'evening_submitted') return state.moment
+    if (submitDate === yesterdayISOValue) return yesterdayMoment
+    return null
+  })()
+
   return (
     <>
       <section className="moments-tile">
@@ -89,13 +108,24 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
             <span className="moments-eyebrow-icon" aria-hidden><MomentsIcon size={22} /></span>
             {copy.sectionLabel}
           </span>
-          <button
-            type="button"
-            className="moments-collection-link"
-            onClick={() => setCollectionOpen(true)}
-          >
-            {copy.tile.collectionLink()}
-          </button>
+          <span className="moments-head-actions">
+            {!yesterdayMoment && (
+              <button
+                type="button"
+                className="moments-collection-link"
+                onClick={() => openSubmitFor(yesterdayISOValue)}
+              >
+                {copy.tile.postYesterdayLink()}
+              </button>
+            )}
+            <button
+              type="button"
+              className="moments-collection-link"
+              onClick={() => setCollectionOpen(true)}
+            >
+              {copy.tile.collectionLink()}
+            </button>
+          </span>
         </div>
 
         <button type="button" className="moments-body" onClick={openTile}>
@@ -145,8 +175,8 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
       <MomentsSubmitFlow
         isOpen={submitOpen}
         onClose={() => setSubmitOpen(false)}
-        date={todayISO(now)}
-        existing={state.kind === 'evening_submitted' ? state.moment : null}
+        date={submitDate}
+        existing={existingForSubmit}
         onSubmit={handleSubmit}
       />
 
