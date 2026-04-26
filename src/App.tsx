@@ -30,6 +30,73 @@ function readinessColor(score: number | null): string {
   return '#c2453a'
 }
 
+/* -------------------------------------------------------------------
+   Conversational schedule summary for the Schedule tile subtitle.
+   Adapts to time of day and what's on the calendar so the user gets a
+   short prompt about today rather than a generic count.
+------------------------------------------------------------------- */
+
+interface MinimalCalEvent {
+  title:  string
+  start:  Date
+  end:    Date
+  allDay: boolean
+}
+
+function formatTime12h(d: Date): string {
+  const h = d.getHours()
+  const m = d.getMinutes()
+  const suffix = h >= 12 ? 'pm' : 'am'
+  const hour = h % 12 || 12
+  return m === 0 ? `${hour}${suffix}` : `${hour}:${String(m).padStart(2, '0')}${suffix}`
+}
+
+function summariseSchedule(
+  events:    readonly MinimalCalEvent[],
+  loading:   boolean,
+  connected: boolean,
+  now:       Date,
+): string | undefined {
+  if (loading)    return 'Loading your day…'
+  if (!connected) return 'Tap to connect Google Calendar.'
+  if (events.length === 0) return 'Your day is open.'
+
+  const timed   = events.filter(e => !e.allDay)
+  const allDay  = events.filter(e =>  e.allDay)
+
+  const inProgress = timed.find(e => e.start <= now && e.end > now)
+  const upcoming   = timed.filter(e => e.start > now).sort((a, b) => a.start.getTime() - b.start.getTime())
+  const past       = timed.filter(e => e.end <= now)
+
+  if (inProgress) {
+    return `In ${inProgress.title} until ${formatTime12h(inProgress.end)}.`
+  }
+
+  if (upcoming.length > 0) {
+    const next = upcoming[0]
+    const time = formatTime12h(next.start)
+    if (upcoming.length === 1 && past.length === 0 && allDay.length === 0) {
+      return `One thing today: ${next.title} at ${time}.`
+    }
+    if (upcoming.length === 1) {
+      return `Just one left: ${next.title} at ${time}.`
+    }
+    return `${upcoming.length} more today, next is ${next.title} at ${time}.`
+  }
+
+  if (past.length > 0) {
+    return 'All wrapped up for today.'
+  }
+
+  if (allDay.length > 0) {
+    return allDay.length === 1
+      ? `${allDay[0].title} all day.`
+      : `${allDay[0].title} (and ${allDay.length - 1} more) all day.`
+  }
+
+  return undefined
+}
+
 function useWhoopFlash(): { msg: string | null; clear: () => void } {
   const [msg, setMsg] = useState<string | null>(null)
   useEffect(() => {
@@ -65,12 +132,16 @@ function HomeView() {
   const pulseLoading =
     ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
+  const scheduleSubtitle = summariseSchedule(
+    calendar.events, calendar.loading, calendar.connected, new Date(),
+  )
+
   const TILES = [
     { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6', loading: ai.client.loading },
-    { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading },
+    { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -122,6 +193,7 @@ function HomeView() {
               key={t.id}
               icon={t.icon}
               title={t.title}
+              subtitle={'subtitle' in t ? t.subtitle : undefined}
               accent={t.accent}
               fullWidth={'fullWidth' in t && t.fullWidth}
               loading={'loading' in t ? t.loading : false}

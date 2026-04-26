@@ -3,13 +3,14 @@ import { useState, type ReactNode } from 'react'
 interface Props {
   icon: ReactNode
   title: string
+  subtitle?: string
   accent: string
   fullWidth?: boolean | false
   loading?: boolean
   onClick: () => void
 }
 
-export default function Tile({ icon, title, accent, fullWidth, loading, onClick }: Props) {
+export default function Tile({ icon, title, subtitle, accent, fullWidth, loading, onClick }: Props) {
   const [pressing, setPressing] = useState(false)
 
   return (
@@ -21,7 +22,10 @@ export default function Tile({ icon, title, accent, fullWidth, loading, onClick 
       onPointerCancel={() => setPressing(false)}
     >
       <div className="tile-icon">{icon}</div>
-      <div className="tile-title">{title}</div>
+      <div className="tile-text">
+        <div className="tile-title">{title}</div>
+        {subtitle && <div className="tile-subtitle">{subtitle}</div>}
+      </div>
       <span className="tile-dot" style={{ background: accent }} aria-hidden />
       {loading && (
         <div className="tile-loading">
