@@ -1,0 +1,378 @@
+/* =========================================================
+   MOMENTS — sealed module styles
+   All selectors prefixed with .moments- so they don't leak
+   into the rest of the app. Uses the global CSS variables
+   defined in index.css.
+========================================================= */
+
+/* ---------- Tile ---------- */
+.moments-tile {
+  margin-top: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.moments-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.moments-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--faint);
+}
+.moments-collection-link {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--muted);
+  background: transparent;
+  border: none;
+  padding: 2px 4px;
+  letter-spacing: 0.05em;
+}
+.moments-collection-link:active { color: var(--ink); }
+
+.moments-body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.moments-body:active { opacity: 0.85; }
+
+.moments-skeleton {
+  height: 64px;
+  border-radius: 10px;
+  background: linear-gradient(
+    90deg,
+    rgba(10,10,10,0.04) 0%,
+    rgba(10,10,10,0.10) 50%,
+    rgba(10,10,10,0.04) 100%
+  );
+  background-size: 200% 100%;
+  animation: moments-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes moments-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+/* Morning resurface + evening submitted both render a thumb + caption. */
+.moments-resurface {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.moments-resurface-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--bg-soft);
+}
+.moments-resurface-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.moments-resurface-caption {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.moments-quiet-line {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 17px;
+  line-height: 1.4;
+  color: var(--muted);
+  padding: 4px 0 2px;
+}
+
+.moments-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0 2px;
+}
+.moments-prompt-line {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+.moments-prompt-cta {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 5px 12px;
+  white-space: nowrap;
+}
+
+/* ---------- Modal ---------- */
+.moments-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(10,10,10,0.32);
+  transition: opacity 0.32s ease;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.moments-modal-sheet {
+  width: 100%;
+  max-width: 540px;
+  max-height: 92dvh;
+  background: var(--bg);
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.moments-modal-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--line-strong);
+  margin: 10px auto 6px;
+}
+.moments-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 22px 10px;
+  min-height: 38px;
+}
+.moments-modal-title {
+  font-family: var(--font-serif);
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.moments-modal-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.moments-modal-body {
+  overflow-y: auto;
+  padding: 12px 22px calc(36px + env(safe-area-inset-bottom, 0px));
+}
+.moments-modal-body::-webkit-scrollbar { display: none; }
+
+/* ---------- Submit flow ---------- */
+.moments-submit-pick {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 4px;
+}
+.moments-help {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.moments-warning {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg-soft);
+}
+.moments-error {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: #c2453a;
+}
+
+.moments-submit-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.moments-photo-frame {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  max-height: 60dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.moments-photo-frame img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 60dvh;
+  object-fit: contain;
+}
+.moments-note-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: transparent;
+  transition: border-color 0.12s ease;
+}
+.moments-note-input:not(:placeholder-shown) {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 15px;
+}
+.moments-note-input:focus { border-color: var(--line-strong); outline: none; }
+.moments-note-input::placeholder { color: var(--faint); font-family: var(--font-sans); font-style: normal; }
+
+.moments-submit-actions {
+  display: flex;
+  gap: 10px;
+}
+.moments-btn-primary {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  border: 1px solid var(--ink);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+}
+.moments-btn-primary:disabled {
+  background: var(--bg-soft);
+  color: var(--faint);
+  border-color: var(--line);
+  cursor: default;
+}
+.moments-btn-quiet {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  border: 1px solid var(--line);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+/* ---------- Collection ---------- */
+.moments-collection-loading {
+  height: 200px;
+}
+.moments-empty {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  padding: 22px 0;
+  text-align: center;
+}
+.moments-collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 4px 0 0;
+}
+.moments-thumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  padding: 0;
+  cursor: pointer;
+}
+.moments-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.moments-thumb:active { opacity: 0.85; }
+
+/* ---------- Day card ---------- */
+.moments-day-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.moments-day-photo {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+}
+.moments-day-photo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 70dvh;
+  object-fit: contain;
+}
+.moments-day-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 6px;
+}
+.moments-day-date {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 18px;
+  color: var(--ink);
+}
+.moments-day-note {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}

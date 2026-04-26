@@ -8,6 +8,7 @@ import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
 import OneThing from './components/OneThing'
 import MovementTile from './components/MovementTile'
+import { MomentsTile } from './moments'
 import {
   MindsetIcon, ReadinessIcon, ClientResearchIcon, PulseIcon, ScheduleIcon,
 } from './components/icons'
@@ -139,6 +140,8 @@ function HomeView() {
         <MovementTile recovery={readinessScore} />
 
         <OneThing />
+
+        <MomentsTile />
 
         <footer className="home-footer">
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>

@@ -23,6 +23,8 @@
   --recovery:     #19f06a;
   --strain:       #4aa8ff;
   --sleep:        #f4f1ea;
+  --font-serif:   'DM Serif Display', serif;
+  --font-sans:    'Inter', system-ui, -apple-system, sans-serif;
 }
 
 html { height: 100%; }
