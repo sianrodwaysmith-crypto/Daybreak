@@ -48,7 +48,7 @@ function Ring({ value, pct, label, color, unit, empty }: RingProps) {
           className="whoop-ring-value"
           fill="#fff"
         >
-          {value == null ? '·' : value}
+          {value == null ? '–' : value}
           {value != null && unit && <tspan className="whoop-ring-unit" fill="rgba(255,255,255,0.5)">{unit}</tspan>}
         </text>
       </svg>

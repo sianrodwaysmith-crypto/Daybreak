@@ -18,7 +18,7 @@ interface Props {
 }
 
 function strainBand(s: number | null | undefined): string {
-  if (s == null)   return '·'
+  if (s == null)   return '–'
   if (s < 10) return 'Light'
   if (s < 14) return 'Moderate'
   if (s < 18) return 'High'
@@ -26,12 +26,12 @@ function strainBand(s: number | null | undefined): string {
 }
 
 function fmt(val: number | null | undefined): string {
-  if (val == null) return '·'
+  if (val == null) return '–'
   return Number.isInteger(val) ? String(val) : val.toFixed(1)
 }
 
 function pct(val: number | null | undefined): string {
-  return val == null ? '·' : Math.round(val).toString()
+  return val == null ? '–' : Math.round(val).toString()
 }
 
 interface StatProps {

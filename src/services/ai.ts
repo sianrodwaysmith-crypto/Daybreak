@@ -88,7 +88,7 @@ Hard rules:
 - Your very first character must be the asterisk of the first headline. No preamble, no framing, no "here are the stories" line.
 - No closing line, summary, or commentary after the last Source.
 - No "---", "***", or any other separator between stories.
-- Punctuation rule, strict: never use em-dashes or en-dashes (the long dash characters) anywhere in your output. Use commas, periods, parentheses, or semicolons instead. Hyphens in compound words like "day-to-day" are fine.`
+- Punctuation rule, strict: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons for sentence-level pauses. En-dashes "–" are allowed only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined

@@ -19,7 +19,7 @@ function EventRow({ event }: { event: CalEvent }) {
         ) : (
           <>
             <span className="schedule-event-start">{fmt12(event.start)}</span>
-            <span className="schedule-event-dash"> to </span>
+            <span className="schedule-event-dash"> – </span>
             <span className="schedule-event-end">{fmt12(event.end)}</span>
           </>
         )}

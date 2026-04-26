@@ -77,7 +77,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         {whoop.connected ? (
           <>
             <div className="settings-msg settings-msg-success" style={{ marginBottom: 12 }}>
-              Connected · Recovery {whoop.recovery ?? '·'}%
+              Connected · Recovery {whoop.recovery ?? '–'}%
             </div>
             <button
               className="settings-btn settings-btn-disconnect"
