@@ -6,7 +6,6 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import WeatherBanner from './components/WeatherBanner'
 import ChatWidget from './components/ChatWidget'
-import OneThing from './components/OneThing'
 import MovementTile from './components/MovementTile'
 import { MomentsTile } from './moments'
 import {
@@ -138,8 +137,6 @@ function HomeView() {
         </div>
 
         <MovementTile recovery={readinessScore} />
-
-        <OneThing />
 
         <MomentsTile />
 
