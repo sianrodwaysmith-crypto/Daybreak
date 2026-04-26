@@ -78,7 +78,7 @@ Output ONLY ${storyCount} <story> blocks (and the talking_points block where req
 Hard rules:
 - Wrap each story in <story>...</story> with one each of <title>, <date>, <what>, <impact>, <source> as children.
 - Output exactly ${storyCount} stories.
-- Every story MUST be from the last 7 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
+- Every story MUST be from the last 30 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
 - <date> MUST be the article's publication date in ISO YYYY-MM-DD format (e.g. 2026-04-19). If the article shows only month and year, use the 1st of that month. Never invent a date.
 - Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words.
 - <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
@@ -108,7 +108,7 @@ Account: ${args.name}.
 ${contactLine}
 ${notesLine}
 
-Using web search, find ${args.storyCount} of the most recent and relevant news items about ${args.name} from the last 7 days. Prioritise reputable journalism over the company's own blog. Useful angles include:
+Using web search, find ${args.storyCount} of the most recent and relevant news items about ${args.name} from the last 30 days. Prioritise reputable journalism over the company's own blog. Useful angles include:
 - Earnings, financial results, guidance updates
 - Leadership changes, key hires, executive moves
 - Strategic initiatives, M&A activity, restructuring
@@ -273,7 +273,7 @@ export function fetchPulseAnthropic(): Promise<string> {
   return callPulse(
     `Today is ${day}, ${date}.
 
-Search reputable technology news sources including TechCrunch, The Verge, Wired, Reuters Technology, the Financial Times and MIT Technology Review for the most important news about Anthropic from the last 7 days. Prefer journalism over Anthropic's own blog so the framing is reportorial, not promotional.
+Search reputable technology news sources including TechCrunch, The Verge, Wired, Reuters Technology, the Financial Times and MIT Technology Review for the most important news about Anthropic from the last 30 days. Prefer journalism over Anthropic's own blog so the framing is reportorial, not promotional.
 
 Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'anthropic',
@@ -285,7 +285,7 @@ export function fetchPulseAIWorld(): Promise<string> {
   return callPulse(
     `Today is ${day}, ${date}.
 
-Search reputable technology news sources including TechCrunch, The Verge, Wired, MIT Technology Review, VentureBeat and Reuters Technology for the most important AI industry news from the last 7 days. Cover OpenAI, Google DeepMind, Meta AI, Microsoft AI, enterprise AI adoption and significant AI research.
+Search reputable technology news sources including TechCrunch, The Verge, Wired, MIT Technology Review, VentureBeat and Reuters Technology for the most important AI industry news from the last 30 days. Cover OpenAI, Google DeepMind, Meta AI, Microsoft AI, enterprise AI adoption and significant AI research.
 
 Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'aiworld',
@@ -297,7 +297,7 @@ export function fetchPulseTechMarket(): Promise<string> {
   return callPulse(
     `Today is ${day}, ${date}.
 
-Search reputable business and technology sources including the Financial Times, Reuters, BBC Business, TechCrunch and VentureBeat for the most important technology market and business news from the last 7 days relevant to a senior account executive selling enterprise technology in the UK.
+Search reputable business and technology sources including the Financial Times, Reuters, BBC Business, TechCrunch and VentureBeat for the most important technology market and business news from the last 30 days relevant to a senior account executive selling enterprise technology in the UK.
 
 Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'techmarket',
