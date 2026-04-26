@@ -74,6 +74,13 @@ const COOLDOWN_KEY  = 'daybreak-whoop-cooldown-until'
 // forever for the next manual refresh.
 const DEFAULT_COOLDOWN_SECS = 120
 
+// How fresh persisted data has to be for the auto-fetch on mount to skip
+// hitting the network. Whoop's data refreshes daily/hourly, so a 30-minute
+// gate is more than enough for the home view and protects the daily quota:
+// 100 app opens/day = at most 48 fetches × 3 endpoints = 144 calls (the
+// account quota is 10k/day). Manual refresh from Settings bypasses this.
+const MIN_FRESH_AGE_MS = 30 * 60 * 1000
+
 function readCooldownUntil(): number {
   try {
     const raw = localStorage.getItem(COOLDOWN_KEY)
@@ -122,13 +129,15 @@ function clearTokens() {
   try { localStorage.removeItem(TOKENS_KEY) } catch {}
 }
 
-function readPersisted(): WhoopPayload | null {
+interface PersistedEntry { data: WhoopPayload; ts: number }
+
+function readPersistedEntry(): PersistedEntry | null {
   try {
     const raw = localStorage.getItem(PERSIST_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as { ts: number; data: WhoopPayload }
+    const parsed = JSON.parse(raw) as PersistedEntry
     if (Date.now() - parsed.ts > 24 * 60 * 60 * 1000) return null
-    return parsed.data
+    return parsed
   } catch {
     return null
   }
@@ -138,6 +147,20 @@ function writePersisted(data: WhoopPayload) {
   try { localStorage.setItem(PERSIST_KEY, JSON.stringify({ ts: Date.now(), data })) } catch {}
 }
 
+/* -----------------------------------------------------------------------
+   Single-flight dedupe.
+   Any concurrent callers (re-renders, manual refresh, etc.) await the same
+   in-flight promise instead of each firing their own network request. Even
+   if a render-loop bug ever returned, only one Whoop fetch would happen
+   per finished round-trip, no matter how many times the hook is re-invoked.
+----------------------------------------------------------------------- */
+let inflight: Promise<void> | null = null
+function singleFlight(run: () => Promise<void>): Promise<void> {
+  if (inflight) return inflight
+  inflight = run().finally(() => { inflight = null })
+  return inflight
+}
+
 export function useWhoop(): WhoopData {
   const { registerContent } = useDayBreakContext()
   // Read persisted state ONCE at mount via a ref. Reading on every render
@@ -145,12 +168,12 @@ export function useWhoop(): WhoopData {
   // dep array, which re-fired the auto-fetch effect on every render. Whoop's
   // per-user rate limit kicks in at ~100 req/min so a few fast renders was
   // enough to trip a 429 cool-down.
-  const persistedRef = useRef<WhoopPayload | null>(null)
-  if (persistedRef.current === null) persistedRef.current = readPersisted()
+  const persistedRef = useRef<PersistedEntry | null>(null)
+  if (persistedRef.current === null) persistedRef.current = readPersistedEntry()
   const persisted = persistedRef.current
 
   const [loading, setLoading] = useState(persisted == null)
-  const [payload, setPayload] = useState<WhoopPayload>(persisted ?? EMPTY)
+  const [payload, setPayload] = useState<WhoopPayload>(persisted?.data ?? EMPTY)
   const [debug,   setDebug]   = useState<WhoopDebug | null>(readDebug)
 
   // Cool-down gate: if Whoop has rate-limited us, refuse to refetch until
@@ -213,8 +236,21 @@ export function useWhoop(): WhoopData {
     }
   }, [payload, registerContent])
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (opts?: { force?: boolean }) => {
+    const force = opts?.force === true
     const now = () => new Date().toISOString()
+
+    // Min-age gate: on the auto-fetch path, if the persisted entry is
+    // young enough we skip the network entirely. Manual refresh from
+    // Settings passes force=true to bypass.
+    if (!force) {
+      const entry = readPersistedEntry()
+      if (entry && Date.now() - entry.ts < MIN_FRESH_AGE_MS) {
+        setPayload(entry.data)
+        setLoading(false)
+        return
+      }
+    }
 
     // Honour Whoop's cool-down. If we're inside the window, leave the
     // existing state untouched and update the debug timestamp so the user
@@ -237,6 +273,9 @@ export function useWhoop(): WhoopData {
       return
     }
 
+    // Single-flight: any concurrent caller awaits the existing in-flight
+    // request rather than firing its own. The actual work runs inside.
+    return singleFlight(async () => {
     try {
       const res = await fetch('/api/whoop/data', {
         headers: {
@@ -310,6 +349,7 @@ export function useWhoop(): WhoopData {
     } finally {
       setLoading(false)
     }
+    })  // singleFlight
   }, [])  // empty deps: this function is stable across renders, the auto-
           // fetch effect below fires exactly once on mount.
 
@@ -317,7 +357,7 @@ export function useWhoop(): WhoopData {
 
   const refresh = useCallback(async () => {
     setLoading(true)
-    await fetchData()
+    await fetchData({ force: true })
   }, [fetchData])
 
   const disconnect = useCallback(async () => {
