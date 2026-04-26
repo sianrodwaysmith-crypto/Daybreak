@@ -14,10 +14,20 @@ export interface Moment {
   id:           string
   userId:       string
   date:         string                 // ISO YYYY-MM-DD; the day this moment represents
+  /** Primary photo, equal to photos[0]. Kept for legacy callers. */
   photoRef:     PhotoRef
+  /**
+   * All photos for the day, oldest first. 1–3 entries when set. Optional
+   * on input — callers can pass photoRef alone and the storage layer will
+   * normalise. Always populated on read.
+   */
+  photos?:      PhotoRef[]
   note?:        string                 // one line, optional
   submittedAt:  string                 // ISO timestamp
 }
+
+/** Hard cap on photos per day. */
+export const MAX_PHOTOS_PER_DAY = 3
 
 export interface MemorySurface {
   moment:   Moment
@@ -34,7 +44,7 @@ export interface MomentsStorage {
   getAll(userId: string): Promise<Moment[]>
   delete(id: string): Promise<void>
   clearAll(userId: string): Promise<void>
-  update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment>
+  update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef' | 'photos'>>): Promise<Moment>
 }
 
 /* ---------- Photo picker interface ---------- */

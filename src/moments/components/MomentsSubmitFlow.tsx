@@ -14,8 +14,11 @@ interface Props {
   date:          string
   /** Existing moment for this date, if any — drives the overwrite warning. */
   existing?:     Moment | null
+  /** When true, the chosen photo is appended to the existing moment's photos
+   *  rather than replacing them. The existing note carries forward unchanged. */
+  appendMode?:   boolean
   /** Called with the saved moment after the storage write completes. */
-  onSubmit:      (params: { date: string; photoRef: PhotoRef; note?: string }) => Promise<Moment>
+  onSubmit:      (params: { date: string; photos: PhotoRef[]; note?: string }) => Promise<Moment>
   /** DI: defaults to the module's BrowserPhotoPicker. */
   picker?:       PhotoPickerSource
 }
@@ -23,7 +26,7 @@ interface Props {
 type Step = 'pick' | 'confirm'
 
 export function MomentsSubmitFlow({
-  isOpen, onClose, date, existing, onSubmit,
+  isOpen, onClose, date, existing, appendMode, onSubmit,
   picker = getPicker(),
 }: Props) {
   const [step,   setStep]   = useState<Step>('pick')
@@ -78,7 +81,18 @@ export function MomentsSubmitFlow({
     setSaving(true)
     setError(null)
     try {
-      await onSubmit({ date, photoRef: photo, note: note.trim() || undefined })
+      // In append mode, carry the existing photos forward and tack the new
+      // one on the end. Otherwise replace with the single new photo.
+      const existingPhotos = existing?.photos && existing.photos.length > 0
+        ? existing.photos
+        : existing?.photoRef ? [existing.photoRef] : []
+      const photos = appendMode
+        ? [...existingPhotos, photo]
+        : [photo]
+      const noteToSave = appendMode
+        ? (existing?.note)
+        : (note.trim() || undefined)
+      await onSubmit({ date, photos, note: noteToSave })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
@@ -99,7 +113,7 @@ export function MomentsSubmitFlow({
       {step === 'pick' && (
         <div className="moments-submit-pick">
           <p className="moments-help">{copy.submit.pickHelpFor(daysAgo)}</p>
-          {existing && (
+          {existing && !appendMode && (
             <p className="moments-warning">{copy.submit.overwriteWarningFor(daysAgo)}</p>
           )}
           <button
@@ -125,14 +139,16 @@ export function MomentsSubmitFlow({
           <div className="moments-photo-frame">
             <img src={photo.identifier} alt="" />
           </div>
-          <input
-            type="text"
-            className="moments-note-input"
-            placeholder={copy.submit.notePlaceholder()}
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            maxLength={140}
-          />
+          {!appendMode && (
+            <input
+              type="text"
+              className="moments-note-input"
+              placeholder={copy.submit.notePlaceholder()}
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              maxLength={140}
+            />
+          )}
           {error && <p className="moments-error">{error}</p>}
           <div className="moments-submit-actions">
             <button

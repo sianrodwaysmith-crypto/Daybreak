@@ -86,15 +86,35 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
     }
   }
 
-  async function handleSubmit(params: { date: string; photoRef: PhotoRef; note?: string }) {
-    const created = await getStorage().submit({ userId, ...params })
+  async function handleSubmit(params: { date: string; photos: PhotoRef[]; note?: string }) {
+    const photoRef = params.photos[0]
+    const created = await getStorage().submit({
+      userId,
+      date:    params.date,
+      photoRef,
+      photos:  params.photos,
+      note:    params.note,
+    })
     refresh()
     return created
   }
 
+  // Append-mode: the user discovered the empty slot in the day card and
+  // tapped it to add another photo to an existing moment. We close the
+  // day-card preview, pre-fill the submit flow with the existing moment's
+  // date and pass appendMode so the new photo is added rather than
+  // replacing the day's collection.
+  const [appendingFor, setAppendingFor] = useState<Moment | null>(null)
+  function openAddMore(moment: Moment) {
+    setOpenedMoment(null)
+    setAppendingFor(moment)
+    setSubmitDate(moment.date)
+    setSubmitOpen(true)
+  }
+
   // Existing moment for the date we're about to submit against — drives
   // the overwrite warning shown by the submission flow.
-  const existingForSubmit: Moment | null = (() => {
+  const existingForSubmit: Moment | null = appendingFor ?? (() => {
     if (submitDate === todayISO(now) && state.kind === 'evening_submitted') return state.moment
     if (submitDate === yesterdayISOValue) return yesterdayMoment
     return null
@@ -174,9 +194,10 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
 
       <MomentsSubmitFlow
         isOpen={submitOpen}
-        onClose={() => setSubmitOpen(false)}
+        onClose={() => { setSubmitOpen(false); setAppendingFor(null) }}
         date={submitDate}
         existing={existingForSubmit}
+        appendMode={appendingFor != null}
         onSubmit={handleSubmit}
       />
 
@@ -185,7 +206,12 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
         onClose={() => setOpenedMoment(null)}
         title=""
       >
-        {openedMoment && <MomentsDayCard moment={openedMoment} />}
+        {openedMoment && (
+          <MomentsDayCard
+            moment={openedMoment}
+            onAddMore={() => openAddMore(openedMoment)}
+          />
+        )}
       </MomentsModal>
 
       <MomentsCollection

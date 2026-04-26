@@ -28,7 +28,9 @@ interface StoredTokens {
   expires_at:    number
 }
 
-interface MomentMetadata {
+interface PhotoEntry { fileId: string; mime: string }
+
+interface MomentMetadataV1 {
   version:      1
   userId:       string
   date:         string
@@ -36,6 +38,23 @@ interface MomentMetadata {
   photoMime:    string
   note?:        string
   submittedAt:  string
+}
+
+interface MomentMetadataV2 {
+  version:      2
+  userId:       string
+  date:         string
+  /** Oldest first, max 3. */
+  photos:       PhotoEntry[]
+  note?:        string
+  submittedAt:  string
+}
+
+type MomentMetadata = MomentMetadataV1 | MomentMetadataV2
+
+function metadataPhotos(meta: MomentMetadata): PhotoEntry[] {
+  if (meta.version === 2) return meta.photos
+  return [{ fileId: meta.photoFileId, mime: meta.photoMime }]
 }
 
 interface DriveFile {
@@ -193,17 +212,19 @@ export class GoogleDriveMomentsStorage implements MomentsStorage {
         const meta = await metaRes.json() as MomentMetadata
         if (meta.userId !== userId) return null
 
-        const photoUrl = await this.getPhotoUrl(meta.photoFileId, meta.photoMime)
+        const entries = metadataPhotos(meta)
+        const photos: PhotoRef[] = await Promise.all(entries.map(async (e) => ({
+          source:     'upload' as const,
+          identifier: await this.getPhotoUrl(e.fileId, e.mime),
+        })))
+        if (photos.length === 0) return null
 
-        const photoRef: PhotoRef = {
-          source:     'upload',
-          identifier: photoUrl,
-        }
         return {
           id:           f.id,
           userId:       meta.userId,
           date:         meta.date,
-          photoRef,
+          photoRef:     photos[0],
+          photos,
           note:         meta.note,
           submittedAt:  meta.submittedAt,
         }
@@ -251,42 +272,59 @@ export class GoogleDriveMomentsStorage implements MomentsStorage {
   async submit(input: Omit<Moment, 'id' | 'submittedAt'>): Promise<Moment> {
     const accessToken = await this.getAccessToken()
 
-    // 1. Upload the photo binary first. If the metadata write later fails,
-    // we'll roll back this orphan file.
-    const photoBlob = await dataUrlToBlob(input.photoRef.identifier)
-    const photoMime = photoBlob.type || 'image/jpeg'
+    // The new shape carries up to 3 photos. Older callers still pass photoRef
+    // alone — fall back to that as a single-photo array.
+    const photos: PhotoRef[] = (input.photos && input.photos.length > 0)
+      ? input.photos
+      : input.photoRef ? [input.photoRef] : []
+    if (photos.length === 0) throw new Error('submit: no photo provided')
 
-    const photoFile = await multipartUpload(
-      accessToken,
-      {
-        name:    `photo-${input.date}-${Date.now()}.bin`,
-        parents: [APP_FOLDER],
-      },
-      photoMime,
-      photoBlob,
-    )
-
-    // 2. Replace any existing moment for the same date so re-submitting
-    // overwrites cleanly.
-    const existing = await this.getByDate(input.userId, input.date)
-    if (existing) {
-      await this.deleteFile(existing.id).catch(() => {})
-      // Also wipe its photo. We pull the metadata's photoFileId from cache
-      // since loadAll has already fetched it for getByDate.
-      const cached = this.momentsCache?.find(m => m.id === existing.id)
-      void cached  // (not strictly needed; the metadata file's deletion
-      //              is enough — orphan photos get cleaned by clearAll
-      //              or never read again. Avoiding a second list call.)
+    // 1. Upload each photo binary in turn. If a later metadata write fails,
+    //    we roll all of these back so we don't leak Drive quota.
+    const uploadedEntries: PhotoEntry[] = []
+    try {
+      for (let i = 0; i < photos.length; i++) {
+        const blob = await dataUrlToBlob(photos[i].identifier)
+        const mime = blob.type || 'image/jpeg'
+        const file = await multipartUpload(
+          accessToken,
+          {
+            name:    `photo-${input.date}-${Date.now()}-${i}.bin`,
+            parents: [APP_FOLDER],
+          },
+          mime,
+          blob,
+        )
+        uploadedEntries.push({ fileId: file.id, mime })
+      }
+    } catch (err) {
+      for (const e of uploadedEntries) await this.deleteFile(e.fileId).catch(() => {})
+      throw err
     }
 
-    // 3. Write metadata JSON.
+    // 2. Replace any existing moment for the same date so re-submitting
+    //    overwrites cleanly. Also wipe its photo binaries to avoid orphans.
+    const existing = await this.getByDate(input.userId, input.date)
+    if (existing) {
+      try {
+        const oldRes = await this.drive(`/files/${existing.id}?alt=media`)
+        if (oldRes.ok) {
+          const oldMeta = await oldRes.json() as MomentMetadata
+          for (const e of metadataPhotos(oldMeta)) {
+            await this.deleteFile(e.fileId).catch(() => {})
+          }
+        }
+      } catch { /* best-effort cleanup */ }
+      await this.deleteFile(existing.id).catch(() => {})
+    }
+
+    // 3. Write v2 metadata JSON.
     const submittedAt = new Date().toISOString()
-    const metadata: MomentMetadata = {
-      version:      1,
+    const metadata: MomentMetadataV2 = {
+      version:      2,
       userId:       input.userId,
       date:         input.date,
-      photoFileId:  photoFile.id,
-      photoMime,
+      photos:       uploadedEntries,
       note:         input.note?.trim() || undefined,
       submittedAt,
     }
@@ -304,8 +342,7 @@ export class GoogleDriveMomentsStorage implements MomentsStorage {
         JSON.stringify(metadata),
       )
     } catch (err) {
-      // Roll back the orphan photo so we don't leak quota on failed writes.
-      await this.deleteFile(photoFile.id).catch(() => {})
+      for (const e of uploadedEntries) await this.deleteFile(e.fileId).catch(() => {})
       throw err
     }
 
@@ -316,43 +353,61 @@ export class GoogleDriveMomentsStorage implements MomentsStorage {
       id:           metaFile.id,
       userId:       input.userId,
       date:         input.date,
-      photoRef:     input.photoRef,
+      photoRef:     photos[0],
+      photos,
       note:         metadata.note,
       submittedAt,
     }
   }
 
-  async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment> {
+  async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef' | 'photos'>>): Promise<Moment> {
     // Fetch current metadata
     const metaRes = await this.drive(`/files/${id}?alt=media`)
     if (!metaRes.ok) throw new Error(`moment ${id} not found`)
     const meta = await metaRes.json() as MomentMetadata
 
-    let updatedPhotoFileId = meta.photoFileId
-    let updatedPhotoMime   = meta.photoMime
+    let entries: PhotoEntry[] = metadataPhotos(meta)
 
-    // If we're swapping the photo, upload the new one first.
-    if (partial.photoRef) {
+    // If the caller is swapping photos, upload all new ones and delete the
+    // old binaries. Always migrates to v2 layout regardless of source meta.
+    const newPhotos: PhotoRef[] | null =
+      partial.photos ? partial.photos
+      : partial.photoRef ? [partial.photoRef]
+      : null
+    if (newPhotos) {
       const accessToken = await this.getAccessToken()
-      const blob = await dataUrlToBlob(partial.photoRef.identifier)
-      updatedPhotoMime = blob.type || 'image/jpeg'
-      const newFile = await multipartUpload(
-        accessToken,
-        { name: `photo-${meta.date}-${Date.now()}.bin`, parents: [APP_FOLDER] },
-        updatedPhotoMime,
-        blob,
-      )
-      // Delete the old photo now that the new one is in place.
-      await this.deleteFile(meta.photoFileId).catch(() => {})
-      this.photoUrls.delete(meta.photoFileId)
-      updatedPhotoFileId = newFile.id
+      const uploaded: PhotoEntry[] = []
+      try {
+        for (let i = 0; i < newPhotos.length; i++) {
+          const blob = await dataUrlToBlob(newPhotos[i].identifier)
+          const mime = blob.type || 'image/jpeg'
+          const file = await multipartUpload(
+            accessToken,
+            { name: `photo-${meta.date}-${Date.now()}-${i}.bin`, parents: [APP_FOLDER] },
+            mime,
+            blob,
+          )
+          uploaded.push({ fileId: file.id, mime })
+        }
+      } catch (err) {
+        for (const e of uploaded) await this.deleteFile(e.fileId).catch(() => {})
+        throw err
+      }
+      // Delete the old photos now that the new ones are in place.
+      for (const e of entries) {
+        await this.deleteFile(e.fileId).catch(() => {})
+        this.photoUrls.delete(e.fileId)
+      }
+      entries = uploaded
     }
 
-    const next: MomentMetadata = {
-      ...meta,
-      photoFileId: updatedPhotoFileId,
-      photoMime:   updatedPhotoMime,
+    const next: MomentMetadataV2 = {
+      version:     2,
+      userId:      meta.userId,
+      date:        meta.date,
+      photos:      entries,
       note:        partial.note ?? meta.note,
+      submittedAt: meta.submittedAt,
     }
 
     // Drive doesn't expose a simple "rewrite content" PATCH on the standard
@@ -373,35 +428,38 @@ export class GoogleDriveMomentsStorage implements MomentsStorage {
 
     this.momentsCache = null
 
-    const photoUrl = await this.getPhotoUrl(updatedPhotoFileId, updatedPhotoMime)
+    const photos: PhotoRef[] = await Promise.all(entries.map(async (e) => ({
+      source:     'upload' as const,
+      identifier: await this.getPhotoUrl(e.fileId, e.mime),
+    })))
     return {
       id,
       userId:       next.userId,
       date:         next.date,
-      photoRef:     { source: 'upload', identifier: photoUrl },
+      photoRef:     photos[0],
+      photos,
       note:         next.note,
       submittedAt:  next.submittedAt,
     }
   }
 
   async delete(id: string): Promise<void> {
-    // Look up the metadata first so we know the photo file id to delete too.
-    let photoFileId: string | undefined
+    // Look up the metadata first so we know which photo files to delete too.
+    let entries: PhotoEntry[] = []
     try {
       const metaRes = await this.drive(`/files/${id}?alt=media`)
       if (metaRes.ok) {
         const meta = await metaRes.json() as MomentMetadata
-        photoFileId = meta.photoFileId
+        entries = metadataPhotos(meta)
       }
     } catch { /* best-effort */ }
 
     await this.deleteFile(id)
-    if (photoFileId) await this.deleteFile(photoFileId).catch(() => {})
-
-    if (photoFileId) {
-      const cached = this.photoUrls.get(photoFileId)
+    for (const e of entries) {
+      await this.deleteFile(e.fileId).catch(() => {})
+      const cached = this.photoUrls.get(e.fileId)
       if (cached) URL.revokeObjectURL(cached)
-      this.photoUrls.delete(photoFileId)
+      this.photoUrls.delete(e.fileId)
     }
     this.momentsCache = null
   }

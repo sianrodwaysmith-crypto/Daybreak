@@ -1,4 +1,4 @@
-import type { Moment, MomentsStorage } from '../types'
+import type { Moment, MomentsStorage, PhotoRef } from '../types'
 import { isoDate, addDays } from '../core/dateHelpers'
 import { idbGetAll, idbPut, idbDelete, idbClear } from './idb'
 
@@ -62,16 +62,16 @@ export class MockMomentsStorage implements MomentsStorage {
       all = seeded
     }
 
-    this.cache = all
+    this.cache = all.map(normaliseMoment)
   }
 
   async submit(moment: Omit<Moment, 'id' | 'submittedAt'>): Promise<Moment> {
     await this.ensureLoaded()
-    const created: Moment = {
+    const created: Moment = normaliseMoment({
       ...moment,
       id:           newId(),
       submittedAt:  new Date().toISOString(),
-    }
+    })
 
     // Date is the natural primary key — re-submitting on the same day
     // overwrites in place. Delete the old IDB row and the in-memory copy
@@ -127,15 +127,29 @@ export class MockMomentsStorage implements MomentsStorage {
     this.cache = this.cache!.filter(m => m.userId !== userId)
   }
 
-  async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment> {
+  async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef' | 'photos'>>): Promise<Moment> {
     await this.ensureLoaded()
     const existing = this.cache!.find(m => m.id === id)
     if (!existing) throw new Error(`moment ${id} not found`)
-    const updated: Moment = { ...existing, ...partial }
+    const updated: Moment = normaliseMoment({ ...existing, ...partial })
     await idbPut(updated)
     this.cache = this.cache!.map(m => m.id === id ? updated : m)
     return updated
   }
+}
+
+/**
+ * Bring legacy single-photo moments forward into the photos[] shape.
+ * Pre-multi-photo records only have photoRef; new ones have both with
+ * photoRef === photos[0]. Always keep both so any caller (old or new)
+ * sees what it expects.
+ */
+function normaliseMoment<M extends { photoRef?: PhotoRef; photos?: PhotoRef[] }>(m: M): M & { photoRef: PhotoRef; photos: PhotoRef[] } {
+  const photos = (m.photos && m.photos.length > 0)
+    ? m.photos
+    : m.photoRef ? [m.photoRef] : []
+  const photoRef = m.photoRef ?? photos[0]
+  return { ...m, photoRef, photos }
 }
 
 /* -------------------------------------------------------------------------
@@ -164,11 +178,13 @@ function seedSamples(): Moment[] {
   return offsets.map(({ deltaDays, note }) => {
     const date = addDays(now, deltaDays)
     const iso  = isoDate(date)
+    const photoRef: PhotoRef = { source: 'upload', identifier: picsum(iso) }
     return {
       id:          `seed-${iso}`,
       userId:      sampleUserId,
       date:        iso,
-      photoRef:    { source: 'upload', identifier: picsum(iso) },
+      photoRef,
+      photos:      [photoRef],
       note,
       submittedAt: date.toISOString(),
     }

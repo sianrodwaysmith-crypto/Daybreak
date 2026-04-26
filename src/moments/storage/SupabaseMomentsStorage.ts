@@ -28,7 +28,7 @@ export class SupabaseMomentsStorage implements MomentsStorage {
   async clearAll(_userId: string): Promise<void> {
     throw new Error('SupabaseMomentsStorage.clearAll not implemented')
   }
-  async update(_id: string, _partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment> {
+  async update(_id: string, _partial: Partial<Pick<Moment, 'note' | 'photoRef' | 'photos'>>): Promise<Moment> {
     throw new Error('SupabaseMomentsStorage.update not implemented')
   }
 }

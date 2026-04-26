@@ -460,6 +460,22 @@
   max-height: 70dvh;
   object-fit: contain;
 }
+/* Quiet empty slot under the photo(s) — no icon, no copy. Sized so it
+   reads as 'something could go here' without saying so. */
+button.moments-day-photo-empty {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+  cursor: pointer;
+  padding: 0;
+  height: 88px;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+button.moments-day-photo-empty:active {
+  background: var(--bg-soft);
+  border-color: var(--ink-2);
+}
 .moments-day-meta {
   display: flex;
   flex-direction: column;
