@@ -348,6 +348,58 @@
 }
 .moments-thumb:active { opacity: 0.85; }
 
+.moments-clear-link {
+  display: block;
+  margin: 22px auto 6px;
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.moments-clear-confirm {
+  margin-top: 22px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.moments-clear-warning {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
+.moments-clear-actions {
+  display: flex;
+  gap: 10px;
+}
+.moments-btn-danger {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: #c2453a;
+  color: #fff;
+  border: 1px solid #c2453a;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+}
+.moments-btn-danger:disabled {
+  background: var(--bg-soft);
+  color: var(--faint);
+  border-color: var(--line);
+  cursor: default;
+}
+
 /* ---------- Day card ---------- */
 .moments-day-card {
   display: flex;

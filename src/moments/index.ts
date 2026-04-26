@@ -46,4 +46,7 @@ export const moments = {
   delete(id: string): Promise<void> {
     return getStorage().delete(id)
   },
+  clearAll(userId: string): Promise<void> {
+    return getStorage().clearAll(userId)
+  },
 }

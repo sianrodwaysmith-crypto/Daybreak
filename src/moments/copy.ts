@@ -67,6 +67,11 @@ export const copy = {
     title:                () => 'Your collection',
     empty:                () => 'No moments yet. The first one waits for tonight.',
     close:                () => 'Close',
+    clearLink:            () => 'Clear collection',
+    clearConfirm:         (n: number) =>
+      `This will delete all ${n} saved ${n === 1 ? 'moment' : 'moments'}. There's no undo.`,
+    clearCta:             () => 'Delete everything',
+    clearCancel:          () => 'Keep them',
   },
 
   dayCard: {

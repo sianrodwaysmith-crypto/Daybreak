@@ -33,6 +33,7 @@ export interface MomentsStorage {
   getRange(userId: string, startDate: string, endDate: string): Promise<Moment[]>
   getAll(userId: string): Promise<Moment[]>
   delete(id: string): Promise<void>
+  clearAll(userId: string): Promise<void>
   update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment>
 }
 

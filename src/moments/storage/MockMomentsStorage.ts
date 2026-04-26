@@ -1,6 +1,6 @@
 import type { Moment, MomentsStorage } from '../types'
 import { isoDate, addDays } from '../core/dateHelpers'
-import { idbGetAll, idbPut, idbDelete } from './idb'
+import { idbGetAll, idbPut, idbDelete, idbClear } from './idb'
 
 const LEGACY_LS_KEY = 'daybreak-moments-v1'
 
@@ -115,6 +115,16 @@ export class MockMomentsStorage implements MomentsStorage {
     await this.ensureLoaded()
     await idbDelete(id)
     this.cache = this.cache!.filter(m => m.id !== id)
+  }
+
+  async clearAll(userId: string): Promise<void> {
+    await this.ensureLoaded()
+    // Single-user app, single-user IDB store: nuke the whole store and
+    // also remove any legacy localStorage payload so a re-migration
+    // doesn't bring the deleted data back.
+    try { await idbClear() } catch { /* ignore */ }
+    try { localStorage.removeItem(LEGACY_LS_KEY) } catch { /* ignore */ }
+    this.cache = this.cache!.filter(m => m.userId !== userId)
   }
 
   async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment> {
