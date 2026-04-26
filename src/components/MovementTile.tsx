@@ -289,7 +289,7 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
 
         {ev?.source === 'rest' && (
           <>
-            <div className="movement-sheet-readtitle">Rest day declared.</div>
+            <div className="movement-sheet-readtitle">Rest day.</div>
             <button className="movement-btn-quiet" onClick={handleDelete} disabled={saving}>
               Remove rest day
             </button>
