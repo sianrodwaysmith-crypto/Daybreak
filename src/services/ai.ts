@@ -20,6 +20,7 @@ Output ONLY two <story> blocks in this exact XML format, with no other text outs
 
 <story>
 <title>Article title in sentence case, max 12 words.</title>
+<date>YYYY-MM-DD publication date of the article.</date>
 <what>One sentence under 25 words summarising what the article actually reports. Factual, not editorial.</what>
 <impact>One sentence under 25 words on what this means in practice for the reader. Concrete and applied; avoid clichés like "this is significant".</impact>
 <source>https://full-direct-url-to-the-original-article</source>
@@ -27,14 +28,16 @@ Output ONLY two <story> blocks in this exact XML format, with no other text outs
 
 <story>
 <title>...</title>
+<date>...</date>
 <what>...</what>
 <impact>...</impact>
 <source>...</source>
 </story>
 
 Hard rules:
-- Wrap each story in <story>...</story> with one each of <title>, <what>, <impact>, <source> as children.
+- Wrap each story in <story>...</story> with one each of <title>, <date>, <what>, <impact>, <source> as children.
 - Output exactly two stories.
+- <date> MUST be the article's publication date in ISO YYYY-MM-DD format (e.g. 2026-04-19). If the article shows only month and year, use the 1st of that month. Never invent a date.
 - Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words. If the publication's headline is longer, paraphrase it down.
 - <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
 - <source> must be a single direct URL to the original news article (not a search results page, not a homepage).
@@ -66,14 +69,17 @@ Output ONLY ${storyCount} <story> blocks (and the talking_points block where req
 
 <story>
 <title>Article title in sentence case, max 12 words.</title>
+<date>YYYY-MM-DD publication date of the article.</date>
 <what>One sentence under 25 words summarising what the article reports about this company. Factual, not editorial.</what>
 <impact>One sentence under 25 words: a sales-relevant conversation hook. Concrete and applied; how the AE could use this as an opener with the customer.</impact>
 <source>https://full-direct-url-to-the-original-article</source>
 </story>${tp}
 
 Hard rules:
-- Wrap each story in <story>...</story> with one each of <title>, <what>, <impact>, <source> as children.
+- Wrap each story in <story>...</story> with one each of <title>, <date>, <what>, <impact>, <source> as children.
 - Output exactly ${storyCount} stories.
+- Every story MUST be from the last 30 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
+- <date> MUST be the article's publication date in ISO YYYY-MM-DD format (e.g. 2026-04-19). If the article shows only month and year, use the 1st of that month. Never invent a date.
 - Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words.
 - <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
 - <source> must be a single direct URL to the original news article (not a search results page, not a homepage).

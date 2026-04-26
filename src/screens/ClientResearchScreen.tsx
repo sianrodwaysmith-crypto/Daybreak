@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Account, NewsState } from '../clients/types'
 import { useAccounts } from '../hooks/useAccounts'
 import { loadAccountNews, readAccountNews } from '../clients/news'
-import { parseAccountNews, hostname } from '../clients/parse'
+import { parseAccountNews, hostname, formatRelativeDate } from '../clients/parse'
 
 /* ====================================================================
    Client Research screen.
@@ -74,6 +74,8 @@ function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps
     <>
       <div className="account-news-list">
         {stories.map((s, i) => {
+          const relDate = formatRelativeDate(s.date)
+          const meta = [relDate, s.url ? hostname(s.url) : null].filter(Boolean).join(' · ')
           const inner = (
             <>
               <h4 className="account-news-headline">{s.headline}</h4>
@@ -87,7 +89,11 @@ function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps
                   <dd className="account-news-fact-text">{s.impact}</dd>
                 </>)}
               </dl>
-              {s.url && <span className="account-news-source">{hostname(s.url)} ↗</span>}
+              {meta && (
+                <span className="account-news-source">
+                  {meta}{s.url ? ' ↗' : ''}
+                </span>
+              )}
             </>
           )
           if (s.url) {

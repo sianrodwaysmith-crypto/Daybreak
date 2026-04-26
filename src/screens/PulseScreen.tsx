@@ -1,4 +1,5 @@
 import type { TileAI } from '../hooks/useAIContent'
+import { formatRelativeDate } from '../clients/parse'
 
 interface Props {
   anthropic: TileAI
@@ -10,6 +11,7 @@ interface Props {
 
 interface Story {
   headline: string
+  date:     string | null
   what:     string
   impact:   string
   body:     string   // fallback when What/Impact are missing
@@ -88,6 +90,7 @@ function parseStories(raw: string): Story[] {
   while ((m = storyRe.exec(text)) !== null) {
     const inner    = m[1]
     const headline = extract(inner, 'title')
+    const dateRaw  = extract(inner, 'date')
     const what     = extract(inner, 'what')
     const impact   = extract(inner, 'impact')
     const sourceText = extract(inner, 'source')
@@ -97,8 +100,11 @@ function parseStories(raw: string): Story[] {
     if (urlMatch) url = cleanUrl(urlMatch[0])
     if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
+    const dateMatch = dateRaw.match(/(\d{4}-\d{2}-\d{2})/)
+    const date = dateMatch ? dateMatch[1] : null
+
     if (!headline && !what && !impact) { i += 1; continue }
-    stories.push({ headline, what, impact, body: '', url })
+    stories.push({ headline, date, what, impact, body: '', url })
     i += 1
   }
 
@@ -144,6 +150,8 @@ function Section({ label, state, onRetry }: SectionProps) {
         <div className="pulse-card-list">
           {parseStories(state.content).map((story, i) => {
             const hasStructured = story.what || story.impact
+            const relDate = formatRelativeDate(story.date)
+            const meta = [relDate, story.url ? hostname(story.url) : null].filter(Boolean).join(' · ')
             const inner = (
               <>
                 <h3 className="pulse-headline">{story.headline}</h3>
@@ -165,8 +173,8 @@ function Section({ label, state, onRetry }: SectionProps) {
                 ) : (
                   story.body && <p className="pulse-body">{story.body}</p>
                 )}
-                {story.url && (
-                  <span className="pulse-source">{hostname(story.url)}</span>
+                {meta && (
+                  <span className="pulse-source">{meta}</span>
                 )}
                 {story.url && (
                   <span className="pulse-card-chevron" aria-hidden>↗</span>
