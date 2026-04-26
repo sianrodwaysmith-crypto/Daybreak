@@ -159,8 +159,9 @@ function parseStories(raw: string): Story[] {
   text = text.replace(/^\s*[-*_]{3,}\s*$/gm, '')
 
   // Drop any preamble before the first headline. A headline is the first
-  // line in the response that starts with "**" (bolded).
-  const firstHeadline = text.search(/^\*\*.+\*\*/m)
+  // line that starts with either a bold marker (**) or a markdown heading
+  // marker (# / ##). Catches the Anthropic-blog-style '## Title' format.
+  const firstHeadline = text.search(/^(?:\*\*.+|#{1,3}\s+.+)/m)
   if (firstHeadline > 0) text = text.slice(firstHeadline)
 
   const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
@@ -189,8 +190,32 @@ function parseStories(raw: string): Story[] {
         if (impactLine) { impact = stripBold(impactLine[1]); continue }
 
         if (!headline) {
-          const bolded = line.match(/^\*\*(.+?)\*\*\s*:?\s*$/)
-          headline = stripInline(bolded ? bolded[1] : line)
+          // Try four headline shapes, in priority order:
+          //   1. **Title**                       (the spec)
+          //   2. **Title**: subtitle             (Anthropic blog often does this)
+          //   3. **Title** subtitle              (no colon, just trailing text)
+          //   4. ## Title  / # Title  / ### Title  (markdown heading)
+          // Whatever follows the title gets pushed into otherLines so the
+          // synthesiser can use it as What/Impact body, instead of being
+          // collapsed into the headline.
+          const boldOnly      = line.match(/^\*\*(.+?)\*\*\s*$/)
+          const boldThenColon = line.match(/^\*\*(.+?)\*\*\s*:\s*(.+)$/)
+          const boldThenText  = line.match(/^\*\*(.+?)\*\*\s+(.+)$/)
+          const hashHeading   = line.match(/^#{1,3}\s+(.+?)\s*$/)
+
+          if (boldOnly) {
+            headline = stripInline(boldOnly[1])
+          } else if (boldThenColon) {
+            headline = stripInline(boldThenColon[1])
+            otherLines.push(stripInline(boldThenColon[2]))
+          } else if (boldThenText) {
+            headline = stripInline(boldThenText[1])
+            otherLines.push(stripInline(boldThenText[2]))
+          } else if (hashHeading) {
+            headline = stripInline(hashHeading[1])
+          } else {
+            headline = stripInline(line)
+          }
           continue
         }
         otherLines.push(stripInline(line))
