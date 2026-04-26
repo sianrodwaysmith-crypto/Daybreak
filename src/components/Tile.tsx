@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 
 interface Props {
   icon: ReactNode
@@ -10,16 +10,16 @@ interface Props {
   onClick: () => void
 }
 
+// Real <button> + onClick (rather than custom pointer-event handling) so
+// iOS Safari treats taps reliably: it knows the difference between a tap
+// and a scroll, debounces double-fires, and gives us focus/keyboard for
+// free. Press feedback is pure CSS via :active.
 export default function Tile({ icon, title, subtitle, accent, fullWidth, loading, onClick }: Props) {
-  const [pressing, setPressing] = useState(false)
-
   return (
-    <div
-      className={`tile${fullWidth ? ' tile-full' : ''}${pressing ? ' is-pressing' : ''}`}
-      onPointerDown={() => setPressing(true)}
-      onPointerUp={() => { setPressing(false); onClick() }}
-      onPointerLeave={() => setPressing(false)}
-      onPointerCancel={() => setPressing(false)}
+    <button
+      type="button"
+      className={`tile${fullWidth ? ' tile-full' : ''}`}
+      onClick={onClick}
     >
       <div className="tile-icon">{icon}</div>
       <div className="tile-text">
@@ -34,6 +34,6 @@ export default function Tile({ icon, title, subtitle, accent, fullWidth, loading
           <span className="tile-loading-dot" style={{ animationDelay: '360ms' }} />
         </div>
       )}
-    </div>
+    </button>
   )
 }
