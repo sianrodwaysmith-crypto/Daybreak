@@ -1,43 +1,8 @@
-const MODEL       = 'claude-sonnet-4-6'
-// Pulse uses the fast model — three parallel web_search calls on cellular
-// were taking 30-45s each on Sonnet. Haiku 4.5 is plenty for two-story
-// summaries and finishes in roughly a third the time.
+// Pulse + account news both use the fast model — three parallel web_search
+// calls on cellular were taking 30-45s each on Sonnet. Haiku 4.5 is plenty
+// for two-story summaries and finishes in roughly a third the time.
 const PULSE_MODEL = 'claude-haiku-4-5-20251001'
 const ENDPOINT    = 'https://api.anthropic.com/v1/messages'
-
-async function callClaude(system: string, prompt: string, webSearch = false): Promise<string> {
-  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY
-
-  const headers: Record<string, string> = {
-    'content-type': 'application/json',
-    'x-api-key': apiKey,
-    'anthropic-version': '2023-06-01',
-    'anthropic-dangerous-direct-browser-access': 'true',
-  }
-  if (webSearch) headers['anthropic-beta'] = 'web-search-2025-03-05'
-
-  const body: Record<string, unknown> = {
-    model: MODEL,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: 'user', content: prompt }],
-  }
-  if (webSearch) body.tools = [{ type: 'web_search_20250305', name: 'web_search' }]
-
-  const res = await fetch(ENDPOINT, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  })
-
-  if (!res.ok) throw new Error(`API ${res.status}`)
-  const data = await res.json() as { content: Array<{ type: string; text?: string }> }
-  return data.content
-    .filter(b => b.type === 'text')
-    .map(b => b.text ?? '')
-    .join('\n')
-    .trim()
-}
 
 function dayInfo() {
   const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
@@ -47,25 +12,6 @@ function dayInfo() {
     day:  DAYS[now.getDay()],
     date: `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`,
   }
-}
-
-export function fetchClientBrief(): Promise<string> {
-  const { day, date } = dayInfo()
-  return callClaude(
-    'You are a research analyst supporting a senior consultant. Be concise, professional, and insight-driven.',
-    `Today is ${day}, ${date}. My active client is Aztec, working on Salesforce CRM digital transformation, Phase 2 (Integration), deadline 15 May 2026, status On Track. Key contact: James Henderson (CPO). Also active: Salesforce, Discovery Phase, contact Rachel Ng.
-
-Using web search, research any relevant news about Aztec, Salesforce, or enterprise CRM today, then give me a research summary with two sections:
-
-KEY FINDINGS
-→ [first specific research insight or news item that affects this client]
-→ [second specific research insight or news item]
-→ [third specific research insight or news item]
-
-CONTEXT & IMPLICATIONS
-[2-3 sentences interpreting what these findings mean for today's work with the client]`,
-    true,
-  )
 }
 
 const PULSE_FORMAT_TAIL = `
@@ -94,6 +40,80 @@ Hard rules:
 - <source> must be a single direct URL to the original news article (not a search results page, not a homepage).
 - Your very first character must be the < of the first <story>, and your last character must be the > of the last </story>. No preamble, no framing, no closing line, no separator text between stories, no commentary.
 - Punctuation: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons. En-dashes "–" only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
+
+/* ------------------------------------------------------------------
+   Account news prompt — same XML shape as Pulse so the parser is
+   shared, but tuned for a Salesforce account executive. The <impact>
+   field becomes the conversation hook the AE could open a call with.
+   Focus accounts get an extra <talking_points> block at the end with
+   2-3 short lines tying the news together into a phone-call opener.
+------------------------------------------------------------------ */
+function accountFormatTail(storyCount: 2 | 3, withTalkingPoints: boolean): string {
+  const tp = withTalkingPoints ? `
+
+After the stories, output one <talking_points> block:
+
+<talking_points>
+<point>One short, concrete line the AE could open a call with, grounded in the news above.</point>
+<point>A second angle, ideally tying news to a Salesforce / CRM / digital-transformation thread.</point>
+</talking_points>
+
+The talking_points block is REQUIRED. Output 2 to 3 <point> children, each under 25 words, no markdown.` : ''
+
+  return `
+
+Output ONLY ${storyCount} <story> blocks (and the talking_points block where required) in this exact XML format, with no other text outside the tags:
+
+<story>
+<title>Article title in sentence case, max 12 words.</title>
+<what>One sentence under 25 words summarising what the article reports about this company. Factual, not editorial.</what>
+<impact>One sentence under 25 words: a sales-relevant conversation hook. Concrete and applied; how the AE could use this as an opener with the customer.</impact>
+<source>https://full-direct-url-to-the-original-article</source>
+</story>${tp}
+
+Hard rules:
+- Wrap each story in <story>...</story> with one each of <title>, <what>, <impact>, <source> as children.
+- Output exactly ${storyCount} stories.
+- Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words.
+- <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
+- <source> must be a single direct URL to the original news article (not a search results page, not a homepage).
+- Your very first character must be the < of the first <story>${withTalkingPoints ? ', and your last character must be the > of </talking_points>' : ', and your last character must be the > of the last </story>'}. No preamble, no framing, no closing line, no separator text between stories, no commentary.
+- Punctuation: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons. En-dashes "–" only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
+}
+
+export interface AccountNewsArgs {
+  name:               string
+  contact?:           string
+  notes?:             string
+  storyCount:         2 | 3
+  withTalkingPoints:  boolean
+}
+
+export function fetchAccountNews(args: AccountNewsArgs): Promise<string> {
+  const { day, date } = dayInfo()
+  const contactLine = args.contact ? `Primary contact: ${args.contact}.` : ''
+  const notesLine   = args.notes   ? `Internal notes about this account: ${args.notes}` : ''
+
+  const prompt = `Today is ${day}, ${date}.
+
+You are a research assistant for a Salesforce account executive. The AE covers the company below and uses these briefings to prepare for customer conversations.
+
+Account: ${args.name}.
+${contactLine}
+${notesLine}
+
+Using web search, find ${args.storyCount} of the most recent and relevant news items about ${args.name} from the last 30 days. Prioritise reputable journalism over the company's own blog. Useful angles include:
+- Earnings, financial results, guidance updates
+- Leadership changes, key hires, executive moves
+- Strategic initiatives, M&A activity, restructuring
+- Product launches, partnerships, major deals
+- IT and digital transformation signals (cloud spend, CRM choices, AI investments)
+- Industry-specific events that affect this company
+
+Frame the <impact> sentence as a sales-relevant conversation hook the AE could lead with on a call.${accountFormatTail(args.storyCount, args.withTalkingPoints)}`
+
+  return callPulse(prompt, `account-${args.name.slice(0, 24)}`)
+}
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined

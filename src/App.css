@@ -1335,6 +1335,346 @@
   color: var(--muted);
 }
 
+/* ---------- Client research / accounts ---------- */
+.account-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-focus-banner {
+  font-size: 10.5px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+.account-empty {
+  text-align: center;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+}
+.account-empty-text {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--muted);
+  max-width: 30ch;
+  margin: 0;
+}
+
+.account-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+.account-card.is-focus {
+  border-color: rgba(100, 181, 246, 0.5);
+  box-shadow: 0 0 0 1px rgba(100, 181, 246, 0.15);
+}
+.account-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 12px 12px 14px;
+}
+.account-head-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.account-head-add { cursor: default; }
+.account-star {
+  font-size: 18px;
+  color: var(--muted);
+  line-height: 1;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.account-star.is-on { color: #f59e0b; }
+.account-head-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.account-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-contact {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-head-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.account-icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  font-size: 13.5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, color 120ms ease, transform 120ms ease;
+}
+.account-icon-btn:hover { color: var(--ink); }
+.account-icon-btn:active { transform: scale(0.94); }
+.account-icon-btn:disabled { opacity: 0.4; cursor: default; }
+
+.account-body {
+  border-top: 1px solid var(--line);
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.account-news-card {
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+.account-news-card-link {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.account-news-card-link:active { transform: scale(0.99); }
+.account-news-headline {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15.5px;
+  margin: 0 0 6px 0;
+  color: var(--ink);
+  line-height: 1.25;
+}
+.account-news-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  column-gap: 10px;
+  row-gap: 4px;
+}
+.account-news-fact-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 2px 0 0 0;
+}
+.account-news-fact-text {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.account-news-source {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.account-news-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.account-news-skel {
+  display: block;
+  height: 64px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(0,0,0,0.04), rgba(0,0,0,0.08), rgba(0,0,0,0.04));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.account-news-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.account-news-error-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.account-news-error-detail {
+  font-size: 11px;
+  opacity: 0.8;
+  word-break: break-word;
+}
+.account-news-retry {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.account-talking {
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+}
+.account-talking-label {
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.account-talking-list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.account-talking-list li {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.account-editor {
+  border-top: 1px solid var(--line);
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.account-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.account-field-label {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.account-input {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 11px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+}
+.account-input:focus { border-color: var(--line-strong); }
+.account-textarea {
+  resize: vertical;
+  min-height: 60px;
+  line-height: 1.4;
+}
+.account-editor-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+.account-btn-primary {
+  flex: 1;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+}
+.account-btn-primary:disabled { opacity: 0.5; cursor: default; }
+.account-btn-quiet {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: inherit;
+  color: var(--ink);
+  cursor: pointer;
+}
+.account-btn-danger {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font: inherit;
+  color: #c2453a;
+  cursor: pointer;
+}
+.account-add-btn {
+  background: none;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+  letter-spacing: 0.02em;
+  touch-action: manipulation;
+}
+.account-add-btn:hover { color: var(--ink); border-color: var(--line-strong); }
+
 /* ---------- Settings ---------- */
 .settings-section { margin-bottom: 26px; }
 .settings-section .screen-section-label { margin-bottom: 12px; }

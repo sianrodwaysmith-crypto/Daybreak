@@ -150,7 +150,7 @@ function HomeView() {
     { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
-    { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6', loading: ai.client.loading },
+    { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -172,7 +172,7 @@ function HomeView() {
         maxHr={whoop.maxHr}
         connected={whoop.connected}
       />
-      case 'client':   return <ClientResearchScreen aiState={ai.client} onRetry={() => retry('client')} />
+      case 'client':   return <ClientResearchScreen />
       case 'pulse':    return <PulseScreen
         anthropic={ai['pulse-anthropic']}
         aiWorld={ai['pulse-aiworld']}

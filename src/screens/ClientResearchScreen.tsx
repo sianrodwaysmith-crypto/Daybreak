@@ -1,72 +1,321 @@
-import type { TileAI } from '../hooks/useAIContent'
-import AIBlock from '../components/AIBlock'
+import { useEffect, useMemo, useState } from 'react'
+import type { Account, NewsState } from '../clients/types'
+import { useAccounts } from '../hooks/useAccounts'
+import { loadAccountNews, readAccountNews } from '../clients/news'
+import { parseAccountNews, hostname } from '../clients/parse'
 
-interface Props {
-  aiState: TileAI
-  onRetry: () => void
+/* ====================================================================
+   Client Research screen.
+   - Top: today's focus account (3 stories + talking points, auto-loads).
+   - Below: every other account, collapsed; tap to load 2 stories.
+   - Inline editor on each card (pencil icon → form expands).
+   - "+ Add account" button at the bottom.
+==================================================================== */
+
+interface NewsBlockProps {
+  state:    NewsState
+  onRetry?: () => void
+  showTalkingPoints: boolean
 }
 
-export default function ClientResearchScreen({ aiState, onRetry }: Props) {
+function NewsBlock({ state, onRetry, showTalkingPoints }: NewsBlockProps) {
+  if (state.loading) {
+    return (
+      <div className="account-news-loading">
+        <span className="account-news-skel" />
+        <span className="account-news-skel" />
+      </div>
+    )
+  }
+
+  if (state.error) {
+    return (
+      <div className="account-news-error">
+        <div className="account-news-error-stack">
+          <span>Couldn't fetch news for this account.</span>
+          {state.errorMsg && <span className="account-news-error-detail">{state.errorMsg}</span>}
+        </div>
+        {onRetry && <button className="account-news-retry" onClick={onRetry}>↻ Retry</button>}
+      </div>
+    )
+  }
+
+  if (!state.content) return null
+
+  const { stories, talkingPoints } = parseAccountNews(state.content)
+  if (stories.length === 0 && talkingPoints.length === 0) {
+    return (
+      <div className="account-news-error">
+        <span>No news landed in the response.</span>
+        {onRetry && <button className="account-news-retry" onClick={onRetry}>↻ Retry</button>}
+      </div>
+    )
+  }
+
   return (
-    <div>
-      <div className="client-active-box">
-        <div className="client-active-eyebrow">ACTIVE CLIENT</div>
-        <div className="client-active-name">AZTEC</div>
+    <>
+      <div className="account-news-list">
+        {stories.map((s, i) => {
+          const inner = (
+            <>
+              <h4 className="account-news-headline">{s.headline}</h4>
+              <dl className="account-news-facts">
+                {s.what && (<>
+                  <dt className="account-news-fact-label">What</dt>
+                  <dd className="account-news-fact-text">{s.what}</dd>
+                </>)}
+                {s.impact && (<>
+                  <dt className="account-news-fact-label">Hook</dt>
+                  <dd className="account-news-fact-text">{s.impact}</dd>
+                </>)}
+              </dl>
+              {s.url && <span className="account-news-source">{hostname(s.url)} ↗</span>}
+            </>
+          )
+          if (s.url) {
+            return (
+              <a key={i} className="account-news-card account-news-card-link" href={s.url} target="_blank" rel="noopener noreferrer">
+                {inner}
+              </a>
+            )
+          }
+          return <article key={i} className="account-news-card">{inner}</article>
+        })}
       </div>
 
-      <div className="screen-section">
-        <div className="screen-section-label">PROJECT DETAILS</div>
-        <div className="screen-card">
-          {[
-            ['PROJECT',  'Digital Transformation Q2'],
-            ['PLATFORM', 'Salesforce CRM'],
-            ['PHASE',    'Phase 2 (Integration)'],
-            ['DEADLINE', '15 May 2026'],
-            ['STATUS',   'On Track'],
-          ].map(([k, v]) => (
-            <div key={k} className="detail-row">
-              <div className="detail-key">{k}</div>
-              <div className="detail-value" style={v === 'On Track' ? { color: '#4ade80' } : undefined}>{v}</div>
-            </div>
-          ))}
+      {showTalkingPoints && talkingPoints.length > 0 && (
+        <div className="account-talking">
+          <div className="account-talking-label">TALKING POINTS</div>
+          <ul className="account-talking-list">
+            {talkingPoints.map((p, i) => <li key={i}>{p}</li>)}
+          </ul>
+        </div>
+      )}
+    </>
+  )
+}
+
+interface EditorProps {
+  initial?:  { name: string; contact?: string; notes?: string }
+  onSubmit:  (v: { name: string; contact?: string; notes?: string }) => void
+  onCancel:  () => void
+  onDelete?: () => void
+  saveLabel: string
+}
+
+function AccountEditor({ initial, onSubmit, onCancel, onDelete, saveLabel }: EditorProps) {
+  const [name,    setName]    = useState(initial?.name    ?? '')
+  const [contact, setContact] = useState(initial?.contact ?? '')
+  const [notes,   setNotes]   = useState(initial?.notes   ?? '')
+
+  return (
+    <div className="account-editor">
+      <label className="account-field">
+        <span className="account-field-label">Account name</span>
+        <input
+          className="account-input"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Acme Corp"
+          autoFocus
+        />
+      </label>
+      <label className="account-field">
+        <span className="account-field-label">Primary contact (optional)</span>
+        <input
+          className="account-input"
+          value={contact}
+          onChange={e => setContact(e.target.value)}
+          placeholder="Sarah Okonkwo, CTO"
+        />
+      </label>
+      <label className="account-field">
+        <span className="account-field-label">Notes for the AI (optional)</span>
+        <textarea
+          className="account-input account-textarea"
+          value={notes}
+          onChange={e => setNotes(e.target.value)}
+          placeholder="Renewal Q4. Major migration from on-prem to cloud. Key competitor: HubSpot."
+          rows={3}
+        />
+      </label>
+      <div className="account-editor-actions">
+        <button
+          className="account-btn-primary"
+          disabled={!name.trim()}
+          onClick={() => onSubmit({ name, contact: contact || undefined, notes: notes || undefined })}
+        >{saveLabel}</button>
+        <button className="account-btn-quiet" onClick={onCancel}>Cancel</button>
+        {onDelete && (
+          <button className="account-btn-danger" onClick={onDelete}>Delete</button>
+        )}
+      </div>
+    </div>
+  )
+}
+
+interface CardProps {
+  account:    Account
+  isFocus:    boolean
+  onFocus:    () => void
+  onUpdate:   (patch: { name: string; contact?: string; notes?: string }) => void
+  onDelete:   () => void
+}
+
+function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProps) {
+  const [news,     setNews]     = useState<NewsState>(() => readAccountNews(account.id))
+  const [expanded, setExpanded] = useState<boolean>(isFocus || news.content != null)
+  const [editing,  setEditing]  = useState(false)
+
+  // The focus account auto-loads news on mount (or when the focus
+  // changes). Other accounts wait for the user to expand them.
+  useEffect(() => {
+    if (!isFocus) return
+    if (news.content) { setExpanded(true); return }
+    setNews(s => ({ ...s, loading: true }))
+    loadAccountNews(account, true).then(setNews)
+  }, [account.id, isFocus])
+
+  function load(force: boolean) {
+    setNews(s => ({ ...s, loading: true, error: false }))
+    loadAccountNews(account, isFocus, { force }).then(setNews)
+  }
+
+  function handleExpand() {
+    if (editing) return
+    if (!expanded) {
+      setExpanded(true)
+      if (!news.content) load(false)
+    } else {
+      setExpanded(false)
+    }
+  }
+
+  return (
+    <section className={`account-card${isFocus ? ' is-focus' : ''}`}>
+      <div className="account-head">
+        <button
+          type="button"
+          className="account-head-main"
+          onClick={handleExpand}
+        >
+          <span className={`account-star${isFocus ? ' is-on' : ''}`} aria-hidden>{isFocus ? '★' : '☆'}</span>
+          <span className="account-head-text">
+            <span className="account-name">{account.name}</span>
+            {account.contact && <span className="account-contact">{account.contact}</span>}
+          </span>
+        </button>
+        <div className="account-head-actions">
+          {!isFocus && (
+            <button
+              type="button"
+              className="account-icon-btn"
+              onClick={onFocus}
+              aria-label="Set as today's focus"
+              title="Set as today's focus"
+            >★</button>
+          )}
+          <button
+            type="button"
+            className="account-icon-btn"
+            onClick={() => { setEditing(e => !e); setExpanded(true) }}
+            aria-label="Edit account"
+            title="Edit"
+          >✎</button>
+          {expanded && !editing && news.content && (
+            <button
+              type="button"
+              className="account-icon-btn"
+              onClick={() => load(true)}
+              disabled={news.loading}
+              aria-label="Refresh news"
+              title="Refresh news"
+            >↻</button>
+          )}
         </div>
       </div>
 
-      <div className="screen-section">
-        <AIBlock state={aiState} accent="#64b5f6" onRetry={onRetry} />
-      </div>
+      {expanded && editing && (
+        <AccountEditor
+          initial={{ name: account.name, contact: account.contact, notes: account.notes }}
+          saveLabel="Save changes"
+          onSubmit={(v) => { onUpdate(v); setEditing(false) }}
+          onCancel={() => setEditing(false)}
+          onDelete={onDelete}
+        />
+      )}
 
-      <div className="screen-section">
-        <div className="screen-section-label">KEY CONTACTS</div>
-        <div className="screen-card">
-          {[
-            ['SPONSOR',   'James Henderson, CPO'],
-            ['TECH LEAD', 'Sarah Okonkwo'],
-            ['PM',        'Tom Reeves'],
-          ].map(([k, v]) => (
-            <div key={k} className="detail-row">
-              <div className="detail-key">{k}</div>
-              <div className="detail-value">{v}</div>
-            </div>
-          ))}
+      {expanded && !editing && (
+        <div className="account-body">
+          <NewsBlock state={news} onRetry={() => load(true)} showTalkingPoints={isFocus} />
         </div>
-      </div>
+      )}
+    </section>
+  )
+}
 
-      <div className="screen-section">
-        <div className="screen-section-label">ALSO ACTIVE</div>
-        <div className="screen-card">
-          {[
-            ['CLIENT',  'Salesforce'],
-            ['STATUS',  'Discovery Phase'],
-            ['CONTACT', 'Rachel Ng, Enterprise'],
-          ].map(([k, v]) => (
-            <div key={k} className="detail-row">
-              <div className="detail-key">{k}</div>
-              <div className="detail-value" style={v === 'Discovery Phase' ? { color: '#64b5f6' } : undefined}>{v}</div>
-            </div>
-          ))}
+export default function ClientResearchScreen() {
+  const { accounts, focus, add, update, remove, setFocus } = useAccounts()
+  const [adding, setAdding] = useState(false)
+
+  const ordered = useMemo(() => {
+    const focused = accounts.filter(a => a.isFocus)
+    const rest    = accounts.filter(a => !a.isFocus).sort((a, b) => b.updatedAt - a.updatedAt)
+    return [...focused, ...rest]
+  }, [accounts])
+
+  const empty = accounts.length === 0
+
+  return (
+    <div className="account-screen">
+      {focus && (
+        <div className="account-focus-banner">TODAY'S FOCUS · {focus.name.toUpperCase()}</div>
+      )}
+
+      {empty && !adding && (
+        <div className="account-empty">
+          <p className="account-empty-text">
+            Add your accounts here and Daybreak will surface fresh news on each one,
+            with a conversation hook you could lead a call with.
+          </p>
+          <button className="account-btn-primary" onClick={() => setAdding(true)}>
+            Add your first account →
+          </button>
         </div>
-      </div>
+      )}
+
+      {ordered.map(a => (
+        <AccountCard
+          key={a.id}
+          account={a}
+          isFocus={!!a.isFocus}
+          onFocus={() => setFocus(a.id)}
+          onUpdate={(patch) => update(a.id, patch)}
+          onDelete={() => remove(a.id)}
+        />
+      ))}
+
+      {adding && (
+        <section className="account-card">
+          <div className="account-head">
+            <span className="account-head-main account-head-add">
+              <span className="account-star" aria-hidden>＋</span>
+              <span className="account-head-text"><span className="account-name">New account</span></span>
+            </span>
+          </div>
+          <AccountEditor
+            saveLabel="Save"
+            onSubmit={(v) => { add(v); setAdding(false) }}
+            onCancel={() => setAdding(false)}
+          />
+        </section>
+      )}
+
+      {!empty && !adding && (
+        <button className="account-add-btn" onClick={() => setAdding(true)}>
+          + Add account
+        </button>
+      )}
     </div>
   )
 }
