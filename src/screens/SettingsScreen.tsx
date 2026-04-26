@@ -129,11 +129,16 @@ function buildGoogleAuthUrl(): string | null {
   const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
   if (!clientId) return null
   const redirectUri = `${window.location.origin}/api/google/callback`
-  // calendar.readonly is enough to read events from the user's primary
-  // calendar; offline_access (via access_type=offline) gets the refresh
-  // token. prompt=consent forces Google to issue a refresh token even
-  // on subsequent connections.
-  const scope = 'https://www.googleapis.com/auth/calendar.readonly'
+  // Two scopes in one consent:
+  //  - calendar.readonly: read today's events from the primary calendar
+  //  - drive.appdata: read/write a private app-only folder for Moments
+  //    photos and metadata, so the collection survives PWA reinstalls.
+  // access_type=offline + prompt=consent forces Google to issue a
+  // refresh token even on subsequent re-grants.
+  const scope = [
+    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/drive.appdata',
+  ].join(' ')
   const state = generateState()
   const params = new URLSearchParams({
     client_id:     clientId,
@@ -237,9 +242,11 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
         ) : googleAuthUrl ? (
           <>
             <p className="settings-note" style={{ marginBottom: 14 }}>
-              Connect Google Calendar to see today's events. Read-only; we only
-              ask for your primary calendar. Tap below. Google opens in Safari
-              to authorise.
+              Connect your Google account for two things in one consent:
+              read-only access to today's primary calendar events, and a
+              private app folder for your Moments photos so the collection
+              survives PWA reinstalls. Tap below. Google opens in Safari to
+              authorise.
             </p>
             <a
               className="settings-btn settings-btn-save active"
