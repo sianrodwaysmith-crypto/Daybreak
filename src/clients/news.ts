@@ -10,7 +10,7 @@ import type { Account, NewsState } from './types'
      other accounts wait for a tap to keep API spend in check.
 ==================================================================== */
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 
 function todayKey(): string {
   return new Date().toISOString().slice(0, 10)

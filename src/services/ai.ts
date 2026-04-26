@@ -78,7 +78,7 @@ Output ONLY ${storyCount} <story> blocks (and the talking_points block where req
 Hard rules:
 - Wrap each story in <story>...</story> with one each of <title>, <date>, <what>, <impact>, <source> as children.
 - Output exactly ${storyCount} stories.
-- Every story MUST be from the last 30 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
+- Every story MUST be from the last 7 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
 - <date> MUST be the article's publication date in ISO YYYY-MM-DD format (e.g. 2026-04-19). If the article shows only month and year, use the 1st of that month. Never invent a date.
 - Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words.
 - <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
@@ -108,7 +108,7 @@ Account: ${args.name}.
 ${contactLine}
 ${notesLine}
 
-Using web search, find ${args.storyCount} of the most recent and relevant news items about ${args.name} from the last 30 days. Prioritise reputable journalism over the company's own blog. Useful angles include:
+Using web search, find ${args.storyCount} of the most recent and relevant news items about ${args.name} from the last 7 days. Prioritise reputable journalism over the company's own blog. Useful angles include:
 - Earnings, financial results, guidance updates
 - Leadership changes, key hires, executive moves
 - Strategic initiatives, M&A activity, restructuring
