@@ -12,6 +12,14 @@ if ('serviceWorker' in navigator) {
   })
 }
 
+// Ask the browser to mark our storage as persistent so iOS Safari and
+// other browsers don't evict the IndexedDB-backed photos and movement
+// history under their automatic clean-up policies. Auto-granted on
+// installed PWAs in capable browsers; harmlessly no-ops elsewhere.
+if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
+  navigator.storage.persist().catch(() => {})
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>

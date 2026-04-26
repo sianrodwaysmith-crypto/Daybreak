@@ -1,94 +1,129 @@
 import type { Moment, MomentsStorage } from '../types'
 import { isoDate, addDays } from '../core/dateHelpers'
+import { idbGetAll, idbPut, idbDelete } from './idb'
 
-const STORE_KEY = 'daybreak-moments-v1'
-
-function readStore(): Moment[] {
-  try {
-    const raw = localStorage.getItem(STORE_KEY)
-    return raw ? JSON.parse(raw) as Moment[] : []
-  } catch { return [] }
-}
-
-function writeStore(moments: Moment[]): void {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(moments)) }
-  catch { /* noop — quota exceeded etc. */ }
-}
+const LEGACY_LS_KEY = 'daybreak-moments-v1'
 
 function newId(): string {
   return `m-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
 }
 
 /**
- * In-browser mock storage backed by localStorage. Persists a single user's
- * moments by ISO date. The real implementation is a TODO stub against the
- * same MomentsStorage interface — see SupabaseMomentsStorage.ts.
+ * Local-first moments storage backed by IndexedDB.
  *
- * If the env flag VITE_MOMENTS_SAMPLE_DATA === 'on' AND no data is yet in
- * localStorage, the constructor seeds a few placeholder moments at dates
- * computed relative to today (one year ago today, two years ago today,
- * a month ago, etc.) so the resurfacing rules engine has something real to
- * evaluate during development. Sample data uses Picsum URLs seeded by the
- * date so the same date always returns the same image.
+ * Originally backed localStorage, but a single full-resolution photo as a
+ * base64 data URL exceeds iOS Safari's ~5 MB localStorage cap and the
+ * write fails silently. IndexedDB has ~50 MB+ headroom on the same
+ * platform and is the right home for blobs. The class is still called
+ * "Mock" because it's the local-first stand-in for the eventual real
+ * backend (see SupabaseMomentsStorage for the TODO swap target).
+ *
+ * On first construction the class migrates any legacy localStorage entry
+ * into IDB and clears the old key, so users who saved a few moments
+ * before the switch don't lose them.
+ *
+ * If VITE_MOMENTS_SAMPLE_DATA === 'on' AND the store ends up empty after
+ * migration, seeds a few placeholder moments at dates relative to today
+ * so the resurfacing rules engine has plausible candidates during dev.
  */
 export class MockMomentsStorage implements MomentsStorage {
-  private moments: Moment[]
+  private cache:       Moment[] | null     = null
+  private loadPromise: Promise<void> | null = null
 
-  constructor() {
-    const existing = readStore()
-    if (existing.length === 0 && import.meta.env.VITE_MOMENTS_SAMPLE_DATA === 'on') {
-      this.moments = seedSamples()
-      writeStore(this.moments)
-    } else {
-      this.moments = existing
+  private async ensureLoaded(): Promise<void> {
+    if (this.cache !== null) return
+    if (this.loadPromise) { await this.loadPromise; return }
+    this.loadPromise = this.load()
+    await this.loadPromise
+  }
+
+  private async load(): Promise<void> {
+    // 1. Migrate legacy localStorage payload if present.
+    try {
+      const legacy = localStorage.getItem(LEGACY_LS_KEY)
+      if (legacy) {
+        const parsed = JSON.parse(legacy) as Moment[]
+        for (const m of parsed) await idbPut(m)
+        localStorage.removeItem(LEGACY_LS_KEY)
+      }
+    } catch { /* ignore — partial migration is better than failed boot */ }
+
+    // 2. Read everything from IDB.
+    let all: Moment[] = []
+    try { all = await idbGetAll<Moment>() }
+    catch { all = [] }
+
+    // 3. Optional dev seed.
+    if (all.length === 0 && import.meta.env.VITE_MOMENTS_SAMPLE_DATA === 'on') {
+      const seeded = seedSamples()
+      for (const m of seeded) {
+        try { await idbPut(m) } catch { /* ignore individual seed failures */ }
+      }
+      all = seeded
     }
+
+    this.cache = all
   }
 
   async submit(moment: Omit<Moment, 'id' | 'submittedAt'>): Promise<Moment> {
-    // Date is the natural primary key — re-submitting on the same day
-    // overwrites in place. Caller is responsible for confirming with the user.
+    await this.ensureLoaded()
     const created: Moment = {
       ...moment,
       id:           newId(),
       submittedAt:  new Date().toISOString(),
     }
-    this.moments = [...this.moments.filter(m => !(m.userId === moment.userId && m.date === moment.date)), created]
-    writeStore(this.moments)
+
+    // Date is the natural primary key — re-submitting on the same day
+    // overwrites in place. Delete the old IDB row and the in-memory copy
+    // before writing the new one.
+    const existingForDate = this.cache!.filter(
+      m => m.userId === moment.userId && m.date === moment.date,
+    )
+    for (const old of existingForDate) {
+      try { await idbDelete(old.id) } catch { /* ignore */ }
+    }
+    this.cache = this.cache!.filter(
+      m => !(m.userId === moment.userId && m.date === moment.date),
+    )
+    await idbPut(created)
+    this.cache.push(created)
     return created
   }
 
   async getByDate(userId: string, date: string): Promise<Moment | null> {
-    return this.moments.find(m => m.userId === userId && m.date === date) ?? null
+    await this.ensureLoaded()
+    return this.cache!.find(m => m.userId === userId && m.date === date) ?? null
   }
 
   async getRange(userId: string, startDate: string, endDate: string): Promise<Moment[]> {
-    return this.moments
+    await this.ensureLoaded()
+    return this.cache!
       .filter(m => m.userId === userId && m.date >= startDate && m.date <= endDate)
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
   }
 
   async getAll(userId: string): Promise<Moment[]> {
-    return this.moments
+    await this.ensureLoaded()
+    return this.cache!
       .filter(m => m.userId === userId)
       .slice()
       .sort((a, b) => b.date.localeCompare(a.date))
   }
 
   async delete(id: string): Promise<void> {
-    this.moments = this.moments.filter(m => m.id !== id)
-    writeStore(this.moments)
+    await this.ensureLoaded()
+    await idbDelete(id)
+    this.cache = this.cache!.filter(m => m.id !== id)
   }
 
   async update(id: string, partial: Partial<Pick<Moment, 'note' | 'photoRef'>>): Promise<Moment> {
-    let updated: Moment | null = null
-    this.moments = this.moments.map(m => {
-      if (m.id !== id) return m
-      updated = { ...m, ...partial }
-      return updated
-    })
-    if (!updated) throw new Error(`moment ${id} not found`)
-    writeStore(this.moments)
+    await this.ensureLoaded()
+    const existing = this.cache!.find(m => m.id === id)
+    if (!existing) throw new Error(`moment ${id} not found`)
+    const updated: Moment = { ...existing, ...partial }
+    await idbPut(updated)
+    this.cache = this.cache!.map(m => m.id === id ? updated : m)
     return updated
   }
 }

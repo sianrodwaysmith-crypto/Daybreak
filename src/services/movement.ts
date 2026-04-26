@@ -38,64 +38,132 @@ export interface MovementSource {
 }
 
 /* -------------------------------------------------------------------
-   Mock — reads from movementMock.json, mutations persist to localStorage
-   so the user's edits survive reloads even though the seed is static.
+   Mock — local-first source backed by IndexedDB.
+   Reads/writes go to IDB so events survive iOS PWA eviction of
+   localStorage and don't share its tiny quota with photos. The legacy
+   localStorage entry is migrated once on first load and then cleared.
 ------------------------------------------------------------------- */
 
-// Bumped to v2 when the seed JSON was cleared — old phones had the
-// hardcoded sessions written into localStorage on first run.
-const STORE_KEY = 'daybreak-movement-events-v2'
+const LEGACY_LS_KEY = 'daybreak-movement-events-v2'
+const IDB_NAME      = 'daybreak-movement'
+const IDB_STORE     = 'events'
+const IDB_VERSION   = 1
 
-function loadStore(): MovementEvent[] | null {
-  try {
-    const raw = localStorage.getItem(STORE_KEY)
-    return raw ? JSON.parse(raw) as MovementEvent[] : null
-  } catch { return null }
+let dbPromise: Promise<IDBDatabase> | null = null
+function openDb(): Promise<IDBDatabase> {
+  if (dbPromise) return dbPromise
+  dbPromise = new Promise<IDBDatabase>((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION)
+    req.onupgradeneeded = () => {
+      const db = req.result
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        db.createObjectStore(IDB_STORE, { keyPath: 'id' })
+      }
+    }
+    req.onsuccess = () => resolve(req.result)
+    req.onerror   = () => reject(req.error)
+  })
+  return dbPromise
 }
-
-function saveStore(events: MovementEvent[]): void {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(events)) }
-  catch { /* noop */ }
+async function idbGetAllEvents(): Promise<MovementEvent[]> {
+  const db = await openDb()
+  return new Promise<MovementEvent[]>((resolve, reject) => {
+    const tx  = db.transaction(IDB_STORE, 'readonly')
+    const req = tx.objectStore(IDB_STORE).getAll()
+    req.onsuccess = () => resolve(req.result as MovementEvent[])
+    req.onerror   = () => reject(req.error)
+  })
+}
+async function idbPutEvent(value: MovementEvent): Promise<void> {
+  const db = await openDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite')
+    tx.objectStore(IDB_STORE).put(value)
+    tx.oncomplete = () => resolve()
+    tx.onerror    = () => reject(tx.error)
+  })
+}
+async function idbDeleteEvent(id: string): Promise<void> {
+  const db = await openDb()
+  return new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(IDB_STORE, 'readwrite')
+    tx.objectStore(IDB_STORE).delete(id)
+    tx.oncomplete = () => resolve()
+    tx.onerror    = () => reject(tx.error)
+  })
 }
 
 export class MockMovementSource implements MovementSource {
-  private events: MovementEvent[]
+  private cache:       MovementEvent[] | null = null
+  private loadPromise: Promise<void> | null   = null
 
-  constructor() {
-    this.events = loadStore() ?? (mock.events as MovementEvent[])
-    if (!loadStore()) saveStore(this.events)
+  private async ensureLoaded(): Promise<void> {
+    if (this.cache !== null) return
+    if (this.loadPromise) { await this.loadPromise; return }
+    this.loadPromise = this.load()
+    await this.loadPromise
+  }
+
+  private async load(): Promise<void> {
+    // 1. One-shot migration: copy any legacy localStorage payload into IDB
+    //    and then drop the localStorage key.
+    try {
+      const legacy = localStorage.getItem(LEGACY_LS_KEY)
+      if (legacy) {
+        const parsed = JSON.parse(legacy) as MovementEvent[]
+        for (const e of parsed) await idbPutEvent(e)
+        localStorage.removeItem(LEGACY_LS_KEY)
+      }
+    } catch { /* ignore — partial migration is better than failed boot */ }
+
+    // 2. Read from IDB.
+    let all: MovementEvent[] = []
+    try { all = await idbGetAllEvents() }
+    catch { all = [] }
+
+    // 3. Seed the bundled JSON only if both stores were empty after
+    //    migration. movementMock.json is currently empty.
+    if (all.length === 0 && (mock.events as MovementEvent[]).length > 0) {
+      all = mock.events as MovementEvent[]
+      for (const e of all) {
+        try { await idbPutEvent(e) } catch { /* ignore */ }
+      }
+    }
+
+    this.cache = all
   }
 
   async loadEvents(startDate: string, endDate: string): Promise<MovementEvent[]> {
-    return this.events
+    await this.ensureLoaded()
+    return this.cache!
       .filter(e => e.date >= startDate && e.date <= endDate)
       .slice()
       .sort((a, b) => a.date.localeCompare(b.date))
   }
 
   async createEvent(event: Omit<MovementEvent, 'id'>): Promise<MovementEvent> {
+    await this.ensureLoaded()
     const id = `local-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
     const created: MovementEvent = { ...event, id }
-    this.events = [...this.events, created]
-    saveStore(this.events)
+    await idbPutEvent(created)
+    this.cache!.push(created)
     return created
   }
 
   async updateEvent(id: string, partial: Partial<MovementEvent>): Promise<MovementEvent> {
-    let updated: MovementEvent | null = null
-    this.events = this.events.map(e => {
-      if (e.id !== id) return e
-      updated = { ...e, ...partial, id: e.id }
-      return updated
-    })
-    if (!updated) throw new Error(`event ${id} not found`)
-    saveStore(this.events)
+    await this.ensureLoaded()
+    const existing = this.cache!.find(e => e.id === id)
+    if (!existing) throw new Error(`event ${id} not found`)
+    const updated: MovementEvent = { ...existing, ...partial, id: existing.id }
+    await idbPutEvent(updated)
+    this.cache = this.cache!.map(e => e.id === id ? updated : e)
     return updated
   }
 
   async deleteEvent(id: string): Promise<void> {
-    this.events = this.events.filter(e => e.id !== id)
-    saveStore(this.events)
+    await this.ensureLoaded()
+    await idbDeleteEvent(id)
+    this.cache = this.cache!.filter(e => e.id !== id)
   }
 }
 
