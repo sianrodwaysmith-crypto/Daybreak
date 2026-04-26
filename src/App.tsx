@@ -204,7 +204,7 @@ function HomeView() {
 
         <MovementTile recovery={readinessScore} />
 
-        <MomentsTile />
+        <MomentsTile onConnect={() => setSettings(true)} />
 
         <footer className="home-footer">
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>

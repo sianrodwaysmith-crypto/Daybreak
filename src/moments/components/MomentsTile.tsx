@@ -17,7 +17,14 @@ type TileState =
   | { kind: 'morning_empty';     dayOne: boolean }
   | { kind: 'evening_prompt'                       }
   | { kind: 'evening_submitted'; moment: Moment    }
+  | { kind: 'not_connected'                        }
   | { kind: 'loading'                              }
+
+const GOOGLE_TOKENS_KEY = 'daybreak-google-tokens'
+function isConnectedToGoogle(): boolean {
+  try { return !!localStorage.getItem(GOOGLE_TOKENS_KEY) }
+  catch { return false }
+}
 
 interface Props {
   /** Defaults to 'sian' to match the rest of the single-user PWA. */
@@ -26,9 +33,11 @@ interface Props {
   nowOverride?:   Date
   /** Test override: bypass the 18:00 rule. */
   forceEvening?:  boolean
+  /** Called when the user taps the connect prompt — opens Settings. */
+  onConnect?:     () => void
 }
 
-export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Props) {
+export function MomentsTile({ userId = 'sian', nowOverride, forceEvening, onConnect }: Props) {
   const now = useMemo(() => nowOverride ?? new Date(), [nowOverride])
 
   const [state,           setState]           = useState<TileState>({ kind: 'loading' })
@@ -55,6 +64,16 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
     ]).then(([todays, yest, all]) => {
       if (!alive) return
       setYesterdayMoment(yest)
+
+      // If we're not connected to Google AND there's no existing today
+      // moment to view, surface a connect prompt instead of the normal
+      // states. Anything saved without tokens would only live in local
+      // IDB and vanish on the next PWA reinstall.
+      if (!isConnectedToGoogle() && !todays) {
+        setState({ kind: 'not_connected' })
+        return
+      }
+
       const isEvening = forceEvening ?? isAfterHourLocal(now, EVENING_HOUR)
 
       if (isEvening) {
@@ -83,6 +102,7 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
       case 'evening_submitted':   setOpenedMoment(state.moment);        break
       case 'evening_prompt':      openSubmitFor(todayISO(now));         break
       case 'morning_empty':       openSubmitFor(todayISO(now));         break
+      case 'not_connected':       onConnect?.();                        break
     }
   }
 
@@ -176,6 +196,13 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening }: Prop
             <div className="moments-prompt">
               <span className="moments-prompt-line">{copy.tile.eveningPrompt()}</span>
               <span className="moments-prompt-cta">{copy.tile.eveningPromptCta()}</span>
+            </div>
+          )}
+
+          {state.kind === 'not_connected' && (
+            <div className="moments-prompt">
+              <span className="moments-prompt-line">{copy.tile.connectGooglePrompt()}</span>
+              <span className="moments-prompt-cta">{copy.tile.connectGoogleCta()}</span>
             </div>
           )}
 

@@ -6,6 +6,17 @@ import { getPicker } from '../pickers'
 import { BrowserPhotoPicker } from '../pickers/BrowserPhotoPicker'
 import { MomentsModal } from './MomentsModal'
 
+/** Where the persisted Google OAuth tokens live. We refuse to save when
+ *  this is missing rather than silently writing to local IDB — local
+ *  writes vanish on PWA reinstall and the user has no signal that
+ *  happened. */
+const GOOGLE_TOKENS_KEY = 'daybreak-google-tokens'
+
+function isConnectedToGoogle(): boolean {
+  try { return !!localStorage.getItem(GOOGLE_TOKENS_KEY) }
+  catch { return false }
+}
+
 interface Props {
   /** Open/close controlled by parent. */
   isOpen:        boolean
@@ -78,6 +89,10 @@ export function MomentsSubmitFlow({
 
   async function handleSave() {
     if (!photo) return
+    if (!isConnectedToGoogle()) {
+      setError(copy.errors.notConnected())
+      return
+    }
     setSaving(true)
     setError(null)
     try {

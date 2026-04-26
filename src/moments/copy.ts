@@ -49,6 +49,8 @@ export const copy = {
       `${ordinal(date.getDate())} ${monthName(date.getMonth())}.`,
     collectionLink:       () => 'collection',
     postYesterdayLink:    () => 'post yesterday',
+    connectGooglePrompt:  () => 'Connect Google to save your moments.',
+    connectGoogleCta:     () => 'Open Settings',
   },
 
   // Memory resurface captions. Caption builders take whatever values they
@@ -60,6 +62,12 @@ export const copy = {
     aMonthAgo:            () => 'A month ago.',
     randomOlder:          (date: Date) =>
       `A moment from ${monthName(date.getMonth())} ${date.getFullYear()}.`,
+  },
+
+  // Errors
+  errors: {
+    notConnected: () =>
+      "You're not connected to Google, so this photo would only live on this device. Connect Google in Settings to save it permanently.",
   },
 
   // Submission flow
