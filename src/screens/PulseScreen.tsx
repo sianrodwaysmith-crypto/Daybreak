@@ -6,6 +6,7 @@ interface Props {
   techMkt:   TileAI
   onRetrySection: (id: 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech') => void
   onRefreshAll:   () => void
+  isHistoric?:    boolean
 }
 
 interface Story {
@@ -232,7 +233,7 @@ function lastUpdated(states: TileAI[]): number | null {
   return ts.length === 0 ? null : Math.min(...ts)
 }
 
-export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
+export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll, isHistoric }: Props) {
   const updated    = lastUpdated([anthropic, aiWorld, techMkt])
   const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
 
@@ -240,17 +241,21 @@ export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySectio
     <div className="pulse-screen">
       <div className="pulse-toolbar">
         <span className="pulse-toolbar-meta">
-          {updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
+          {isHistoric
+            ? 'Snapshot'
+            : updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
         </span>
-        <button
-          onClick={onRefreshAll}
-          disabled={anyLoading}
-          aria-label="Refresh Pulse"
-          className="pulse-refresh-btn"
-        >
-          <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
-          <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
-        </button>
+        {!isHistoric && (
+          <button
+            onClick={onRefreshAll}
+            disabled={anyLoading}
+            aria-label="Refresh Pulse"
+            className="pulse-refresh-btn"
+          >
+            <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
+            <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
+          </button>
+        )}
       </div>
 
       <Section label="Anthropic"   state={anthropic} onRetry={() => onRetrySection('pulse-anthropic')} />

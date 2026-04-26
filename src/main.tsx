@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.tsx'
 import Splash from './components/Splash.tsx'
 import { DayBreakProvider } from './contexts/DayBreakContext.tsx'
+import { DayProvider } from './contexts/DayContext.tsx'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -16,8 +17,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <DayBreakProvider>
-        <App />
-        <Splash />
+        <DayProvider>
+          <App />
+          <Splash />
+        </DayProvider>
       </DayBreakProvider>
     </BrowserRouter>
   </StrictMode>,
