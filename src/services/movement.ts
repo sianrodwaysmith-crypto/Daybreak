@@ -199,6 +199,137 @@ export class DavidLloydSource implements MovementSource {
 }
 
 /* -------------------------------------------------------------------
+   Google Calendar movement source. Reads the user's calendar events
+   for a date range (via the same /api/google/events endpoint
+   useCalendar uses) and surfaces any whose title looks like exercise
+   as 'booked' MovementEvents. Read-only — composes alongside the
+   writable mock source so the tile shows both planned exercise from
+   the calendar and locally-edited events.
+------------------------------------------------------------------- */
+
+const GOOGLE_TOKENS_KEY = 'daybreak-google-tokens'
+
+interface GoogleTokens { access_token: string; refresh_token: string; expires_at: number }
+
+function readGoogleTokens(): GoogleTokens | null {
+  try {
+    const raw = localStorage.getItem(GOOGLE_TOKENS_KEY)
+    return raw ? JSON.parse(raw) as GoogleTokens : null
+  } catch { return null }
+}
+
+const MOVEMENT_KEYWORDS = [
+  'run', 'running', 'jog', 'jogging',
+  'gym', 'workout', 'training', 'fitness',
+  'yoga', 'pilates', 'barre',
+  'swim', 'swimming',
+  'bike', 'biking', 'cycle', 'cycling', 'spin', 'spinning',
+  'padel', 'tennis', 'squash', 'badminton',
+  'climb', 'climbing', 'bouldering',
+  'row', 'rowing',
+  'lift', 'lifting', 'weights', 'strength',
+  'hike', 'hiking',
+  'walk', 'walking',
+  'pt', 'personal training',
+  'crossfit', 'hiit',
+  'football', 'soccer', 'basketball', 'rugby',
+  'sport', 'sports', 'exercise', 'workout',
+]
+const MOVEMENT_RE = new RegExp(`\\b(${MOVEMENT_KEYWORDS.join('|')})\\b`, 'i')
+
+function looksLikeMovement(title: string): boolean {
+  return MOVEMENT_RE.test(title)
+}
+
+function inferIntensity(title: string): 'low' | 'moderate' | 'high' | undefined {
+  const t = title.toLowerCase()
+  if (/\b(easy|gentle|light|stroll|recovery|chill)\b/.test(t)) return 'low'
+  if (/\b(hard|intense|tempo|hiit|race|long run|long ride|crossfit)\b/.test(t)) return 'high'
+  return 'moderate'
+}
+
+// Tiny in-memory cache so navigating weeks back and forth doesn't keep
+// hitting Google. Keyed by date range; cleared when the page reloads.
+const gcalCache = new Map<string, { events: MovementEvent[]; ts: number }>()
+const GCAL_CACHE_TTL_MS = 30 * 60 * 1000
+
+interface GCalApiEvent {
+  id:        string
+  title:     string
+  start:     string
+  end:       string
+  allDay:    boolean
+  location?: string
+}
+
+export class GoogleCalendarMovementSource implements MovementSource {
+  async loadEvents(startDate: string, endDate: string): Promise<MovementEvent[]> {
+    const tokens = readGoogleTokens()
+    if (!tokens) return []
+
+    const cacheKey = `${startDate}/${endDate}`
+    const cached = gcalCache.get(cacheKey)
+    if (cached && Date.now() - cached.ts < GCAL_CACHE_TTL_MS) return cached.events
+
+    const params = new URLSearchParams({
+      timeMin: `${startDate}T00:00:00`,
+      timeMax: `${endDate}T23:59:59`,
+    })
+
+    let res: Response
+    try {
+      res = await fetch(`/api/google/events?${params.toString()}`, {
+        headers: {
+          'Authorization':         `Bearer ${tokens.access_token}`,
+          'X-Google-Refresh-Token': tokens.refresh_token,
+        },
+        cache: 'no-store',
+      })
+    } catch {
+      return []
+    }
+
+    if (!res.ok) return []
+
+    let json: { events?: GCalApiEvent[] }
+    try { json = await res.json() }
+    catch { return [] }
+
+    const events = (json.events ?? [])
+      .filter(e => looksLikeMovement(e.title))
+      .map<MovementEvent>(e => {
+        const date = e.start.split('T')[0]
+        const startDate = new Date(e.start)
+        const endDate   = new Date(e.end)
+        const durationMinutes = Number.isFinite(startDate.getTime()) && Number.isFinite(endDate.getTime())
+          ? Math.max(0, Math.round((endDate.getTime() - startDate.getTime()) / 60000))
+          : undefined
+        const startTime = e.allDay
+          ? undefined
+          : `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`
+        return {
+          id:              `gcal-${e.id}`,
+          date,
+          source:          'booked',
+          title:           e.title,
+          startTime,
+          durationMinutes,
+          location:        e.location,
+          intensity:       inferIntensity(e.title),
+          externalId:      e.id,
+        }
+      })
+
+    gcalCache.set(cacheKey, { events, ts: Date.now() })
+    return events
+  }
+
+  async createEvent(_e: Omit<MovementEvent, 'id'>): Promise<MovementEvent> { throw new Error('google-calendar is read-only') }
+  async updateEvent(_id: string, _p: Partial<MovementEvent>): Promise<MovementEvent> { throw new Error('google-calendar is read-only') }
+  async deleteEvent(_id: string): Promise<void>                           { throw new Error('google-calendar is read-only') }
+}
+
+/* -------------------------------------------------------------------
    Composite source — the tile composes from a list of sources.
    Mutations route to whichever source owns the id (currently only
    the local MockMovementSource is writable).

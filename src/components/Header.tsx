@@ -67,6 +67,12 @@ export default function Header({ onSettings, weather }: Props) {
             <span>{weather.condition.toLowerCase()}</span>
             <span className="header-weather-sep" aria-hidden>·</span>
             <span>low {weather.low}°</span>
+            {weather.rainChance > 0 && (
+              <>
+                <span className="header-weather-sep" aria-hidden>·</span>
+                <span>{weather.rainChance}% rain</span>
+              </>
+            )}
           </div>
         )}
       </div>

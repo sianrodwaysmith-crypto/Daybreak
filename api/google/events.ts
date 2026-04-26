@@ -49,6 +49,12 @@ function endOfTodayLocal(): Date {
   return d
 }
 
+function parseISOOrNull(s: string | undefined): Date | null {
+  if (!s) return null
+  const t = Date.parse(s)
+  return Number.isFinite(t) ? new Date(t) : null
+}
+
 export default async function handler(req: any, res: any) {
   // Disconnect — client wipes localStorage; no server state to clean up.
   if (req.method === 'DELETE') {
@@ -82,12 +88,18 @@ export default async function handler(req: any, res: any) {
     returnedTokens = next
   }
 
+  // Optional time range overrides via query string. Clients use these to
+  // pull a wider window (e.g. the Movement tile's visible week). Default
+  // is today's local midnight to local end-of-day.
+  const minOverride = parseISOOrNull(req.query?.timeMin as string | undefined)
+  const maxOverride = parseISOOrNull(req.query?.timeMax as string | undefined)
+
   const params = new URLSearchParams({
-    timeMin:       startOfTodayLocal().toISOString(),
-    timeMax:       endOfTodayLocal().toISOString(),
+    timeMin:       (minOverride ?? startOfTodayLocal()).toISOString(),
+    timeMax:       (maxOverride ?? endOfTodayLocal()).toISOString(),
     singleEvents:  'true',
     orderBy:       'startTime',
-    maxResults:    '50',
+    maxResults:    '250',
   })
   const eventsUrl = `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`
   const authHeaders = { Authorization: `Bearer ${currentAccess}` }

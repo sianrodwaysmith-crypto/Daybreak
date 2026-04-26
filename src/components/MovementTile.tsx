@@ -2,19 +2,21 @@ import { useEffect, useMemo, useState } from 'react'
 import Modal from './Modal'
 import { MovementIcon } from './icons'
 import {
-  MockMovementSource, CompositeMovementSource,
+  MockMovementSource, CompositeMovementSource, GoogleCalendarMovementSource,
   computeCadence, todaysSession, weekDates, startOfWeek, todayISO, isoDate,
   type MovementEvent, type MovementSource,
 } from '../services/movement'
 
 /* ====================================================================
    Single composite source instance for the whole app.
+   First source is the writable mock (user-edited planned/rest events);
+   second is the Google Calendar reader which surfaces any titled-as-
+   exercise events as 'booked' sessions on the chart. Future sources
+   (Whoop workouts, David Lloyd bookings) plug in here.
 ==================================================================== */
 const source: MovementSource = new CompositeMovementSource([
   new MockMovementSource(),
-  // TODO: add AppleCalendarSource, WhoopSource, DavidLloydSource here
-  // when their real implementations land. Read-only sources will show up
-  // in the chart but won't be edited by the tile.
+  new GoogleCalendarMovementSource(),
 ])
 
 /* ====================================================================

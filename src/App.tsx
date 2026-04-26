@@ -90,8 +90,8 @@ function summariseSchedule(
 
   if (allDay.length > 0) {
     return allDay.length === 1
-      ? `${allDay[0].title} all day.`
-      : `${allDay[0].title} (and ${allDay.length - 1} more) all day.`
+      ? `${allDay[0].title}.`
+      : `${allDay[0].title} (and ${allDay.length - 1} more).`
   }
 
   return undefined
