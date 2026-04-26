@@ -221,7 +221,7 @@ function readGoogleTokens(): GoogleTokens | null {
 const MOVEMENT_KEYWORDS = [
   'run', 'running', 'jog', 'jogging',
   'gym', 'workout', 'training', 'fitness',
-  'yoga', 'pilates', 'barre',
+  'yoga', 'pilates', 'barre', 'blaze',
   'swim', 'swimming',
   'bike', 'biking', 'cycle', 'cycling', 'spin', 'spinning',
   'padel', 'tennis', 'squash', 'badminton',
@@ -237,7 +237,11 @@ const MOVEMENT_KEYWORDS = [
 ]
 const MOVEMENT_RE = new RegExp(`\\b(${MOVEMENT_KEYWORDS.join('|')})\\b`, 'i')
 
-function looksLikeMovement(title: string): boolean {
+/**
+ * Exported so the schedule view can de-dupe events that are already
+ * surfaced in the Movement tile.
+ */
+export function looksLikeMovement(title: string): boolean {
   return MOVEMENT_RE.test(title)
 }
 

@@ -94,7 +94,7 @@ export default async function handler(req: any, res: any) {
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8">
 <title>Connecting…</title>
 <style>body{background:#f4f1ea;color:#0a0a0a;font:14px -apple-system,sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}</style>
-</head><body><div>Connecting Google Calendar…</div>
+</head><body><div>Connecting Google…</div>
 <script>
 try {
   localStorage.setItem('daybreak-google-tokens', ${JSON.stringify(stored)});

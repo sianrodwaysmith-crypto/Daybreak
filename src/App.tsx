@@ -19,6 +19,7 @@ import ClientResearchScreen from './screens/ClientResearchScreen'
 import PulseScreen from './screens/PulseScreen'
 import MindsetScreen from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
+import { looksLikeMovement } from './services/movement'
 import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
@@ -58,7 +59,7 @@ function summariseSchedule(
   now:       Date,
 ): string | undefined {
   if (loading)    return 'Loading your day…'
-  if (!connected) return 'Tap to connect Google Calendar.'
+  if (!connected) return 'Tap to connect Google.'
   if (events.length === 0) return 'Your day is open.'
 
   const timed   = events.filter(e => !e.allDay)
@@ -132,8 +133,12 @@ function HomeView() {
   const pulseLoading =
     ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
 
+  // Anything that reads as exercise lives in the Movement tile, not the
+  // schedule. Filter those events out so they don't show in both places.
+  const scheduleEvents = calendar.events.filter(e => !looksLikeMovement(e.title))
+
   const scheduleSubtitle = summariseSchedule(
-    calendar.events, calendar.loading, calendar.connected, new Date(),
+    scheduleEvents, calendar.loading, calendar.connected, new Date(),
   )
 
   const TILES = [
@@ -172,7 +177,7 @@ function HomeView() {
         onRefreshAll={refreshPulse}
       />
       case 'mindset':  return <MindsetScreen />
-      case 'schedule': return <ScheduleScreen events={calendar.events} loading={calendar.loading} connected={calendar.connected} />
+      case 'schedule': return <ScheduleScreen events={scheduleEvents} loading={calendar.loading} connected={calendar.connected} />
       default:         return null
     }
   }

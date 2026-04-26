@@ -290,7 +290,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
               className="settings-btn settings-btn-disconnect"
               onClick={() => calendar.disconnect()}
             >
-              DISCONNECT GOOGLE CALENDAR
+              DISCONNECT GOOGLE
             </button>
           </>
         ) : googleAuthUrl ? (
@@ -307,7 +307,7 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
               href={googleAuthUrl}
               style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
             >
-              CONNECT GOOGLE CALENDAR →
+              CONNECT GOOGLE →
             </a>
           </>
         ) : (
