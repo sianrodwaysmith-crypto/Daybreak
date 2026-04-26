@@ -44,22 +44,61 @@ interface MinimalCalEvent {
   allDay: boolean
 }
 
-// The home tile keeps the prompt soft and conversational. Timings are
-// reserved for the modal view where the full schedule lives.
+function formatTime12h(d: Date): string {
+  const h = d.getHours()
+  const m = d.getMinutes()
+  const suffix = h >= 12 ? 'pm' : 'am'
+  const hour = h % 12 || 12
+  return m === 0 ? `${hour}${suffix}` : `${hour}:${String(m).padStart(2, '0')}${suffix}`
+}
+
+// Surface the headline event (in-progress > next > first all-day) and
+// pair it with a soft nudge so the tile is conversational without
+// hiding what actually matters today. Full timings live in the modal.
 function summariseSchedule(
   events:    readonly MinimalCalEvent[],
   loading:   boolean,
   connected: boolean,
+  now:       Date,
 ): string | undefined {
   if (loading)    return 'Loading your day…'
   if (!connected) return 'Tap to connect Google.'
+  if (events.length === 0) return 'Open day. What would make today feel good?'
 
-  const count = events.length
-  if (count === 0) return 'Open day. What would make today feel good?'
-  if (count === 1) return 'Just one thing today. Have you thought about a walk?'
-  if (count === 2) return 'Two things today. Room for a movement break?'
-  if (count >= 5)  return `${count} things on. Have you carved out any time for yourself?`
-  return `${count} things today. Have you blocked time for lunch?`
+  const timed  = events.filter(e => !e.allDay)
+  const allDay = events.filter(e =>  e.allDay)
+
+  const inProgress = timed.find(e => e.start <= now && e.end > now)
+  const upcoming   = timed.filter(e => e.start > now).sort((a, b) => a.start.getTime() - b.start.getTime())
+  const past       = timed.filter(e => e.end <= now)
+
+  if (inProgress) {
+    const remaining = upcoming.length
+    const tail = remaining === 0 ? 'Last one of the day.'
+               : remaining === 1 ? 'One more after.'
+               : `${remaining} more after.`
+    return `In ${inProgress.title} until ${formatTime12h(inProgress.end)}. ${tail}`
+  }
+
+  if (upcoming.length > 0) {
+    const next = upcoming[0]
+    const time = formatTime12h(next.start)
+    if (upcoming.length === 1 && past.length === 0 && allDay.length === 0) {
+      return `Just ${next.title} at ${time} today. Room for a walk first?`
+    }
+    if (upcoming.length === 1) return `Next: ${next.title} at ${time}. Last one today.`
+    return `Next: ${next.title} at ${time}. ${upcoming.length - 1} more after.`
+  }
+
+  if (past.length > 0) return 'All wrapped up for today. Take the evening back.'
+
+  if (allDay.length > 0) {
+    return allDay.length === 1
+      ? `${allDay[0].title} today.`
+      : `${allDay[0].title} (and ${allDay.length - 1} more).`
+  }
+
+  return undefined
 }
 
 function useWhoopFlash(): { msg: string | null; clear: () => void } {
@@ -102,7 +141,7 @@ function HomeView() {
   const scheduleEvents = calendar.events.filter(e => !looksLikeMovement(e.title))
 
   const scheduleSubtitle = summariseSchedule(
-    scheduleEvents, calendar.loading, calendar.connected,
+    scheduleEvents, calendar.loading, calendar.connected, new Date(),
   )
 
   const TILES = [
