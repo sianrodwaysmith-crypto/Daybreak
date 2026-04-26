@@ -28,7 +28,7 @@ function todayStr(): string {
 
 // Bump this when the prompt format or rendered shape changes so stale caches
 // don't survive a deploy.
-const CACHE_VERSION = 'v7'
+const CACHE_VERSION = 'v8'
 
 function cacheKey(id: AITileId): string {
   return `daybreak-ai-${CACHE_VERSION}-${id}-${todayStr()}`

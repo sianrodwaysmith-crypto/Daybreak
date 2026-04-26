@@ -162,6 +162,16 @@ function parseStories(raw: string): Story[] {
   const firstHeadline = text.search(/^(?:\*\*.+|#{1,3}\s+.+)/m)
   if (firstHeadline > 0) text = text.slice(firstHeadline)
 
+  // The model sometimes writes the labelled lines with blank gaps between
+  // them — '**What:** ...' \n\n '**Impact:** ...'. Without this collapse
+  // those gaps would split the story into multiple blocks below. Strip
+  // blank lines that immediately precede a What/Impact/Source line so
+  // they stay attached to the story they belong to.
+  text = text.replace(
+    /\n\s*\n(?=\s*\*{0,2}(?:what|impact|source)\*{0,2}\s*:)/gi,
+    '\n',
+  )
+
   const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
 
   return blocks
@@ -176,15 +186,18 @@ function parseStories(raw: string): Story[] {
       let url: string | null = null
 
       for (const line of lines) {
-        const sourceLine = line.match(/^source\s*:?\s*(.+)$/i)
+        // Source/What/Impact label regexes tolerate optional ** around the
+        // label and around the value, so '**What:** body', '**What**: body',
+        // '**What:** **body**' and 'What: body' all parse the same.
+        const sourceLine = line.match(/^\s*\*{0,2}\s*source\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
         if (sourceLine) {
           const u = sourceLine[1].match(/https?:\/\/[^\s)>\]]+/)
           if (u) url = cleanUrl(u[0])
           continue
         }
-        const whatLine   = line.match(/^what\s*:\s*(.+)$/i)
+        const whatLine   = line.match(/^\s*\*{0,2}\s*what\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
         if (whatLine) { what = stripBold(whatLine[1]); continue }
-        const impactLine = line.match(/^impact\s*:\s*(.+)$/i)
+        const impactLine = line.match(/^\s*\*{0,2}\s*impact\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
         if (impactLine) { impact = stripBold(impactLine[1]); continue }
 
         if (!headline) {

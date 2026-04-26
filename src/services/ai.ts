@@ -80,10 +80,12 @@ Source: https://full-direct-url-to-the-original-article
 Separate the two stories with a single blank line and nothing else.
 
 Hard rules:
-- The bolded line is the article's actual title (or as close to it as you can get). Sentence case.
+- The bolded line is the article's actual title (or as close to it as you can get), in sentence case. Cap it at 12 words; if the publication's headline is longer, paraphrase it down. Don't surround the title with anything other than the two bold markers.
+- The What and Impact lines must NOT be wrapped in markdown bold markers. Write them as plain text starting with the literal label "What:" or "Impact:" followed by a space. Do not write "**What:**" or "**Impact:**".
+- Do not put blank lines between the bolded title, the What line, the Impact line, and the Source line within a single story. Only use a blank line between the two stories.
 - The What line is content. State what the article reports. Don't add interpretation.
 - The Impact line is the so-what. Be concrete, in practice, applied. Avoid clichés like "this is significant" or "this changes everything"; say what specifically changes.
-- Both What and Impact must each be a single sentence and start with the literal label "What:" or "Impact:" followed by a space. Keep each under 25 words.
+- Both What and Impact must each be a single sentence. Keep each under 25 words.
 - The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage).
 - Your very first character must be the asterisk of the first headline. No preamble, no framing, no "here are the stories" line.
 - No closing line, summary, or commentary after the last Source.
@@ -242,9 +244,9 @@ export function fetchPulseAnthropic(): Promise<string> {
   return callPulse(
     `Today is ${day}, ${date}.
 
-Search reputable technology news sources including the official Anthropic blog at anthropic.com/news, TechCrunch, The Verge, Wired, Reuters Technology and the Financial Times for the latest news specifically about Anthropic from the last 7 days.
+Search reputable technology news sources including TechCrunch, The Verge, Wired, Reuters Technology, the Financial Times and MIT Technology Review for the most important news about Anthropic from the last 7 days. Prefer journalism over Anthropic's own blog so the framing is reportorial, not promotional.
 
-Return the 2 most important stories. For each, give a bold headline and 2 sentences of context explaining why it matters to someone working in enterprise technology.${PULSE_FORMAT_TAIL}`,
+Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'anthropic',
   )
 }
