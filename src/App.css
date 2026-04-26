@@ -1572,6 +1572,37 @@
   color: var(--muted);
 }
 .account-news-empty-text { font-style: italic; }
+
+.account-news-empty-block {
+  padding: 14px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.account-news-empty-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.account-news-empty-headline {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.35;
+}
+.account-news-empty-detail {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.account-news-empty-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .account-news-error {
   display: flex;
   align-items: center;

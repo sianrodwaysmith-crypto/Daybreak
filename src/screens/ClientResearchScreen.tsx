@@ -14,8 +14,11 @@ import { parseAccountNews, hostname, formatRelativeDate } from '../clients/parse
 
 interface NewsBlockProps {
   state:    NewsState
+  accountName: string
+  hasNotes: boolean
   onLoad:   () => void
   onRetry:  () => void
+  onEdit:   () => void
   showTalkingPoints: boolean
 }
 
@@ -24,7 +27,7 @@ function isRateLimited(msg: string | null): boolean {
   return /\b429\b|rate[- ]?limit|tokens per minute/i.test(msg)
 }
 
-function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps) {
+function NewsBlock({ state, accountName, hasNotes, onLoad, onRetry, onEdit, showTalkingPoints }: NewsBlockProps) {
   if (state.loading) {
     return (
       <div className="account-news-loading">
@@ -63,9 +66,23 @@ function NewsBlock({ state, onLoad, onRetry, showTalkingPoints }: NewsBlockProps
   const { stories, talkingPoints } = parseAccountNews(state.content)
   if (stories.length === 0 && talkingPoints.length === 0) {
     return (
-      <div className="account-news-error">
-        <span>No news landed in the response.</span>
-        {onRetry && <button className="account-news-retry" onClick={onRetry}>↻ Retry</button>}
+      <div className="account-news-empty-block">
+        <div className="account-news-empty-stack">
+          <span className="account-news-empty-headline">
+            No recent news found for {accountName}.
+          </span>
+          <span className="account-news-empty-detail">
+            {hasNotes
+              ? 'The web search came back empty for the last 30 days. Try refreshing later, or refine the notes (e.g. specific division, parent company) so the search lands on the right entity.'
+              : `If the name is ambiguous, add context in notes (industry, location, full company name) so the search knows which ${accountName} you mean.`}
+          </span>
+        </div>
+        <div className="account-news-empty-actions">
+          {!hasNotes && (
+            <button className="account-news-retry" onClick={onEdit}>✎ Add context</button>
+          )}
+          <button className="account-news-retry" onClick={onRetry}>↻ Try again</button>
+        </div>
       </div>
     )
   }
@@ -261,8 +278,11 @@ function AccountCard({ account, isFocus, onFocus, onUpdate, onDelete }: CardProp
         <div className="account-body">
           <NewsBlock
             state={news}
+            accountName={account.name}
+            hasNotes={!!account.notes}
             onLoad={() => load(false)}
             onRetry={() => load(true)}
+            onEdit={() => { setEditing(true); setExpanded(true) }}
             showTalkingPoints={isFocus}
           />
         </div>
