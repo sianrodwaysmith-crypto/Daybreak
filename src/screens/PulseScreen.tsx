@@ -172,10 +172,16 @@ function Section({ label, state, onRetry }: SectionProps) {
       <div className="pulse-section-label">{label}</div>
 
       {state.loading && (
-        <div className="pulse-card pulse-card-loading">
-          <span className="pulse-skel pulse-skel-headline" />
-          <span className="pulse-skel pulse-skel-line" />
-          <span className="pulse-skel pulse-skel-line pulse-skel-line-short" />
+        <div className="pulse-card-list">
+          {/* Two skeleton cards because each section returns two stories,
+              so the layout doesn't pop when content lands. */}
+          {[0, 1].map(k => (
+            <div key={k} className="pulse-card pulse-card-loading">
+              <span className="pulse-skel pulse-skel-headline" />
+              <span className="pulse-skel pulse-skel-line" />
+              <span className="pulse-skel pulse-skel-line pulse-skel-line-short" />
+            </div>
+          ))}
         </div>
       )}
 
@@ -215,9 +221,10 @@ function Section({ label, state, onRetry }: SectionProps) {
                   story.body && <p className="pulse-body">{story.body}</p>
                 )}
                 {story.url && (
-                  <span className="pulse-source">
-                    {hostname(story.url)} <span aria-hidden>↗</span>
-                  </span>
+                  <span className="pulse-source">{hostname(story.url)}</span>
+                )}
+                {story.url && (
+                  <span className="pulse-card-chevron" aria-hidden>↗</span>
                 )}
               </>
             )

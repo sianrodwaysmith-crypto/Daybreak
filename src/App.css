@@ -2035,12 +2035,13 @@
 .pulse-card-list { display: flex; flex-direction: column; gap: 10px; }
 
 .pulse-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 16px 16px 14px;
+  padding: 16px 32px 14px 16px;   /* extra right padding leaves room for the chevron */
 }
 a.pulse-card-link {
   text-decoration: none;
@@ -2052,14 +2053,29 @@ a.pulse-card-link:hover {
   background: var(--bg-soft);
   border-color: var(--line-strong);
 }
+a.pulse-card-link:hover .pulse-card-chevron {
+  color: var(--ink);
+  transform: translate(2px, -2px);
+}
 a.pulse-card-link:active { transform: scale(0.995); }
 
+.pulse-card-chevron {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+  transition: color 0.12s ease, transform 0.12s ease;
+  pointer-events: none;
+}
+
 .pulse-headline {
-  margin: 0 0 8px;
+  margin: 0 0 10px;
   font-family: 'DM Serif Display', serif;
-  font-size: 19px;
-  line-height: 1.3;
-  letter-spacing: -0.005em;
+  font-size: 20px;
+  line-height: 1.28;
+  letter-spacing: -0.01em;
   color: var(--ink);
   font-weight: 400;
 }
@@ -2072,17 +2088,17 @@ a.pulse-card-link:active { transform: scale(0.995); }
 }
 .pulse-facts {
   display: grid;
-  grid-template-columns: 64px 1fr;
-  column-gap: 14px;
+  grid-template-columns: 56px 1fr;
+  column-gap: 12px;
   row-gap: 6px;
   margin: 0;
 }
 .pulse-fact-label {
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--faint);
   padding-top: 4px;
 }
 .pulse-fact-text {
@@ -2093,11 +2109,11 @@ a.pulse-card-link:active { transform: scale(0.995); }
 }
 .pulse-source {
   margin-top: 12px;
-  font-size: 11.5px;
-  font-weight: 500;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--muted);
+  color: var(--faint);
   align-self: flex-start;
 }
 
