@@ -47,98 +47,22 @@ function stripInline(s: string): string {
     .trim()
 }
 
-// Kept as an alias so existing call sites still compile; new behaviour is
-// the broader stripInline above.
-function stripBold(s: string): string { return stripInline(s) }
-
 /**
- * Sentence splitter that respects common abbreviations and decimals.
- * Returns trimmed sentences, including the trailing punctuation.
- */
-function splitSentences(text: string): string[] {
-  const out: string[] = []
-  // Match runs ending in . ! or ? not preceded by a space-letter abbreviation
-  // and not in the middle of a number (1.5).
-  const re = /[^.!?]+[.!?]+(?=\s|$)/g
-  let m: RegExpExecArray | null
-  while ((m = re.exec(text)) !== null) {
-    const s = m[0].trim()
-    if (s) out.push(s)
-  }
-  // Trailing fragment with no terminator
-  const lastEnd = out.length > 0 ? text.lastIndexOf(out[out.length - 1]) + out[out.length - 1].length : 0
-  const tail = text.slice(lastEnd).trim()
-  if (tail) out.push(tail)
-  return out
-}
-
-// Keywords that strongly suggest a sentence is the "so-what" / Impact.
-const IMPACT_HINTS = [
-  'mean', 'means', 'meaning',
-  'matter', 'matters',
-  'allow', 'allows', 'enable', 'enables',
-  'change', 'changes', 'changing',
-  'signal', 'signals', 'signalling',
-  'suggest', 'suggests',
-  'imply', 'implies',
-  'expect', 'expected', 'likely',
-  'will ', 'could ', 'may ', 'might ',
-  'for users', 'for buyers', 'for consumers', 'for businesses',
-  'for the industry', 'for the market', 'for investors',
-  'in practice', 'practically', 'puts pressure',
-  'raises the bar', 'sets up', 'opens the door',
-  'risk', 'risks',
-]
-
-function impactScore(sentence: string): number {
-  const lower = sentence.toLowerCase()
-  let score = 0
-  for (const k of IMPACT_HINTS) if (lower.includes(k)) score += 1
-  return score
-}
-
-/**
- * Picks one sentence from the body to use as the "Impact" line and bundles
- * the rest into "What". Heuristic, in priority order:
- *   1. If body has 0 or 1 sentence, it all becomes What.
- *   2. If exactly 2 sentences, first is What, second is Impact.
- *   3. If 3+ sentences, score each by impact-ish keyword density. The
- *      highest-scoring sentence becomes Impact (preferring later sentences
- *      to break ties — the so-what usually lands at the end). The remainder,
- *      in original order, becomes What.
- */
-function synthesiseWhatImpact(body: string): { what: string; impact: string } {
-  const sentences = splitSentences(body)
-  if (sentences.length === 0) return { what: body.trim(), impact: '' }
-  if (sentences.length === 1) return { what: sentences[0], impact: '' }
-  if (sentences.length === 2) return { what: sentences[0], impact: sentences[1] }
-
-  let bestIdx = sentences.length - 1   // default to the last sentence
-  let bestScore = -1
-  sentences.forEach((s, i) => {
-    const score = impactScore(s)
-    // Prefer later sentences on ties so the so-what tends to be Impact, not setup.
-    if (score > bestScore || (score === bestScore && i > bestIdx)) {
-      bestScore = score
-      bestIdx = i
-    }
-  })
-  const impactSentence = sentences[bestIdx]
-  const whatSentences  = sentences.filter((_, i) => i !== bestIdx)
-  return { what: whatSentences.join(' '), impact: impactSentence }
-}
-
-/**
- * Splits the model output into stories. Each story has a headline, a What
- * sentence, an Impact sentence, and a source URL. URLs are resolved in
- * priority order: explicit "Source: <url>" line → inline URL in the body →
- * i-th URL from the trailing "Sources:" block the service appends from
- * web_search citations.
+ * Extracts each <story> block from the model's XML output. Falls back to
+ * the trailing 'Sources:' block (appended server-side from web_search
+ * citations) for stories whose <source> tag is missing or unparseable.
+ *
+ * We switched from markdown-with-labels to XML because the markdown
+ * variants the model produced (bold headlines + sometimes-bolded labels +
+ * sometimes-blank-line separators + heading markers) created an arms race
+ * of brittle regex fixes. XML tags give us one shape per field, no
+ * ambiguity, and the parser becomes a few lines.
  */
 function parseStories(raw: string): Story[] {
   let text = raw
 
-  // Pull off the trailing Sources block if present
+  // Pull off the trailing Sources block (server-appended web_search URLs)
+  // before extracting stories so it doesn't pollute matching.
   const fallbackUrls: string[] = []
   const sourcesMatch = text.match(/\n\s*sources?\s*:?\s*\n([\s\S]+)$/i)
   if (sourcesMatch) {
@@ -152,120 +76,33 @@ function parseStories(raw: string): Story[] {
     text = text.slice(0, sourcesMatch.index).trim()
   }
 
-  // Strip markdown horizontal-rule separators ("---", "***", "___") that the
-  // model sometimes wedges between stories.
-  text = text.replace(/^\s*[-*_]{3,}\s*$/gm, '')
+  function extract(inner: string, tag: string): string {
+    const m = inner.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'))
+    return m ? stripInline(m[1]).trim() : ''
+  }
 
-  // Drop any preamble before the first headline. A headline is the first
-  // line that starts with either a bold marker (**) or a markdown heading
-  // marker (# / ##). Catches the Anthropic-blog-style '## Title' format.
-  const firstHeadline = text.search(/^(?:\*\*.+|#{1,3}\s+.+)/m)
-  if (firstHeadline > 0) text = text.slice(firstHeadline)
+  const stories: Story[] = []
+  const storyRe = /<story[^>]*>([\s\S]*?)<\/story>/gi
+  let m: RegExpExecArray | null
+  let i = 0
+  while ((m = storyRe.exec(text)) !== null) {
+    const inner    = m[1]
+    const headline = extract(inner, 'title')
+    const what     = extract(inner, 'what')
+    const impact   = extract(inner, 'impact')
+    const sourceText = extract(inner, 'source')
 
-  // The model sometimes writes the labelled lines with blank gaps between
-  // them — '**What:** ...' \n\n '**Impact:** ...'. Without this collapse
-  // those gaps would split the story into multiple blocks below. Strip
-  // blank lines that immediately precede a What/Impact/Source line so
-  // they stay attached to the story they belong to.
-  text = text.replace(
-    /\n\s*\n(?=\s*\*{0,2}(?:what|impact|source)\*{0,2}\s*:)/gi,
-    '\n',
-  )
+    let url: string | null = null
+    const urlMatch = sourceText.match(/https?:\/\/[^\s)>\]]+/)
+    if (urlMatch) url = cleanUrl(urlMatch[0])
+    if (!url && fallbackUrls[i]) url = fallbackUrls[i]
 
-  const blocks = text.split(/\n\s*\n/).map(b => b.trim()).filter(Boolean)
+    if (!headline && !what && !impact) { i += 1; continue }
+    stories.push({ headline, what, impact, body: '', url })
+    i += 1
+  }
 
-  return blocks
-    .map((block, i): Story | null => {
-      const lines = block.split('\n').map(l => l.trim()).filter(Boolean)
-      if (lines.length === 0) return null
-
-      let headline = ''
-      let what     = ''
-      let impact   = ''
-      const otherLines: string[] = []
-      let url: string | null = null
-
-      for (const line of lines) {
-        // Source/What/Impact label regexes tolerate optional ** around the
-        // label and around the value, so '**What:** body', '**What**: body',
-        // '**What:** **body**' and 'What: body' all parse the same.
-        const sourceLine = line.match(/^\s*\*{0,2}\s*source\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
-        if (sourceLine) {
-          const u = sourceLine[1].match(/https?:\/\/[^\s)>\]]+/)
-          if (u) url = cleanUrl(u[0])
-          continue
-        }
-        const whatLine   = line.match(/^\s*\*{0,2}\s*what\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
-        if (whatLine) { what = stripBold(whatLine[1]); continue }
-        const impactLine = line.match(/^\s*\*{0,2}\s*impact\s*\*{0,2}\s*:\s*\*{0,2}\s*(.+?)\s*\*{0,2}\s*$/i)
-        if (impactLine) { impact = stripBold(impactLine[1]); continue }
-
-        if (!headline) {
-          // Try four headline shapes, in priority order:
-          //   1. **Title**                       (the spec)
-          //   2. **Title**: subtitle             (Anthropic blog often does this)
-          //   3. **Title** subtitle              (no colon, just trailing text)
-          //   4. ## Title  / # Title  / ### Title  (markdown heading)
-          // Whatever follows the title gets pushed into otherLines so the
-          // synthesiser can use it as What/Impact body, instead of being
-          // collapsed into the headline.
-          const boldOnly      = line.match(/^\*\*(.+?)\*\*\s*$/)
-          const boldThenColon = line.match(/^\*\*(.+?)\*\*\s*:\s*(.+)$/)
-          const boldThenText  = line.match(/^\*\*(.+?)\*\*\s+(.+)$/)
-          const hashHeading   = line.match(/^#{1,3}\s+(.+?)\s*$/)
-
-          if (boldOnly) {
-            headline = stripInline(boldOnly[1])
-          } else if (boldThenColon) {
-            headline = stripInline(boldThenColon[1])
-            otherLines.push(stripInline(boldThenColon[2]))
-          } else if (boldThenText) {
-            headline = stripInline(boldThenText[1])
-            otherLines.push(stripInline(boldThenText[2]))
-          } else if (hashHeading) {
-            headline = stripInline(hashHeading[1])
-          } else {
-            headline = stripInline(line)
-          }
-          continue
-        }
-        otherLines.push(stripInline(line))
-      }
-
-      // Fallback body if model didn't follow the What/Impact format
-      let body = otherLines.join(' ').trim()
-
-      // If we still don't have a URL, look for any inline URL in the body or
-      // What/Impact lines
-      if (!url) {
-        const haystack = `${body} ${what} ${impact}`
-        const inline = haystack.match(/https?:\/\/[^\s)>\]]+/)
-        if (inline) {
-          const u = cleanUrl(inline[0])
-          url = u
-          const stripUrl = (s: string) => s.replace(inline[0], '').trim().replace(/\s+([.,;])/g, '$1')
-          body   = stripUrl(body)
-          what   = stripUrl(what)
-          impact = stripUrl(impact)
-        }
-      }
-
-      if (!url && fallbackUrls[i]) url = fallbackUrls[i]
-
-      // If the model skipped the What:/Impact: labels, synthesise them from
-      // the body. We try to pick the sentence that reads as the "so-what"
-      // (the impact) and bundle the rest as the "what".
-      if (!what && !impact && body) {
-        const synth = synthesiseWhatImpact(body)
-        what   = synth.what
-        impact = synth.impact
-        body   = ''
-      }
-
-      if (!headline && !what && !impact && !body) return null
-      return { headline, what, impact, body, url }
-    })
-    .filter((s): s is Story => s !== null)
+  return stories
 }
 
 interface SectionProps {

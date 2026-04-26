@@ -70,27 +70,30 @@ CONTEXT & IMPLICATIONS
 
 const PULSE_FORMAT_TAIL = `
 
-Output ONLY the two stories, in this exact format, with no other text:
+Output ONLY two <story> blocks in this exact XML format, with no other text outside the tags:
 
-**Article title as the publication wrote it, in sentence case**
-What: One sentence, under 25 words, summarising what the article actually says. Factual, not editorial.
-Impact: One sentence, under 25 words, on what this means in practice for the reader. Concrete and applied: what changes day-to-day, what to consider, what action it prompts.
-Source: https://full-direct-url-to-the-original-article
+<story>
+<title>Article title in sentence case, max 12 words.</title>
+<what>One sentence under 25 words summarising what the article actually reports. Factual, not editorial.</what>
+<impact>One sentence under 25 words on what this means in practice for the reader. Concrete and applied; avoid clichés like "this is significant".</impact>
+<source>https://full-direct-url-to-the-original-article</source>
+</story>
 
-Separate the two stories with a single blank line and nothing else.
+<story>
+<title>...</title>
+<what>...</what>
+<impact>...</impact>
+<source>...</source>
+</story>
 
 Hard rules:
-- The bolded line is the article's actual title (or as close to it as you can get), in sentence case. Cap it at 12 words; if the publication's headline is longer, paraphrase it down. Don't surround the title with anything other than the two bold markers.
-- The What and Impact lines must NOT be wrapped in markdown bold markers. Write them as plain text starting with the literal label "What:" or "Impact:" followed by a space. Do not write "**What:**" or "**Impact:**".
-- Do not put blank lines between the bolded title, the What line, the Impact line, and the Source line within a single story. Only use a blank line between the two stories.
-- The What line is content. State what the article reports. Don't add interpretation.
-- The Impact line is the so-what. Be concrete, in practice, applied. Avoid clichés like "this is significant" or "this changes everything"; say what specifically changes.
-- Both What and Impact must each be a single sentence. Keep each under 25 words.
-- The Source line MUST be a single direct URL to the original news article (not a search results page, not a homepage).
-- Your very first character must be the asterisk of the first headline. No preamble, no framing, no "here are the stories" line.
-- No closing line, summary, or commentary after the last Source.
-- No "---", "***", or any other separator between stories.
-- Punctuation rule, strict: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons for sentence-level pauses. En-dashes "–" are allowed only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
+- Wrap each story in <story>...</story> with one each of <title>, <what>, <impact>, <source> as children.
+- Output exactly two stories.
+- Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words. If the publication's headline is longer, paraphrase it down.
+- <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
+- <source> must be a single direct URL to the original news article (not a search results page, not a homepage).
+- Your very first character must be the < of the first <story>, and your last character must be the > of the last </story>. No preamble, no framing, no closing line, no separator text between stories, no commentary.
+- Punctuation: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons. En-dashes "–" only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
 
 async function callPulse(prompt: string, debugKey: string): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
