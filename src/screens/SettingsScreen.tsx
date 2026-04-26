@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { testConnection } from '../services/caldav'
 import type { WhoopData, WhoopDebug } from '../hooks/useWhoop'
+import type { CalendarHook, CalendarDebug } from '../hooks/useCalendar'
 
 /* -------------------------------------------------------------------
-   Whoop debug panel — surfaces what useWhoop's last fetch returned so
-   we can diagnose 'connected but no data' on a phone without a console.
+   Diagnostic helpers shared between Whoop + Calendar panels.
 ------------------------------------------------------------------- */
 
 function statusGlyph(status: number | undefined): string {
@@ -69,19 +68,39 @@ function WhoopDebugPanel({ debug }: { debug: WhoopDebug }) {
   )
 }
 
-interface CalendarHook {
-  connected: boolean
-  getStoredEmail: () => string
-  saveCredentials: (email: string, password: string) => Promise<void>
-  clearCredentials: () => void
+function CalendarDebugPanel({ debug }: { debug: CalendarDebug }) {
+  const lines: string[] = []
+  lines.push(`source ${debug.source}`)
+  lines.push(`tokens ${debug.hasTokens ? '✓' : '✗'}`)
+  if (debug.fetchStatus != null) lines.push(`fetch ${debug.fetchStatus}${debug.fetchOk ? ' ✓' : ' ✗'}`)
+  if (debug.fetchError) lines.push(`error ${debug.fetchError}`)
+  if (debug.eventCount != null) lines.push(`events ${debug.eventCount}`)
+  if (debug.retryAfter != null) lines.push(`retry-after ${debug.retryAfter}s`)
+
+  return (
+    <div className="settings-debug">
+      <div className="settings-debug-head">
+        <span className="settings-debug-title">calendar status</span>
+        <span className="settings-debug-time">{timeAgo(debug.ts)}</span>
+      </div>
+      <div className="settings-debug-lines">
+        {lines.map((l, i) => <div key={i}>{l}</div>)}
+      </div>
+      {debug.rawError && (
+        <pre className="settings-debug-raw">{debug.rawError}</pre>
+      )}
+    </div>
+  )
 }
+
+/* -------------------------------------------------------------------
+   Auth URL builders.
+------------------------------------------------------------------- */
 
 interface Props {
   calendar: CalendarHook
   whoop: WhoopData
 }
-
-type SaveState = 'idle' | 'connecting' | 'success' | 'error'
 
 function generateState(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -106,34 +125,32 @@ function buildWhoopAuthUrl(): string | null {
   )
 }
 
+function buildGoogleAuthUrl(): string | null {
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+  if (!clientId) return null
+  const redirectUri = `${window.location.origin}/api/google/callback`
+  // calendar.readonly is enough to read events from the user's primary
+  // calendar; offline_access (via access_type=offline) gets the refresh
+  // token. prompt=consent forces Google to issue a refresh token even
+  // on subsequent connections.
+  const scope = 'https://www.googleapis.com/auth/calendar.readonly'
+  const state = generateState()
+  const params = new URLSearchParams({
+    client_id:     clientId,
+    redirect_uri:  redirectUri,
+    response_type: 'code',
+    scope,
+    access_type:   'offline',
+    prompt:        'consent',
+    include_granted_scopes: 'true',
+    state,
+  })
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+}
+
 export default function SettingsScreen({ calendar, whoop }: Props) {
-  const [email, setEmail]         = useState(calendar.getStoredEmail)
-  const [password, setPassword]   = useState('')
-  const [saveState, setSaveState] = useState<SaveState>('idle')
-
-  const handleSave = async () => {
-    if (!email.trim() || !password.trim()) return
-    setSaveState('connecting')
-    try {
-      await testConnection({ email: email.trim(), password: password.trim() })
-      await calendar.saveCredentials(email.trim(), password.trim())
-      setPassword('')
-      setSaveState('success')
-    } catch {
-      setSaveState('error')
-    }
-  }
-
-  const handleDisconnect = () => {
-    calendar.clearCredentials()
-    setEmail('')
-    setPassword('')
-    setSaveState('idle')
-  }
-
-  const canSave = email.trim().length > 0 && password.trim().length > 0 && saveState !== 'connecting'
-
-  const whoopAuthUrl = buildWhoopAuthUrl()
+  const whoopAuthUrl  = buildWhoopAuthUrl()
+  const googleAuthUrl = buildGoogleAuthUrl()
 
   return (
     <div>
@@ -186,9 +203,6 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
           </div>
         )}
 
-        {/* Diagnostic — visible whenever a debug snapshot exists, even if
-            the connection state is empty. Lets us see exactly which API
-            call is failing without needing a console on the phone PWA. */}
         {whoop.debug && <WhoopDebugPanel debug={whoop.debug} />}
       </div>
 
@@ -196,69 +210,54 @@ export default function SettingsScreen({ calendar, whoop }: Props) {
       <div className="settings-section">
         <div className="screen-section-label">CALENDAR</div>
 
-        <div className="settings-field">
-          <label className="settings-field-label">Apple ID Email</label>
-          <input
-            className="settings-input"
-            type="email"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setSaveState('idle') }}
-            placeholder="you@icloud.com"
-            autoCapitalize="none"
-            autoCorrect="off"
-          />
-        </div>
-
-        <div className="settings-field">
-          <label className="settings-field-label">App-Specific Password</label>
-          <input
-            className="settings-input"
-            type="password"
-            value={password}
-            onChange={e => { setPassword(e.target.value); setSaveState('idle') }}
-            placeholder="xxxx-xxxx-xxxx-xxxx"
-            autoCapitalize="none"
-            autoCorrect="off"
-          />
-        </div>
-
-        <p className="settings-note">
-          You need an App-Specific Password, not your normal Apple ID password. Go to{' '}
-          <a href="https://appleid.apple.com" target="_blank" rel="noreferrer" className="settings-note-link">
-            appleid.apple.com
-          </a>
-          , sign in, tap Sign-In and Security, then App-Specific Passwords, then Generate.
-          Paste the generated password here.
-        </p>
-
-        <button
-          className={`settings-btn settings-btn-save${canSave ? ' active' : ''}`}
-          onClick={handleSave}
-          disabled={!canSave}
-        >
-          {saveState === 'connecting' ? 'CONNECTING…' : 'SAVE CALENDAR'}
-        </button>
-
-        {saveState === 'success' && (
-          <div className="settings-msg settings-msg-success">
-            Calendar connected successfully
-          </div>
-        )}
-
-        {saveState === 'error' && (
-          <div className="settings-msg settings-msg-error">
-            Connection failed. Please check your App-Specific Password and try again.{' '}
-            <a href="https://appleid.apple.com" target="_blank" rel="noreferrer" className="settings-error-link">
-              Open appleid.apple.com ↗
+        {calendar.connected ? (
+          <>
+            <div className="settings-msg settings-msg-success" style={{ marginBottom: 12 }}>
+              Connected · {calendar.events.length} {calendar.events.length === 1 ? 'event' : 'events'} today
+            </div>
+            <button
+              className={`settings-btn settings-btn-save${calendar.cooldownSeconds > 0 ? '' : ' active'}`}
+              onClick={() => calendar.refresh()}
+              disabled={calendar.cooldownSeconds > 0 || calendar.loading}
+              style={{ marginBottom: 8 }}
+            >
+              {calendar.cooldownSeconds > 0
+                ? `WAIT ${calendar.cooldownSeconds}s`
+                : calendar.loading
+                  ? 'REFRESHING…'
+                  : 'REFRESH NOW'}
+            </button>
+            <button
+              className="settings-btn settings-btn-disconnect"
+              onClick={() => calendar.disconnect()}
+            >
+              DISCONNECT GOOGLE CALENDAR
+            </button>
+          </>
+        ) : googleAuthUrl ? (
+          <>
+            <p className="settings-note" style={{ marginBottom: 14 }}>
+              Connect Google Calendar to see today's events. Read-only; we only
+              ask for your primary calendar. Tap below. Google opens in Safari
+              to authorise.
+            </p>
+            <a
+              className="settings-btn settings-btn-save active"
+              href={googleAuthUrl}
+              style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
+            >
+              CONNECT GOOGLE CALENDAR →
             </a>
+          </>
+        ) : (
+          <div className="settings-msg settings-msg-error">
+            Google client ID is missing. Add <code>VITE_GOOGLE_CLIENT_ID</code> and{' '}
+            <code>GOOGLE_CLIENT_SECRET</code> in Vercel environment variables
+            (Production scope) and redeploy.
           </div>
         )}
 
-        {calendar.connected && (
-          <button className="settings-btn settings-btn-disconnect" onClick={handleDisconnect}>
-            DISCONNECT CALENDAR
-          </button>
-        )}
+        {calendar.debug && <CalendarDebugPanel debug={calendar.debug} />}
       </div>
     </div>
   )

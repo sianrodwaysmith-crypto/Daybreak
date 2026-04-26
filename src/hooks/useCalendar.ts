@@ -1,102 +1,310 @@
-import { useState, useEffect, useCallback } from 'react'
-import { type CalEvent, type CalCreds, fetchTodayEvents } from '../services/caldav'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
 
-export type { CalEvent, CalCreds }
+/* ====================================================================
+   Google Calendar hook.
+   Mirrors useWhoop end to end:
+     - OAuth tokens in localStorage
+     - Single-flight dedupe on the network call
+     - 30-minute min-age gate so the auto-fetch on mount uses cached data
+       when fresh
+     - Persisted cool-down on 429s
+     - Diagnostic capture for the Settings panel
+==================================================================== */
 
-interface CalState {
-  events: CalEvent[]
-  loading: boolean
-  connected: boolean
-  error: string | null
+export interface CalEvent {
+  id:        string
+  title:     string
+  start:     Date
+  end:       Date
+  allDay:    boolean
+  location?: string
 }
 
-const CREDS_KEY  = 'daybreak-cal-creds'
-const CACHE_KEY  = 'daybreak-cal-cache'
-const CACHE_TTL  = 15 * 60 * 1000
-
-function loadCreds(): CalCreds | null {
-  try { const r = localStorage.getItem(CREDS_KEY); return r ? JSON.parse(r) : null } catch { return null }
+export interface CalendarDebug {
+  source:        'api' | 'persisted' | 'no-tokens' | 'fetch-error' | '401' | 'http-error' | 'rate-limited'
+  ts:            string
+  hasTokens:     boolean
+  fetchOk?:      boolean
+  fetchStatus?:  number
+  fetchError?:   string
+  retryAfter?:   number
+  eventCount?:   number
+  rawError?:     string
 }
 
-function rehydrateEvents(raw: { events: Array<CalEvent & { start: string; end: string }>; fetchedAt: number }): CalEvent[] {
-  return raw.events.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
+export interface CalendarHook {
+  connected:        boolean
+  loading:          boolean
+  events:           CalEvent[]
+  debug:            CalendarDebug | null
+  cooldownSeconds:  number
+  refresh:          () => Promise<void>
+  disconnect:       () => Promise<void>
 }
 
-function loadCache(): CalEvent[] | null {
+interface StoredTokens { access_token: string; refresh_token: string; expires_at: number }
+
+const TOKENS_KEY    = 'daybreak-google-tokens'
+const PERSIST_KEY   = 'daybreak-google-events-v1'
+const DEBUG_KEY     = 'daybreak-google-debug'
+const COOLDOWN_KEY  = 'daybreak-google-cooldown-until'
+
+const DEFAULT_COOLDOWN_SECS = 60
+const MIN_FRESH_AGE_MS      = 30 * 60 * 1000
+
+interface RawEvent { id: string; title: string; start: string; end: string; allDay: boolean; location?: string }
+interface PersistedEntry { events: RawEvent[]; ts: number }
+
+function readTokens(): StoredTokens | null {
+  try { const r = localStorage.getItem(TOKENS_KEY); return r ? JSON.parse(r) as StoredTokens : null } catch { return null }
+}
+function writeTokens(t: StoredTokens) {
+  try { localStorage.setItem(TOKENS_KEY, JSON.stringify(t)) } catch {}
+}
+function clearTokens() {
+  try { localStorage.removeItem(TOKENS_KEY) } catch {}
+}
+
+function readPersistedEntry(): PersistedEntry | null {
   try {
-    const raw = localStorage.getItem(CACHE_KEY)
+    const raw = localStorage.getItem(PERSIST_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw)
-    if (Date.now() - parsed.fetchedAt > CACHE_TTL) return null
-    return rehydrateEvents(parsed)
+    const parsed = JSON.parse(raw) as PersistedEntry
+    if (Date.now() - parsed.ts > 24 * 60 * 60 * 1000) return null
+    return parsed
   } catch { return null }
 }
-
-function saveCache(events: CalEvent[]) {
-  localStorage.setItem(CACHE_KEY, JSON.stringify({ events, fetchedAt: Date.now() }))
+function writePersisted(events: RawEvent[]) {
+  try { localStorage.setItem(PERSIST_KEY, JSON.stringify({ events, ts: Date.now() })) } catch {}
 }
 
-export function useCalendar() {
+function readDebug(): CalendarDebug | null {
+  try { const r = localStorage.getItem(DEBUG_KEY); return r ? JSON.parse(r) as CalendarDebug : null } catch { return null }
+}
+function writeDebug(d: CalendarDebug) {
+  try { localStorage.setItem(DEBUG_KEY, JSON.stringify(d)) } catch {}
+}
+
+function readCooldownUntil(): number {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_KEY)
+    if (!raw) return 0
+    const n = Number(raw)
+    return Number.isFinite(n) ? n : 0
+  } catch { return 0 }
+}
+function writeCooldownUntil(t: number) {
+  try { localStorage.setItem(COOLDOWN_KEY, String(t)) } catch {}
+}
+function clearCooldownStore() {
+  try { localStorage.removeItem(COOLDOWN_KEY) } catch {}
+}
+
+function rehydrate(raw: RawEvent[]): CalEvent[] {
+  return raw.map(e => ({ ...e, start: new Date(e.start), end: new Date(e.end) }))
+}
+
+let inflight: Promise<void> | null = null
+function singleFlight(run: () => Promise<void>): Promise<void> {
+  if (inflight) return inflight
+  inflight = run().finally(() => { inflight = null })
+  return inflight
+}
+
+export function useCalendar(): CalendarHook {
   const { registerContent } = useDayBreakContext()
-  const [state, setState] = useState<CalState>({ events: [], loading: false, connected: false, error: null })
+
+  const persistedRef = useRef<PersistedEntry | null>(null)
+  if (persistedRef.current === null) persistedRef.current = readPersistedEntry()
+  const persisted = persistedRef.current
+
+  const initialEvents = persisted ? rehydrate(persisted.events) : []
+  const initialConnected = readTokens() !== null
+
+  const [events,    setEvents]    = useState<CalEvent[]>(initialEvents)
+  const [connected, setConnected] = useState<boolean>(initialConnected)
+  const [loading,   setLoading]   = useState<boolean>(persisted == null && initialConnected)
+  const [debug,     setDebug]     = useState<CalendarDebug | null>(readDebug)
+
+  const cooldownUntilRef = useRef<number>(readCooldownUntil())
+  const [cooldownSeconds, setCooldownSeconds] = useState<number>(() => {
+    const ms = readCooldownUntil() - Date.now()
+    return ms > 0 ? Math.ceil(ms / 1000) : 0
+  })
+
+  function setCooldown(secs: number) {
+    const until = Date.now() + secs * 1000
+    cooldownUntilRef.current = until
+    writeCooldownUntil(until)
+    setCooldownSeconds(secs)
+  }
 
   useEffect(() => {
-    if (!state.connected || state.loading) return
-    const flat = state.events.map(e => ({
+    if (cooldownSeconds <= 0) return
+    const id = window.setInterval(() => {
+      const ms = cooldownUntilRef.current - Date.now()
+      const secs = ms > 0 ? Math.ceil(ms / 1000) : 0
+      setCooldownSeconds(secs)
+      if (secs === 0) {
+        clearCooldownStore()
+        window.clearInterval(id)
+      }
+    }, 1000)
+    return () => window.clearInterval(id)
+  }, [cooldownSeconds])
+
+  function captureDebug(next: CalendarDebug) {
+    writeDebug(next)
+    setDebug(next)
+  }
+
+  // Register the calendar context for the chat coach.
+  useEffect(() => {
+    if (!connected) {
+      registerContent('calendar_today', null)
+      return
+    }
+    registerContent('calendar_today', events.map(e => ({
       title:    e.title,
-      start:    e.start instanceof Date ? e.start.toISOString() : e.start,
-      end:      e.end   instanceof Date ? e.end.toISOString()   : e.end,
+      start:    e.start.toISOString(),
+      end:      e.end.toISOString(),
       location: e.location ?? undefined,
       all_day:  e.allDay,
-    }))
-    registerContent('calendar_today', flat)
-  }, [state.connected, state.loading, state.events, registerContent])
+    })))
+  }, [connected, events, registerContent])
 
-  const doFetch = useCallback(async (creds: CalCreds, bustCache = false) => {
-    if (!bustCache) {
-      const cached = loadCache()
-      if (cached) {
-        setState({ events: cached, loading: false, connected: true, error: null })
+  const fetchData = useCallback(async (opts?: { force?: boolean }) => {
+    const force = opts?.force === true
+    const now = () => new Date().toISOString()
+
+    // Min-age gate.
+    if (!force) {
+      const entry = readPersistedEntry()
+      if (entry && Date.now() - entry.ts < MIN_FRESH_AGE_MS) {
+        setEvents(rehydrate(entry.events))
+        setConnected(true)
+        setLoading(false)
         return
       }
     }
-    setState(prev => ({ ...prev, loading: true, connected: true, error: null }))
-    try {
-      const events = await fetchTodayEvents(creds)
-      saveCache(events)
-      setState({ events, loading: false, connected: true, error: null })
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'unknown'
-      setState(prev => ({ ...prev, loading: false, error: msg }))
+
+    // Cool-down.
+    if (Date.now() < cooldownUntilRef.current) {
+      const secondsLeft = Math.ceil((cooldownUntilRef.current - Date.now()) / 1000)
+      captureDebug({
+        source: 'rate-limited', ts: now(), hasTokens: !!readTokens(),
+        fetchOk: false, fetchStatus: 429, retryAfter: secondsLeft,
+      })
+      setLoading(false)
+      return
     }
+
+    const tokens = readTokens()
+    if (!tokens) {
+      setEvents([])
+      setConnected(false)
+      setLoading(false)
+      captureDebug({ source: 'no-tokens', ts: now(), hasTokens: false })
+      return
+    }
+
+    return singleFlight(async () => {
+      try {
+        const res = await fetch('/api/google/events', {
+          headers: {
+            'Authorization':         `Bearer ${tokens.access_token}`,
+            'X-Google-Refresh-Token': tokens.refresh_token,
+          },
+          cache: 'no-store',
+        })
+
+        if (res.status === 401) {
+          clearTokens()
+          try { localStorage.removeItem(PERSIST_KEY) } catch {}
+          setEvents([])
+          setConnected(false)
+          setLoading(false)
+          captureDebug({ source: '401', ts: now(), hasTokens: true, fetchOk: false, fetchStatus: 401 })
+          return
+        }
+
+        if (res.status === 429) {
+          setCooldown(DEFAULT_COOLDOWN_SECS)
+          captureDebug({
+            source: 'rate-limited', ts: now(), hasTokens: true,
+            fetchOk: false, fetchStatus: 429, retryAfter: DEFAULT_COOLDOWN_SECS,
+          })
+          setLoading(false)
+          return
+        }
+
+        if (!res.ok) {
+          const head = await res.text().catch(() => '').then(t => t.slice(0, 240))
+          captureDebug({
+            source: 'http-error', ts: now(), hasTokens: true,
+            fetchOk: false, fetchStatus: res.status, rawError: head,
+          })
+          setLoading(false)
+          return
+        }
+
+        const json = await res.json() as {
+          connected: boolean
+          events:    RawEvent[]
+          tokens?:   { access_token: string; refresh_token: string; expires_in: number }
+          _debug?:   { eventsStatus?: number; eventCount?: number; error?: string }
+        }
+
+        if (json.tokens) {
+          writeTokens({
+            access_token:  json.tokens.access_token,
+            refresh_token: json.tokens.refresh_token || tokens.refresh_token,
+            expires_at:    Date.now() + json.tokens.expires_in * 1000,
+          })
+        }
+
+        const rehydrated = rehydrate(json.events ?? [])
+        setEvents(rehydrated)
+        setConnected(true)
+        if (json.events) writePersisted(json.events)
+        captureDebug({
+          source: 'api', ts: now(), hasTokens: true,
+          fetchOk: true, fetchStatus: 200,
+          eventCount: rehydrated.length,
+          rawError:   json._debug?.error,
+        })
+      } catch (err) {
+        if (!persistedRef.current) setEvents([])
+        captureDebug({
+          source: 'fetch-error', ts: now(), hasTokens: true,
+          fetchOk: false,
+          fetchError: err instanceof Error ? err.message : String(err),
+        })
+      } finally {
+        setLoading(false)
+      }
+    })
   }, [])
 
-  // Load from creds on mount
-  useEffect(() => {
-    const creds = loadCreds()
-    if (creds) doFetch(creds)
-  }, [doFetch])
+  useEffect(() => { void fetchData() }, [fetchData])
 
-  const saveCredentials = useCallback(async (email: string, password: string) => {
-    const creds: CalCreds = { email, password }
-    localStorage.setItem(CREDS_KEY, JSON.stringify(creds))
-    localStorage.removeItem(CACHE_KEY)
-    await doFetch(creds, true)
-  }, [doFetch])
+  const refresh = useCallback(async () => {
+    setLoading(true)
+    await fetchData({ force: true })
+  }, [fetchData])
 
-  const clearCredentials = useCallback(() => {
-    localStorage.removeItem(CREDS_KEY)
-    localStorage.removeItem(CACHE_KEY)
-    setState({ events: [], loading: false, connected: false, error: null })
+  const disconnect = useCallback(async () => {
+    clearTokens()
+    try { localStorage.removeItem(PERSIST_KEY) } catch {}
+    try { localStorage.removeItem(DEBUG_KEY)   } catch {}
+    clearCooldownStore()
+    cooldownUntilRef.current = 0
+    setCooldownSeconds(0)
+    setEvents([])
+    setConnected(false)
+    setDebug(null)
   }, [])
 
-  const refetch = useCallback(() => {
-    const creds = loadCreds()
-    if (creds) doFetch(creds, true)
-  }, [doFetch])
-
-  const getStoredEmail = () => loadCreds()?.email ?? ''
-
-  return { ...state, saveCredentials, clearCredentials, refetch, getStoredEmail }
+  return { connected, loading, events, debug, cooldownSeconds, refresh, disconnect }
 }
