@@ -7,8 +7,10 @@ import Modal from './components/Modal'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
 import { MomentsTile } from './moments'
+import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
 import {
   MindsetIcon, ReadinessIcon, ClientResearchIcon, PulseIcon, ScheduleIcon,
+  LessonsIcon, JournalIcon,
 } from './components/icons'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
@@ -19,6 +21,7 @@ import ClientResearchScreen from './screens/ClientResearchScreen'
 import PulseScreen from './screens/PulseScreen'
 import MindsetScreen from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
+import JournalScreen from './screens/JournalScreen'
 import { looksLikeMovement } from './services/movement'
 import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
@@ -123,12 +126,13 @@ function useWhoopFlash(): { msg: string | null; clear: () => void } {
 }
 
 function HomeView() {
-  const [activeId, setActiveId]     = useState<string | null>(null)
-  const [showSettings, setSettings] = useState(false)
+  const [activeId,        setActiveId]     = useState<string | null>(null)
+  const [showSettings,    setSettings]     = useState(false)
   const weather  = useWeather()
   const calendar = useCalendar()
   const whoop    = useWhoop()
   const whoopFlash = useWhoopFlash()
+  const lessonsState = useLessons('sian')
 
   const readinessScore = whoop.recovery
   const { ai, retry, refreshPulse } = useAIContent()
@@ -145,12 +149,22 @@ function HomeView() {
     scheduleEvents, calendar.loading, calendar.connected, new Date(),
   )
 
+  // Lessons tile subtitle — derived from the module's own state.
+  const lessonsSubtitle =
+    lessonsState.state.kind === 'ready'      ? `Day ${lessonsState.state.dayNumber} — ${lessonsState.state.lesson.title}`
+    : lessonsState.state.kind === 'done'     ? `Day ${lessonsState.state.dayNumber} done.`
+    : lessonsState.state.kind === 'completed'? 'Course complete.'
+    : lessonsState.state.kind === 'no_course'? 'Begin a course.'
+    : undefined
+
   const TILES = [
     { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
     { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
+    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', subtitle: lessonsSubtitle },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
+    { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.' },
   ]
 
   const activeTile = TILES.find(t => t.id === activeId)
@@ -182,6 +196,13 @@ function HomeView() {
       />
       case 'mindset':  return <MindsetScreen />
       case 'schedule': return <ScheduleScreen events={scheduleEvents} tomorrow={tomorrowEvents} loading={calendar.loading} connected={calendar.connected} />
+      case 'journal':  return <JournalScreen />
+      case 'lessons':
+        // Daily flow when today's lesson is ready; library otherwise
+        // (sealed-for-today / no course / course completed).
+        return lessonsState.state.kind === 'ready'
+          ? <LessonsFlow onClose={() => setActiveId(null)} />
+          : <LessonsLibrary />
       default:         return null
     }
   }

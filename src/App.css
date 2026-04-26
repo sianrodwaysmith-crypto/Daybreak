@@ -1746,6 +1746,29 @@
 }
 .account-add-btn:hover { color: var(--ink); border-color: var(--line-strong); }
 
+/* ---------- Journal placeholder ---------- */
+.journal-placeholder {
+  text-align: center;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.journal-placeholder-line {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--ink);
+  margin: 0;
+}
+.journal-placeholder-sub {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  max-width: 36ch;
+  margin: 0 auto;
+}
+
 /* ---------- Settings ---------- */
 .settings-section { margin-bottom: 26px; }
 .settings-section .screen-section-label { margin-bottom: 12px; }

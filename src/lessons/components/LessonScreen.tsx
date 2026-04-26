@@ -18,7 +18,7 @@ interface Props {
   onBeginQuiz: () => void
 }
 
-export function LessonScreen({ lesson, course: _course, dayNumber: _dayNumber, onBeginQuiz }: Props) {
+export function LessonScreen({ lesson, course, dayNumber, onBeginQuiz }: Props) {
   const [secsLeft, setSecsLeft] = useState(DWELL_SECS)
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export function LessonScreen({ lesson, course: _course, dayNumber: _dayNumber, o
 
   return (
     <div className="lesson-screen">
+      <div className="lesson-screen-eyebrow">
+        {copy.lesson.headerLine(course.title.toLowerCase(), dayNumber, course.totalDays, lesson.estimatedMinutes)}
+      </div>
       <h1 className="lesson-screen-title">{lesson.title}</h1>
 
       <div className="lesson-screen-body">

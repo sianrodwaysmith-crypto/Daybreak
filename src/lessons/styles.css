@@ -116,6 +116,14 @@
   flex-direction: column;
   gap: 16px;
 }
+.lesson-screen-eyebrow {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+}
 .lesson-screen-title {
   font-family: 'DM Serif Display', serif;
   font-weight: 400;
@@ -757,4 +765,14 @@
   font-size: 12.5px;
   letter-spacing: 0.04em;
   cursor: pointer;
+}
+
+.lessons-flow-empty {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  text-align: center;
+  padding: 20px 12px;
+  margin: 0;
 }

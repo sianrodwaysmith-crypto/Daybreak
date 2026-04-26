@@ -84,3 +84,24 @@ export function MovementIcon({ size }: IconProps = {}) {
     </Svg>
   )
 }
+
+export function LessonsIcon({ size }: IconProps = {}) {
+  // Open book — two facing pages on a spine.
+  return (
+    <Svg size={size}>
+      <path d="M3 5.5C3 5.5 6 4 9 4C10.5 4 11.5 4.5 12 5C12.5 4.5 13.5 4 15 4C18 4 21 5.5 21 5.5V19C21 19 18 17.5 15 17.5C13.5 17.5 12.5 18 12 18.5C11.5 18 10.5 17.5 9 17.5C6 17.5 3 19 3 19V5.5Z" />
+      <path d="M12 5V18.5" />
+    </Svg>
+  )
+}
+
+export function JournalIcon({ size }: IconProps = {}) {
+  // Notebook with a single rule — a quiet hint at the page.
+  return (
+    <Svg size={size}>
+      <rect x="5" y="3.5" width="14" height="17" rx="1.5" />
+      <line x1="8" y1="9" x2="16" y2="9" />
+      <line x1="8" y1="13" x2="13" y2="13" />
+    </Svg>
+  )
+}
