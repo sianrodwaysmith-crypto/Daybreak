@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { generateMindsetReflection } from '../services/anthropic'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
+import { quoteForDay } from '../data/quotes'
 
 const TODAY = new Date().toISOString().split('T')[0]
 const KEY = `daybreak-mindset-${TODAY}`
@@ -79,8 +80,15 @@ export default function MindsetScreen() {
     { num: 3, val: g3, set: setG3, placeholder: 'Something you often overlook...' },
   ]
 
+  const quote = quoteForDay()
+
   return (
     <div>
+      <div className="mindset-quote">
+        <span className="mindset-quote-text">“{quote.text}”</span>
+        <span className="mindset-quote-attr"> {quote.attribution}.</span>
+      </div>
+
       <div className="screen-section-label" style={{ marginBottom: 14 }}>THREE THINGS I'M GRATEFUL FOR</div>
 
       {GRATITUDE_FIELDS.map(({ num, val, set, placeholder }) => (
