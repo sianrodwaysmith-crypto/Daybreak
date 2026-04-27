@@ -58,10 +58,13 @@ export default async function handler(req: any, res: any) {
 
   const authHeaders = { Authorization: `Bearer ${currentAccess}` }
 
+  // Whoop deprecated /developer/v1/recovery and /developer/v1/activity/sleep
+  // (the cycle endpoint is on a longer runway but v2 is the supported path
+  // for everything now). Switching all three to v2 in lockstep.
   let [recovRes, sleepRes, cycleRes] = await Promise.all([
-    fetch('https://api.prod.whoop.com/developer/v1/recovery?limit=1',       { headers: authHeaders }),
-    fetch('https://api.prod.whoop.com/developer/v1/activity/sleep?limit=1', { headers: authHeaders }),
-    fetch('https://api.prod.whoop.com/developer/v1/cycle?limit=1',          { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',       { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1', { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=1',          { headers: authHeaders }),
   ])
 
   // If access token was rejected mid-flight, refresh and retry.
@@ -74,9 +77,9 @@ export default async function handler(req: any, res: any) {
     returnedTokens = newTokens
     const newHeader = { Authorization: `Bearer ${newTokens.access_token}` }
     ;[recovRes, sleepRes, cycleRes] = await Promise.all([
-      fetch('https://api.prod.whoop.com/developer/v1/recovery?limit=1',       { headers: newHeader }),
-      fetch('https://api.prod.whoop.com/developer/v1/activity/sleep?limit=1', { headers: newHeader }),
-      fetch('https://api.prod.whoop.com/developer/v1/cycle?limit=1',          { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',       { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1', { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=1',          { headers: newHeader }),
     ])
   }
 
