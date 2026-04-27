@@ -62,15 +62,21 @@ export default async function handler(req: any, res: any) {
   // (the cycle endpoint is on a longer runway but v2 is the supported path
   // for everything now). Switching all three to v2 in lockstep.
   // Cycle is fetched at limit=14 so the Movement trends modal can render
-  // a 14-day active-calories chart without a second round-trip.
-  let [recovRes, sleepRes, cycleRes] = await Promise.all([
+  // a 14-day strain backbone without a second round-trip.
+  // Workouts give us active calories from logged exercise blocks only,
+  // not whole-day movement — fetched as a 14-day window so per-day kcal
+  // can be aggregated for both today's number and the trend chart.
+  const workoutStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString()
+  const workoutUrl   = `https://api.prod.whoop.com/developer/v2/activity/workout?start=${encodeURIComponent(workoutStart)}&limit=50`
+  let [recovRes, sleepRes, cycleRes, workoutRes] = await Promise.all([
     fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',        { headers: authHeaders }),
     fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1',  { headers: authHeaders }),
     fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=14',          { headers: authHeaders }),
+    fetch(workoutUrl,                                                         { headers: authHeaders }),
   ])
 
   // If access token was rejected mid-flight, refresh and retry.
-  if ([recovRes, sleepRes, cycleRes].some(r => r.status === 401) && refreshToken) {
+  if ([recovRes, sleepRes, cycleRes, workoutRes].some(r => r.status === 401) && refreshToken) {
     const newTokens = await exchangeRefresh(refreshToken, clientId, clientSecret, redirectUri)
     if (!newTokens) {
       res.status(401).json({ error: 'not_connected' })
@@ -78,18 +84,20 @@ export default async function handler(req: any, res: any) {
     }
     returnedTokens = newTokens
     const newHeader = { Authorization: `Bearer ${newTokens.access_token}` }
-    ;[recovRes, sleepRes, cycleRes] = await Promise.all([
+    ;[recovRes, sleepRes, cycleRes, workoutRes] = await Promise.all([
       fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',        { headers: newHeader }),
       fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1',  { headers: newHeader }),
       fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=14',          { headers: newHeader }),
+      fetch(workoutUrl,                                                         { headers: newHeader }),
     ])
   }
 
   try {
-    const [recovData, sleepData, cycleData] = await Promise.all([
-      recovRes.ok ? recovRes.json() : Promise.resolve(null),
-      sleepRes.ok ? sleepRes.json() : Promise.resolve(null),
-      cycleRes.ok ? cycleRes.json() : Promise.resolve(null),
+    const [recovData, sleepData, cycleData, workoutData] = await Promise.all([
+      recovRes.ok   ? recovRes.json()   : Promise.resolve(null),
+      sleepRes.ok   ? sleepRes.json()   : Promise.resolve(null),
+      cycleRes.ok   ? cycleRes.json()   : Promise.resolve(null),
+      workoutRes.ok ? workoutRes.json() : Promise.resolve(null),
     ])
 
     // Capture error bodies from any non-OK responses so the client can
@@ -104,12 +112,13 @@ export default async function handler(req: any, res: any) {
       captureError('recovery', recovRes),
       captureError('sleep',    sleepRes),
       captureError('cycle',    cycleRes),
+      captureError('workout',  workoutRes),
     ])
 
     // If any endpoint returned 429, surface the Retry-After header (in
     // seconds) so the client can hold off until Whoop's cool-down clears.
     let retryAfterSecs: number | undefined
-    for (const r of [recovRes, sleepRes, cycleRes]) {
+    for (const r of [recovRes, sleepRes, cycleRes, workoutRes]) {
       if (r.status !== 429) continue
       const ra = r.headers.get('retry-after')
       if (!ra) continue
@@ -129,6 +138,11 @@ export default async function handler(req: any, res: any) {
       end?:   string
       score?: { strain?: number; average_heart_rate?: number; max_heart_rate?: number; kilojoule?: number }
     }>
+    const workoutRecords = ((workoutData as any)?.records ?? []) as Array<{
+      start?: string
+      end?:   string
+      score?: { kilojoule?: number }
+    }>
     const cycle = cycleRecords[0]
 
     const stage = sleep?.score?.stage_summary
@@ -146,14 +160,32 @@ export default async function handler(req: any, res: any) {
     const kjToKcal = (kj: number | null | undefined): number | null =>
       kj != null ? Math.round(kj / 4.184) : null
 
+    // Aggregate workout kilojoules per UTC day. We use workout blocks
+    // only (per-session strain/exercise) rather than the cycle's whole-
+    // day kilojoule, so the kcal number reflects exercise specifically,
+    // not background activity.
+    const kjByDate = new Map<string, number>()
+    for (const w of workoutRecords) {
+      const date = (w.start ?? '').slice(0, 10)
+      const kj   = w.score?.kilojoule
+      if (!date || typeof kj !== 'number') continue
+      kjByDate.set(date, (kjByDate.get(date) ?? 0) + kj)
+    }
+    const todayDate = new Date().toISOString().slice(0, 10)
+    const todayWorkoutKcal = kjToKcal(kjByDate.get(todayDate))
+
     // Each cycle's "date" for charting purposes is the local date the
     // cycle started — Whoop cycles run wake-to-wake, but UI-wise the
-    // user thinks of them as days.
-    const cycleHistory = cycleRecords.map(c => ({
-      date:   (c.start ?? '').slice(0, 10),
-      strain: round1(c.score?.strain),
-      kcal:   kjToKcal(c.score?.kilojoule),
-    })).filter(c => !!c.date)
+    // user thinks of them as days. kcal here is the workout-only sum
+    // for that day (may be null if no workouts were logged).
+    const cycleHistory = cycleRecords.map(c => {
+      const date = (c.start ?? '').slice(0, 10)
+      return {
+        date,
+        strain: round1(c.score?.strain),
+        kcal:   kjToKcal(kjByDate.get(date)),
+      }
+    }).filter(c => !!c.date)
 
     const payload: any = {
       connected:        true,
@@ -169,15 +201,17 @@ export default async function handler(req: any, res: any) {
       strain:           round1(cycle?.score?.strain),
       avgHr:            cycle?.score?.average_heart_rate ?? null,
       maxHr:            cycle?.score?.max_heart_rate     ?? null,
-      activeCalories:   kjToKcal(cycle?.score?.kilojoule),
+      activeCalories:   todayWorkoutKcal,
       cycleHistory,
       _debug: {
         recoveryStatus: recovRes.status,
         sleepStatus:    sleepRes.status,
         cycleStatus:    cycleRes.status,
+        workoutStatus:  workoutRes.status,
         recoveryHasRecord: !!rec,
         sleepHasRecord:    !!sleep,
         cycleHasRecord:    !!cycle,
+        workoutCount:      workoutRecords.length,
         errors:         Object.keys(errorBodies).length > 0 ? errorBodies : undefined,
         retryAfter:     retryAfterSecs,
         ts:             new Date().toISOString(),

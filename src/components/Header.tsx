@@ -1,19 +1,24 @@
 import type { WeatherData } from '../hooks/useWeather'
+import ReadinessBar from './ReadinessBar'
 
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
 interface Props {
-  // readinessScore + readinessColor still accepted for backwards-compat with
-  // any other surface that might mount this header, but the in-header bar
-  // has been removed: the Readiness tile already carries that information.
-  readinessScore?: number | null
-  readinessColor?: string
-  weather?:        WeatherData | null
-  onSettings: () => void
+  /**
+   * Readiness signal rendered inline under the greeting. When score is
+   * undefined the bar isn't shown at all (e.g. Whoop not connected).
+   */
+  readinessScore?:   number | null
+  readinessLoading?: boolean
+  onReadinessClick?: () => void
+  weather?:          WeatherData | null
+  onSettings:        () => void
 }
 
-export default function Header({ onSettings, weather }: Props) {
+export default function Header({
+  onSettings, weather, readinessScore, readinessLoading, onReadinessClick,
+}: Props) {
   const ref  = new Date()
   const day  = DAYS[ref.getDay()]
   const date = `${day}, ${ref.getDate()} ${MONTHS[ref.getMonth()]}`
@@ -32,6 +37,13 @@ export default function Header({ onSettings, weather }: Props) {
       <div className="header-greeting-block">
         <div className="header-date">{date}</div>
         <div className="header-greeting">Good morning, Siân.</div>
+        {readinessScore !== undefined && onReadinessClick && (
+          <ReadinessBar
+            score={readinessScore}
+            loading={!!readinessLoading}
+            onClick={onReadinessClick}
+          />
+        )}
         {weather && (
           <div className="header-weather">
             <span className="header-weather-emoji" aria-hidden>{weather.emoji}</span>
