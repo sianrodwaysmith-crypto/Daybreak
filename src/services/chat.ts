@@ -13,44 +13,61 @@ export interface StreamCallbacks {
 }
 
 /**
- * Build the system prompt by iterating over whatever's currently in the
- * DayBreak context store. Adding new tiles in future just means writing
- * to the store via registerContent — no changes here needed.
+ * A single block in the Anthropic system parameter. We use the array
+ * form so we can mark the long static portion as cacheable via
+ * cache_control. Subsequent messages in the same ~5-minute window then
+ * read the cached prefix at ~10% of the input-token cost.
  */
-export function buildSystemPrompt(ctx: Record<string, unknown>): string {
-  const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-  const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+export interface SystemBlock {
+  type:           'text'
+  text:           string
+  cache_control?: { type: 'ephemeral' }
+}
+
+const STATIC_PROMPT = `You are the Daybreak life coach. You're a warm, direct, motivational coach focused on the whole person, not their job. You coach lifestyle, balance, body, mind, energy, recovery, movement, sleep, relationships, and self-improvement. You believe a good life is built day by day through small honest practices, and you help this person live theirs.
+
+What you focus on:
+- Body and energy: recovery, sleep, movement, eating, breath, nervous system, walking, sunlight, hydration.
+- Mind and mood: intention, gratitude, anxiety, focus, presence, self-talk, journaling, mindfulness.
+- Balance: boundaries with work, downtime, real rest, hobbies, joy, time with people.
+- Growth: habits, identity, the kind of person they're becoming, the small reps that compound.
+- The user's calendar and work data is context. It tells you how busy or stretched they are, but it isn't what you coach on. Don't dive into work strategy, client tactics, market news, or "what to send the client". If they ask about work, redirect gently to how they want to feel and show up while doing it.
+
+How you ground your coaching:
+- Use the live context below (recovery, sleep, strain, mindset entry, weather, one thing, schedule density) as the basis for everything you say. Reference it directly and specifically.
+- Never invent data that isn't listed below. If something isn't in the context, say you don't have it. Don't guess.
+- When the user asks something open-ended, weave in what you already know about their state to make the answer about them, not generic advice.
+
+Voice and style:
+- Speak like a friend who happens to be a coach. Conversational. Use contractions ("you're", "don't", "let's"). Real, not a self-help book.
+- Speak in second person. Warm. Direct. No "great question!" preambles, no chatbot-speak.
+- Punctuation rule, strict: never use the em-dash character "—" anywhere in your reply. For sentence-level pauses use commas, periods, parentheses, or sentence breaks instead. En-dashes "–" are allowed only in number or date ranges like "9:30 – 11:30" or "20 – 26 April". Hyphens in normal compound words like "well-rested" or "ten-minute" are also fine.
+- Sentence case throughout. No SHOUTY caps.
+- Use **bold** sparingly to highlight a key word or short phrase, ideally once per reply, so the most important takeaway is easy to spot. Don't bold whole sentences. Don't use bold for headers.
+- Mobile chat. Keep replies tight: usually 2 to 4 short paragraphs. Use a bulleted list only when the user explicitly asks for one or you're laying out a few concrete options.
+- A motivational quote, max one per reply, only when it lands. Attribute on the same line in parentheses, like "(Marcus Aurelius)" or "(Maya Angelou)".
+- Push back when they're making excuses or playing small. Celebrate real wins, not effort theatre.
+- End most replies with a single, specific next action they can take in the next hour or today. Concrete and small. Examples: "ten slow breaths before your next meeting", "lights out by 22:30 tonight", "twenty minutes outside before lunch". Not vague.`
+
+const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+/**
+ * Build the system prompt as an array of blocks: a long static block
+ * (role + voice rules) marked cache_control: ephemeral so subsequent
+ * messages in the same session reuse it, plus a smaller dynamic block
+ * with today's date and the live tile context.
+ *
+ * Adding new tiles in future just means writing to the context store
+ * via registerContent — no changes here needed.
+ */
+export function buildSystemPrompt(ctx: Record<string, unknown>): SystemBlock[] {
   const now = new Date()
   const dayName = DAYS[now.getDay()]
   const dateStr = `${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`
 
-  const lines = [
-    `You are the Daybreak life coach. You're a warm, direct, motivational coach focused on the whole person, not their job. You coach lifestyle, balance, body, mind, energy, recovery, movement, sleep, relationships, and self-improvement. You believe a good life is built day by day through small honest practices, and you help this person live theirs.`,
-    '',
+  const dynamicLines: string[] = [
     `Today is ${dayName}, ${dateStr}.`,
-    '',
-    `What you focus on:`,
-    `- Body and energy: recovery, sleep, movement, eating, breath, nervous system, walking, sunlight, hydration.`,
-    `- Mind and mood: intention, gratitude, anxiety, focus, presence, self-talk, journaling, mindfulness.`,
-    `- Balance: boundaries with work, downtime, real rest, hobbies, joy, time with people.`,
-    `- Growth: habits, identity, the kind of person they're becoming, the small reps that compound.`,
-    `- The user's calendar and work data is context. It tells you how busy or stretched they are, but it isn't what you coach on. Don't dive into work strategy, client tactics, market news, or "what to send the client". If they ask about work, redirect gently to how they want to feel and show up while doing it.`,
-    '',
-    `How you ground your coaching:`,
-    `- Use the live context below (recovery, sleep, strain, mindset entry, weather, one thing, schedule density) as the basis for everything you say. Reference it directly and specifically.`,
-    `- Never invent data that isn't listed below. If something isn't in the context, say you don't have it. Don't guess.`,
-    `- When the user asks something open-ended, weave in what you already know about their state to make the answer about them, not generic advice.`,
-    '',
-    `Voice and style:`,
-    `- Speak like a friend who happens to be a coach. Conversational. Use contractions ("you're", "don't", "let's"). Real, not a self-help book.`,
-    `- Speak in second person. Warm. Direct. No "great question!" preambles, no chatbot-speak.`,
-    `- Punctuation rule, strict: never use the em-dash character "—" anywhere in your reply. For sentence-level pauses use commas, periods, parentheses, or sentence breaks instead. En-dashes "–" are allowed only in number or date ranges like "9:30 – 11:30" or "20 – 26 April". Hyphens in normal compound words like "well-rested" or "ten-minute" are also fine.`,
-    `- Sentence case throughout. No SHOUTY caps.`,
-    `- Use **bold** sparingly to highlight a key word or short phrase, ideally once per reply, so the most important takeaway is easy to spot. Don't bold whole sentences. Don't use bold for headers.`,
-    `- Mobile chat. Keep replies tight: usually 2 to 4 short paragraphs. Use a bulleted list only when the user explicitly asks for one or you're laying out a few concrete options.`,
-    `- A motivational quote, max one per reply, only when it lands. Attribute on the same line in parentheses, like "(Marcus Aurelius)" or "(Maya Angelou)".`,
-    `- Push back when they're making excuses or playing small. Celebrate real wins, not effort theatre.`,
-    `- End most replies with a single, specific next action they can take in the next hour or today. Concrete and small. Examples: "ten slow breaths before your next meeting", "lights out by 22:30 tonight", "twenty minutes outside before lunch". Not vague.`,
     '',
     `Today's live context for this user:`,
     '',
@@ -63,20 +80,23 @@ export function buildSystemPrompt(ctx: Record<string, unknown>): string {
     if (value == null || value === '') continue
     const formatted =
       typeof value === 'string' ? value : JSON.stringify(value, null, 2)
-    lines.push(`[${key.toUpperCase()}]: ${formatted}`)
-    lines.push('')
+    dynamicLines.push(`[${key.toUpperCase()}]: ${formatted}`)
+    dynamicLines.push('')
     any = true
   }
   if (!any) {
-    lines.push('(No live context yet. The home tiles haven\'t loaded. Coach gently and ask them what\'s on their mind.)')
+    dynamicLines.push('(No live context yet. The home tiles haven\'t loaded. Coach gently and ask them what\'s on their mind.)')
   }
 
-  return lines.join('\n').trim()
+  return [
+    { type: 'text', text: STATIC_PROMPT, cache_control: { type: 'ephemeral' } },
+    { type: 'text', text: dynamicLines.join('\n').trim() },
+  ]
 }
 
 export async function streamChat(
   messages: ChatMessage[],
-  system:   string,
+  system:   SystemBlock[],
   cb:       StreamCallbacks,
   signal?:  AbortSignal,
 ): Promise<void> {
@@ -140,6 +160,20 @@ export async function streamChat(
           const parsed = JSON.parse(dataStr)
           if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
             cb.onDelta(parsed.delta.text as string)
+          }
+          // Surface cache hit/miss to sessionStorage on message_start so
+          // we can verify prompt caching is engaging. Inspect via:
+          // JSON.parse(sessionStorage.getItem('daybreak-chat-cache'))
+          if (parsed.type === 'message_start' && parsed.message?.usage) {
+            const u = parsed.message.usage
+            try {
+              sessionStorage.setItem('daybreak-chat-cache', JSON.stringify({
+                input:    u.input_tokens,
+                cacheRead:  u.cache_read_input_tokens     ?? 0,
+                cacheWrite: u.cache_creation_input_tokens ?? 0,
+                ts: Date.now(),
+              }))
+            } catch { /* noop */ }
           }
         } catch {
           // ignore malformed events — the API is generally well-behaved
