@@ -75,3 +75,15 @@ the running function instance keeps the old value cached for a while.
 `src/lessons/` is a sealed module: nothing outside it imports from anywhere
 except `src/lessons/index.ts`. Preserve this. User-facing strings live in
 `src/lessons/copy.ts`.
+
+`src/journal/` is sealed too, **and stricter**. Nothing outside the folder
+may import from anywhere except `src/journal/index.ts`. The public API is
+intentionally tiny: `JournalTile`, `JournalApp`, and a `journal` object
+with `isUnlocked()` / `lock()`. There are **no data accessors** —
+deliberately. If a future task asks to surface "journal patterns in the
+coach", "the worry count on the home grid", "last-written timestamp",
+counts, dates, badges, or anything else derived from journal content,
+the answer is no: don't add the seam. The PIN is hashed with PBKDF2-SHA256
+via Web Crypto; v1 storage is plaintext-on-device behind a hashed PIN
+gate; v2 will swap the storage layer for an encrypted implementation.
+The unlock screen tells the user the truth about that.

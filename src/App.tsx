@@ -10,7 +10,7 @@ import { MomentsTile } from './moments'
 import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
 import {
   MindsetIcon, ReadinessIcon, ClientResearchIcon, PulseIcon, ScheduleIcon,
-  LessonsIcon, JournalIcon,
+  LessonsIcon,
 } from './components/icons'
 import { useWeather } from './hooks/useWeather'
 import { useCalendar } from './hooks/useCalendar'
@@ -21,7 +21,7 @@ import ClientResearchScreen from './screens/ClientResearchScreen'
 import PulseScreen from './screens/PulseScreen'
 import MindsetScreen, { hasMindsetEntryToday } from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
-import JournalScreen from './screens/JournalScreen'
+import { JournalTile } from './journal'
 import { looksLikeMovement } from './services/movement'
 import { useDayBreakContext } from './contexts/DayBreakContext'
 import SettingsScreen from './screens/SettingsScreen'
@@ -160,18 +160,32 @@ function HomeView() {
   )
 
   // status: 'done' | 'pending' is set ONLY on tiles representing a daily
-  // action (mindset, journal, lessons). Movement and Moments are custom
-  // tiles that render their own status dot. The passive-data tiles
-  // (schedule, readiness, pulse, client) get no dot.
-  const TOP_TILES = [
+  // action (mindset, lessons). Movement and Moments are custom tiles
+  // that render their own status dot. Journal is its own sealed module
+  // (rendered inline below) and intentionally exposes NO status to
+  // anything outside its unlocked surface — the brief is explicit. The
+  // passive-data tiles (schedule, readiness, pulse, client) get no dot.
+  interface TileCfg {
+    id:         string
+    icon:       React.ReactNode
+    title:      string
+    accent:     string
+    subtitle?:  string
+    status?:    'done' | 'pending'
+    fullWidth?: boolean
+    loading?:   boolean
+  }
+  const TOP_TILES_BEFORE_JOURNAL: TileCfg[] = [
     { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
-    { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b', status: (mindsetDoneToday ? 'done' : 'pending') as 'done' | 'pending' },
+    { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b', status: mindsetDoneToday ? 'done' : 'pending' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
-    { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.', status: 'pending' as 'pending' },
+  ]
+  const TOP_TILES_AFTER_JOURNAL: TileCfg[] = [
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
-    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', status: (lessonsDoneToday ? 'done' : 'pending') as 'done' | 'pending' },
+    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', status: lessonsDoneToday ? 'done' : 'pending' },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
   ]
+  const TOP_TILES: TileCfg[] = [...TOP_TILES_BEFORE_JOURNAL, ...TOP_TILES_AFTER_JOURNAL]
 
   const activeTile = TOP_TILES.find(t => t.id === activeId)
 
@@ -202,7 +216,6 @@ function HomeView() {
       />
       case 'mindset':  return <MindsetScreen />
       case 'schedule': return <ScheduleScreen events={scheduleEvents} tomorrow={tomorrowEvents} loading={calendar.loading} connected={calendar.connected} />
-      case 'journal':  return <JournalScreen />
       case 'lessons':
         // Daily flow when today's lesson is ready; library otherwise
         // (sealed-for-today / no course / course completed).
@@ -224,7 +237,21 @@ function HomeView() {
           </div>
         )}
         <div className="tile-grid">
-          {TOP_TILES.map(t => (
+          {TOP_TILES_BEFORE_JOURNAL.map(t => (
+            <Tile
+              key={t.id}
+              icon={t.icon}
+              title={t.title}
+              subtitle={'subtitle' in t ? t.subtitle : undefined}
+              accent={t.accent}
+              status={'status' in t ? t.status : undefined}
+              fullWidth={'fullWidth' in t && t.fullWidth}
+              loading={'loading' in t ? t.loading : false}
+              onClick={() => setActiveId(t.id)}
+            />
+          ))}
+          <JournalTile />
+          {TOP_TILES_AFTER_JOURNAL.map(t => (
             <Tile
               key={t.id}
               icon={t.icon}
