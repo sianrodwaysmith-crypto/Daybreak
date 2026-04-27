@@ -78,3 +78,12 @@ export function ReadingIcon({ size }: IconProps = {}) {
     </Svg>
   )
 }
+
+export function HouseIcon({ size }: IconProps = {}) {
+  return (
+    <Svg size={size}>
+      <path d="M 22 50 L 50 24 L 78 50 L 78 78 L 22 78 Z" />
+      <path d="M 42 78 L 42 60 L 58 60 L 58 78" />
+    </Svg>
+  )
+}
