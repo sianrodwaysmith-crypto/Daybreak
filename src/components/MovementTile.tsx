@@ -37,36 +37,17 @@ function todayLine(today: MovementEvent | null): string {
   return `${today.title}${time}`
 }
 
-function todaySubLine(today: MovementEvent | null, recovery: number | null): string {
-  if (!today) return 'Tap a day to plan one.'
-  if (today.source === 'rest') return 'Honour it.'
-  if (today.source === 'done') return 'Logged on Whoop.'
-  if (today.source === 'booked' || today.source === 'planned') {
-    const verb = today.source === 'planned' ? 'Planned' : 'Booked'
-    const where = today.location ? `${verb} at ${today.location}.` : `${verb}.`
-    const tone  = recovery == null
-      ? ''
-      : recovery >= 67
-        ? ' Whoop says you can push it.'
-        : ' Recovery is low. Listen to it.'
-    return `${where}${tone}`.trim()
-  }
-  return ''
-}
-
-function plannedLine(plannedThisWeek: number, doneThisWeek: number): string {
-  if (plannedThisWeek === 0) return 'Nothing on the calendar this week.'
-  const noun = plannedThisWeek === 1 ? 'session' : 'sessions'
-  if (doneThisWeek === 0) return `${plannedThisWeek} ${noun} planned this week.`
-  return `${plannedThisWeek} ${noun} planned, ${doneThisWeek} done.`
-}
-
 function hoursLine(hours: number): string {
   if (hours <= 0) return 'No hours logged yet.'
   if (hours === 1) return '1 hr exercised this week.'
   // Show "1.5 hrs" but drop a trailing .0 so whole numbers read cleanly.
   const display = Number.isInteger(hours) ? hours.toFixed(0) : hours.toFixed(1)
   return `${display} hrs exercised this week.`
+}
+
+function kcalLine(kcal: number | null): string {
+  if (kcal == null) return ''
+  return `${kcal.toLocaleString()} kcal today.`
 }
 
 function weekRangeLabel(weekStart: Date): string {
@@ -525,16 +506,14 @@ function MovementScheduleModal({ isOpen, onClose, events, onTapEvent, onTapDay }
 ==================================================================== */
 
 interface Props {
-  recovery:        number | null
   strain:          number | null
   activeCalories:  number | null
-  onOpenTrends:    () => void
 }
 
 const MAX_WEEKS_AHEAD = 8
 const MAX_WEEKS_BACK  = 8
 
-export default function MovementTile({ recovery, strain, activeCalories, onOpenTrends }: Props) {
+export default function MovementTile({ strain, activeCalories }: Props) {
   const [events, setEvents]   = useState<MovementEvent[]>([])
   const [sheet,  setSheet]    = useState<SheetState | null>(null)
   const [scheduleOpen, setScheduleOpen] = useState(false)
@@ -628,11 +607,9 @@ export default function MovementTile({ recovery, strain, activeCalories, onOpenT
           <span className="movement-eyebrow-icon" aria-hidden><MovementIcon size={22} /></span>
           movement
         </span>
-        {(strain != null || activeCalories != null) && (
+        {strain != null && (
           <span className="movement-meta">
-            {strain != null && <span className="movement-meta-num">{strain.toFixed(1)}<span className="movement-meta-unit"> strain</span></span>}
-            {strain != null && activeCalories != null && <span className="movement-meta-sep"> · </span>}
-            {activeCalories != null && <span className="movement-meta-num">{activeCalories.toLocaleString()}<span className="movement-meta-unit"> kcal</span></span>}
+            <span className="movement-meta-num">{strain.toFixed(1)}<span className="movement-meta-unit"> strain</span></span>
           </span>
         )}
         <span
@@ -643,7 +620,6 @@ export default function MovementTile({ recovery, strain, activeCalories, onOpenT
 
       <button className="movement-today" onClick={openToday}>
         <span className="movement-today-line">{todayLine(session)}</span>
-        <span className="movement-today-sub">{todaySubLine(session, recovery)}</span>
       </button>
 
       <div className="movement-week-nav">
@@ -687,8 +663,10 @@ export default function MovementTile({ recovery, strain, activeCalories, onOpenT
 
       <div className="movement-foot">
         <div className="movement-foot-stack">
-          <span className="movement-foot-line">{plannedLine(cadence.plannedThisWeek, cadence.thisWeek)}</span>
-          <span className="movement-foot-sub">{hoursLine(cadence.hoursDone)}</span>
+          <span className="movement-foot-line">{hoursLine(cadence.hoursDone)}</span>
+          {activeCalories != null && (
+            <span className="movement-foot-sub">{kcalLine(activeCalories)}</span>
+          )}
         </div>
         <div className="movement-foot-actions">
           {cadence.plannedThisWeek === 0 && (
@@ -698,9 +676,6 @@ export default function MovementTile({ recovery, strain, activeCalories, onOpenT
           )}
           <button className="movement-foot-link" onClick={() => setScheduleOpen(true)}>
             View schedule →
-          </button>
-          <button className="movement-foot-link" onClick={onOpenTrends}>
-            Trends →
           </button>
         </div>
       </div>

@@ -11,22 +11,15 @@ function color(score: number | null): string {
   return '#c2453a'
 }
 
-function label(score: number | null): string {
-  if (score == null) return 'recovery — connect Whoop'
-  if (score >= 67) return `${score}% recovered. Push if you want.`
-  if (score >= 34) return `${score}% recovered. Steady wins today.`
-  return `${score}% recovered. Treat yourself gently.`
-}
-
 /**
- * Thin coloured bar shown above the morning tile grid. The fill width
- * tracks the recovery percentage; the colour matches the readiness
- * traffic-light scale used elsewhere. Tapping opens the existing
- * Readiness modal — no separate drilldown needed here.
+ * Understated row: thin coloured bar on the left, recovery percentage
+ * on the right. No conversational label. Tapping opens the existing
+ * Readiness modal.
  */
 export default function ReadinessBar({ score, loading, onClick }: Props) {
   const pct = score == null ? 0 : Math.max(0, Math.min(100, score))
   const c   = color(score)
+  const numberText = score == null ? (loading ? '…' : '—') : `${score}%`
   return (
     <button
       type="button"
@@ -37,12 +30,10 @@ export default function ReadinessBar({ score, loading, onClick }: Props) {
       <div className="readiness-bar-track">
         <div
           className="readiness-bar-fill"
-          style={{ width: `${pct}%`, background: c }}
+          style={{ width: `${pct}%`, background: c, opacity: 0.7 }}
         />
       </div>
-      <div className="readiness-bar-label" style={{ color: c }}>
-        {loading && score == null ? '…' : label(score)}
-      </div>
+      <span className="readiness-bar-num" style={{ color: c }}>{numberText}</span>
     </button>
   )
 }
