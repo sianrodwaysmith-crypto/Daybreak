@@ -19,6 +19,12 @@ export interface WhoopDebug {
   rawResponseHead?:  string                       // first 240 chars of body if non-JSON
 }
 
+export interface WhoopCyclePoint {
+  date:   string                        // ISO YYYY-MM-DD
+  strain: number | null
+  kcal:   number | null
+}
+
 export interface WhoopData {
   connected:        boolean
   loading:          boolean
@@ -34,6 +40,8 @@ export interface WhoopData {
   strain:           number | null
   avgHr:            number | null
   maxHr:            number | null
+  activeCalories:   number | null
+  cycleHistory:     WhoopCyclePoint[]
   debug:            WhoopDebug | null
   /** Seconds remaining on the local cool-down. 0 means refresh is allowed. */
   cooldownSeconds:  number
@@ -55,6 +63,8 @@ interface WhoopPayload {
   strain:           number | null
   avgHr:            number | null
   maxHr:            number | null
+  activeCalories:   number | null
+  cycleHistory:     WhoopCyclePoint[]
 }
 
 interface StoredTokens {
@@ -112,6 +122,8 @@ const EMPTY: WhoopPayload = {
   sleep: null, sleepEfficiency: null, sleepConsistency: null,
   sleepHours: null, remHours: null, deepHours: null,
   strain: null, avgHr: null, maxHr: null,
+  activeCalories: null,
+  cycleHistory: [],
 }
 
 function readTokens(): StoredTokens | null {
@@ -228,6 +240,7 @@ export function useWhoop(): WhoopData {
         rem_hours:        payload.remHours,
         deep_hours:       payload.deepHours,
         strain:           payload.strain,
+        active_calories:  payload.activeCalories,
         avg_hr_today:     payload.avgHr,
         max_hr_today:     payload.maxHr,
       })

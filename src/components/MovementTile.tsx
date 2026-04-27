@@ -30,12 +30,6 @@ const SHORT_MONTHS = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
 ]
 
-function recoveryLabel(score: number | null): string {
-  if (score == null)   return ''
-  if (score >= 70) return `${score}% recovered`
-  return `${score}%, take it easy`
-}
-
 function todayLine(today: MovementEvent | null): string {
   if (!today) return 'Nothing planned today.'
   if (today.source === 'rest') return 'Rest day.'
@@ -531,13 +525,16 @@ function MovementScheduleModal({ isOpen, onClose, events, onTapEvent, onTapDay }
 ==================================================================== */
 
 interface Props {
-  recovery: number | null
+  recovery:        number | null
+  strain:          number | null
+  activeCalories:  number | null
+  onOpenTrends:    () => void
 }
 
 const MAX_WEEKS_AHEAD = 8
 const MAX_WEEKS_BACK  = 8
 
-export default function MovementTile({ recovery }: Props) {
+export default function MovementTile({ recovery, strain, activeCalories, onOpenTrends }: Props) {
   const [events, setEvents]   = useState<MovementEvent[]>([])
   const [sheet,  setSheet]    = useState<SheetState | null>(null)
   const [scheduleOpen, setScheduleOpen] = useState(false)
@@ -631,7 +628,13 @@ export default function MovementTile({ recovery }: Props) {
           <span className="movement-eyebrow-icon" aria-hidden><MovementIcon size={22} /></span>
           movement
         </span>
-        {recovery != null && <span className="movement-recovery">{recoveryLabel(recovery)}</span>}
+        {(strain != null || activeCalories != null) && (
+          <span className="movement-meta">
+            {strain != null && <span className="movement-meta-num">{strain.toFixed(1)}<span className="movement-meta-unit"> strain</span></span>}
+            {strain != null && activeCalories != null && <span className="movement-meta-sep"> · </span>}
+            {activeCalories != null && <span className="movement-meta-num">{activeCalories.toLocaleString()}<span className="movement-meta-unit"> kcal</span></span>}
+          </span>
+        )}
         <span
           className={`tile-dot tile-dot-${doneToday ? 'done' : 'pending'}`}
           aria-label={doneToday ? 'Done today' : 'Not yet today'}
@@ -695,6 +698,9 @@ export default function MovementTile({ recovery }: Props) {
           )}
           <button className="movement-foot-link" onClick={() => setScheduleOpen(true)}>
             View schedule →
+          </button>
+          <button className="movement-foot-link" onClick={onOpenTrends}>
+            Trends →
           </button>
         </div>
       </div>

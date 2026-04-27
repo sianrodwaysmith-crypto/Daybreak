@@ -6,6 +6,8 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
+import MovementTrends from './components/MovementTrends'
+import ReadinessBar from './components/ReadinessBar'
 import { MomentsTile } from './moments'
 import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
 import {
@@ -130,6 +132,7 @@ function useWhoopFlash(): { msg: string | null; clear: () => void } {
 function HomeView() {
   const [activeId,        setActiveId]     = useState<string | null>(null)
   const [showSettings,    setSettings]     = useState(false)
+  const [showTrends,      setShowTrends]   = useState(false)
   const weather  = useWeather()
   const calendar = useCalendar()
   const whoop    = useWhoop()
@@ -231,6 +234,11 @@ function HomeView() {
     <div className="app">
       <div className="app-content">
         <Header onSettings={() => setSettings(true)} weather={weather} />
+        <ReadinessBar
+          score={readinessScore}
+          loading={whoop.loading}
+          onClick={() => setActiveId('ready')}
+        />
         {whoopFlash.msg && (
           <div className={`flash${whoopFlash.msg.startsWith('✅') ? ' flash-ok' : ' flash-err'}`}>
             <span>{whoopFlash.msg}</span>
@@ -267,7 +275,12 @@ function HomeView() {
           ))}
         </div>
 
-        <MovementTile recovery={readinessScore} />
+        <MovementTile
+          recovery={readinessScore}
+          strain={whoop.strain}
+          activeCalories={whoop.activeCalories}
+          onOpenTrends={() => setShowTrends(true)}
+        />
 
         <MomentsTile onConnect={() => setSettings(true)} />
 
@@ -300,6 +313,16 @@ function HomeView() {
         accent="rgba(255,255,255,0.7)"
       >
         <SettingsScreen calendar={calendar} whoop={whoop} />
+      </Modal>
+
+      {/* Movement trends modal */}
+      <Modal
+        isOpen={showTrends}
+        onClose={() => setShowTrends(false)}
+        title="Active calories"
+        accent="rgba(255,255,255,0.7)"
+      >
+        {showTrends && <MovementTrends history={whoop.cycleHistory} />}
       </Modal>
 
       <ChatWidget />

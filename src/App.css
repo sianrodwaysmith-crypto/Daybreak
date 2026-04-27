@@ -599,6 +599,38 @@
   line-height: 1;
 }
 
+/* ---------- Readiness bar (above the tile grid) ---------- */
+.readiness-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 8px 2px 2px;
+  cursor: pointer;
+  text-align: left;
+}
+.readiness-bar-track {
+  height: 4px;
+  width: 100%;
+  background: rgba(10,10,10,0.07);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.readiness-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 320ms ease, background 320ms ease;
+}
+.readiness-bar-label {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  line-height: 1.4;
+  opacity: 0.92;
+}
+
 /* ---------- Tile grid ---------- */
 .tile-grid {
   display: grid;
@@ -2185,6 +2217,24 @@
   font-size: 11px;
   color: var(--muted);
 }
+.movement-meta {
+  font-size: 11px;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0;
+  white-space: nowrap;
+}
+.movement-meta-num {
+  color: var(--ink-2);
+}
+.movement-meta-unit {
+  color: var(--muted);
+}
+.movement-meta-sep {
+  color: var(--muted);
+  opacity: 0.7;
+}
 .movement-today {
   display: flex;
   flex-direction: column;
@@ -2626,6 +2676,55 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* ---------- Movement trends modal ---------- */
+.trends {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.trends-summary {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.trends-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.trends-stat-label {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.3px;
+}
+.trends-stat-num {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1;
+}
+.trends-stat-unit {
+  font-size: 12px;
+  color: var(--ink-2);
+}
+.trends-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--ink);
+}
+.trends-empty {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 8px 0;
 }
 
 /* =========================================================
