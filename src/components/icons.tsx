@@ -28,8 +28,7 @@ export function MindsetIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
       <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="4" />
-      <circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
     </Svg>
   )
 }
@@ -56,9 +55,7 @@ export function ClientResearchIcon({ size }: IconProps = {}) {
 export function PulseIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
-      <circle cx="12" cy="12" r="9" />
-      <line x1="3" y1="12" x2="21" y2="12" />
-      <ellipse cx="12" cy="12" rx="4" ry="9" />
+      <polyline points="3,14 8,14 11,7 13,18 16,14 21,14" />
     </Svg>
   )
 }
@@ -73,14 +70,9 @@ export function ScheduleIcon({ size }: IconProps = {}) {
 }
 
 export function MovementIcon({ size }: IconProps = {}) {
-  // Horizon line with two end-dots and an arc between them — a small jump
-  // / sunrise mark for the Movement tile.
   return (
     <Svg size={size}>
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <path d="M7.5 15 Q12 6.5 16.5 15" />
-      <circle cx="7.5"  cy="15" r="1.5" fill="currentColor" stroke="none" />
-      <circle cx="16.5" cy="15" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M3 17 Q12 5 21 17" />
     </Svg>
   )
 }
@@ -96,12 +88,9 @@ export function LessonsIcon({ size }: IconProps = {}) {
 }
 
 export function JournalIcon({ size }: IconProps = {}) {
-  // Notebook with a single rule — a quiet hint at the page.
   return (
     <Svg size={size}>
-      <rect x="5" y="3.5" width="14" height="17" rx="1.5" />
-      <line x1="8" y1="9" x2="16" y2="9" />
-      <line x1="8" y1="13" x2="13" y2="13" />
+      <line x1="5" y1="19" x2="19" y2="5" />
     </Svg>
   )
 }
