@@ -4,6 +4,11 @@ name: Trigger Vercel production deploy
 # webhook is healthy, Vercel will already be building when this runs and
 # the second hit is a no-op. If the webhook is broken (e.g. after a
 # GitHub account / password change), this is what keeps prod current.
+#
+# After firing the hook, the job polls the live site and FAILS if the
+# index.html bundle hash doesn't change within ~5 minutes. That converts
+# the previous silent-failure mode (green action, stale production) into
+# a loud red ✗.
 
 on:
   push:
@@ -14,6 +19,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Snapshot live index.html (pre-deploy)
+        run: |
+          PRE=$(curl -sSL --fail https://daybreak-three.vercel.app/ | sha256sum | cut -d' ' -f1)
+          echo "PRE_HASH=$PRE" >> "$GITHUB_ENV"
+          echo "Pre-deploy index.html sha256: $PRE"
+
       - name: Hit Vercel deploy hook
         env:
           HOOK: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
@@ -25,3 +36,19 @@ jobs:
           fi
           curl --fail --silent --show-error -X POST "$HOOK"
           echo "Deploy hook fired."
+
+      - name: Verify production updated
+        run: |
+          for i in $(seq 1 30); do
+            sleep 10
+            POST=$(curl -sSL --fail https://daybreak-three.vercel.app/ 2>/dev/null | sha256sum | cut -d' ' -f1 || true)
+            if [ -n "$POST" ] && [ "$POST" != "$PRE_HASH" ]; then
+              echo "Production updated: $PRE_HASH -> $POST (after ${i}0s)"
+              exit 0
+            fi
+            echo "Attempt $i/30: still on $PRE_HASH"
+          done
+          echo "::error::Production did not update within 5 minutes."
+          echo "Vercel may have dropped the hook (stale URL) or the build failed."
+          echo "Check Vercel → Deployments for a row matching this commit."
+          exit 1
