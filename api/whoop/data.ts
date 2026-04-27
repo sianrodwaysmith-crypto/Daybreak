@@ -61,10 +61,12 @@ export default async function handler(req: any, res: any) {
   // Whoop deprecated /developer/v1/recovery and /developer/v1/activity/sleep
   // (the cycle endpoint is on a longer runway but v2 is the supported path
   // for everything now). Switching all three to v2 in lockstep.
+  // Cycle is fetched at limit=14 so the Movement trends modal can render
+  // a 14-day active-calories chart without a second round-trip.
   let [recovRes, sleepRes, cycleRes] = await Promise.all([
-    fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',       { headers: authHeaders }),
-    fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1', { headers: authHeaders }),
-    fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=1',          { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',        { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1',  { headers: authHeaders }),
+    fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=14',          { headers: authHeaders }),
   ])
 
   // If access token was rejected mid-flight, refresh and retry.
@@ -77,9 +79,9 @@ export default async function handler(req: any, res: any) {
     returnedTokens = newTokens
     const newHeader = { Authorization: `Bearer ${newTokens.access_token}` }
     ;[recovRes, sleepRes, cycleRes] = await Promise.all([
-      fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',       { headers: newHeader }),
-      fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1', { headers: newHeader }),
-      fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=1',          { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/recovery?limit=1',        { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/activity/sleep?limit=1',  { headers: newHeader }),
+      fetch('https://api.prod.whoop.com/developer/v2/cycle?limit=14',          { headers: newHeader }),
     ])
   }
 
@@ -122,7 +124,12 @@ export default async function handler(req: any, res: any) {
 
     const rec   = (recovData as any)?.records?.[0]
     const sleep = (sleepData as any)?.records?.[0]
-    const cycle = (cycleData as any)?.records?.[0]
+    const cycleRecords = ((cycleData as any)?.records ?? []) as Array<{
+      start?: string
+      end?:   string
+      score?: { strain?: number; average_heart_rate?: number; max_heart_rate?: number; kilojoule?: number }
+    }>
+    const cycle = cycleRecords[0]
 
     const stage = sleep?.score?.stage_summary
     const toHours = (ms: number | null | undefined): number | null =>
@@ -135,6 +142,18 @@ export default async function handler(req: any, res: any) {
     // both tidies the UI and trims tokens off every chat message.
     const roundInt = (n: number | null | undefined): number | null =>
       n != null ? Math.round(n) : null
+    // Active calories: Whoop reports kilojoules. 1 kcal = 4.184 kJ.
+    const kjToKcal = (kj: number | null | undefined): number | null =>
+      kj != null ? Math.round(kj / 4.184) : null
+
+    // Each cycle's "date" for charting purposes is the local date the
+    // cycle started — Whoop cycles run wake-to-wake, but UI-wise the
+    // user thinks of them as days.
+    const cycleHistory = cycleRecords.map(c => ({
+      date:   (c.start ?? '').slice(0, 10),
+      strain: round1(c.score?.strain),
+      kcal:   kjToKcal(c.score?.kilojoule),
+    })).filter(c => !!c.date)
 
     const payload: any = {
       connected:        true,
@@ -150,6 +169,8 @@ export default async function handler(req: any, res: any) {
       strain:           round1(cycle?.score?.strain),
       avgHr:            cycle?.score?.average_heart_rate ?? null,
       maxHr:            cycle?.score?.max_heart_rate     ?? null,
+      activeCalories:   kjToKcal(cycle?.score?.kilojoule),
+      cycleHistory,
       _debug: {
         recoveryStatus: recovRes.status,
         sleepStatus:    sleepRes.status,
