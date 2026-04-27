@@ -15,13 +15,14 @@ const COMMON = {
 
 /**
  * Moments mark: rounded square outline with a small filled dot at the
- * centre. Same line weight as the rest of Daybreak's section marks.
+ * centre. Centered viewBox so the path matches the shared section-mark
+ * design exactly.
  */
 export function MomentsIcon({ size = 22 }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...COMMON} aria-hidden>
-      <rect x="4" y="4" width="16" height="16" rx="3" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    <svg width={size} height={size} viewBox="-25 -25 50 50" {...COMMON} aria-hidden>
+      <rect x="-22" y="-22" width="44" height="44" rx="3" />
+      <circle cx="0" cy="0" r="3.2" fill="currentColor" stroke="none" />
     </svg>
   )
 }
