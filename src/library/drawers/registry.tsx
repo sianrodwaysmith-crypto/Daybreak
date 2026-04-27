@@ -8,11 +8,13 @@
 
 import type { DrawerManifest } from '../types'
 import {
-  HolidaysIcon, OutfitsIcon, RecipesIcon, RestaurantsIcon, GiftsIcon, ReadingIcon,
+  HolidaysIcon, OutfitsIcon, RecipesIcon, RestaurantsIcon, GiftsIcon, ReadingIcon, HouseIcon,
 } from './icons'
 import { PlaceholderDrawer } from '../components/PlaceholderDrawer'
 import { HolidaysDrawer }       from './holidays/components/HolidaysDrawer'
 import { useHolidaysMetaLine }  from './holidays/meta'
+import { HouseDrawer }       from './house/components/HouseDrawer'
+import { useHouseMetaLine }  from './house/meta'
 
 const useNullMetaLine = () => null
 
@@ -70,6 +72,14 @@ export function buildRegistry(onBack: () => void): DrawerManifest[] {
       useMetaLine:  useNullMetaLine,
       component:    () => <PlaceholderDrawer name="Reading" onBack={onBack} />,
       status:       'placeholder',
+    },
+    {
+      id:           'house',
+      name:         'House',
+      icon:         () => <HouseIcon />,
+      useMetaLine:  useHouseMetaLine,
+      component:    () => <HouseDrawer onBack={onBack} />,
+      status:       'live',
     },
   ]
 }
