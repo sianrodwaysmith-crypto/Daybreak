@@ -6,7 +6,6 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
-import ReadinessBar from './components/ReadinessBar'
 import { MomentsTile } from './moments'
 import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
 import {
@@ -232,11 +231,12 @@ function HomeView() {
   return (
     <div className="app">
       <div className="app-content">
-        <Header onSettings={() => setSettings(true)} weather={weather} />
-        <ReadinessBar
-          score={readinessScore}
-          loading={whoop.loading}
-          onClick={() => setActiveId('ready')}
+        <Header
+          onSettings={() => setSettings(true)}
+          weather={weather}
+          readinessScore={whoop.connected ? readinessScore : undefined}
+          readinessLoading={whoop.loading}
+          onReadinessClick={() => setActiveId('ready')}
         />
         {whoopFlash.msg && (
           <div className={`flash${whoopFlash.msg.startsWith('✅') ? ' flash-ok' : ' flash-err'}`}>

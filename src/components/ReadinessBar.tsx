@@ -4,21 +4,14 @@ interface Props {
   onClick:  () => void
 }
 
-function color(score: number | null): string {
-  if (score == null)   return 'rgba(10,10,10,0.18)'
-  if (score >= 67) return '#19a35a'
-  if (score >= 34) return '#c98a00'
-  return '#c2453a'
-}
-
 /**
- * Understated row: thin coloured bar on the left, recovery percentage
- * on the right. No conversational label. Tapping opens the existing
- * Readiness modal.
+ * Quiet readiness bar designed to sit inside the header block, just
+ * below the greeting. Ink-coloured fill (matches the writing) so it
+ * reads as a graphic underline rather than a traffic-light. The
+ * recovery percentage sits on the right at the same baseline.
  */
 export default function ReadinessBar({ score, loading, onClick }: Props) {
   const pct = score == null ? 0 : Math.max(0, Math.min(100, score))
-  const c   = color(score)
   const numberText = score == null ? (loading ? '…' : '—') : `${score}%`
   return (
     <button
@@ -30,10 +23,10 @@ export default function ReadinessBar({ score, loading, onClick }: Props) {
       <div className="readiness-bar-track">
         <div
           className="readiness-bar-fill"
-          style={{ width: `${pct}%`, background: c, opacity: 0.7 }}
+          style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="readiness-bar-num" style={{ color: c }}>{numberText}</span>
+      <span className="readiness-bar-num">{numberText}</span>
     </button>
   )
 }
