@@ -2400,6 +2400,22 @@
   border: none;
   padding: 4px 0;
 }
+.movement-foot-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.movement-foot-link {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.movement-foot-link:hover { color: var(--ink); }
 
 /* ----- Sheet (quick-add / detail) ----- */
 .movement-sheet {
@@ -2494,6 +2510,111 @@
   color: var(--ink-2);
   border: 1px solid var(--line);
   font-size: 13px;
+}
+
+/* ----- Day list (multiple sessions on one day) ----- */
+.movement-sheet-back {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 0 0 4px 0;
+  cursor: pointer;
+}
+.movement-sheet-back:hover { color: var(--ink-2); }
+
+.movement-day-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.movement-day-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  text-align: left;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+}
+.movement-day-row:hover { background: rgba(10,10,10,0.03); }
+.movement-day-row-title {
+  grid-column: 1;
+  grid-row: 1;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  color: var(--ink);
+}
+.movement-day-row-meta {
+  grid-column: 1;
+  grid-row: 2;
+  font-size: 12px;
+  color: var(--muted);
+}
+.movement-day-row-badge {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  background: transparent;
+}
+.movement-day-row-badge.badge-done    { color: #19a35a; border-color: #19a35a; }
+.movement-day-row-badge.badge-booked  { color: #2563eb; border-color: #2563eb; }
+.movement-day-row-badge.badge-planned { color: var(--ink-2); }
+.movement-day-row-badge.badge-rest    { color: var(--muted); }
+
+/* ----- Schedule modal (column view of all upcoming) ----- */
+.movement-schedule {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.movement-schedule-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 24px 0;
+  text-align: center;
+  color: var(--muted);
+}
+.movement-schedule-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.movement-schedule-day {
+  margin: 0;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink-2);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.movement-schedule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 /* =========================================================

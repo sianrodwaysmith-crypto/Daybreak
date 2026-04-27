@@ -4,7 +4,7 @@ import { MovementIcon } from './icons'
 import {
   MockMovementSource, CompositeMovementSource, GoogleCalendarMovementSource,
   computeCadence, todaysSession, weekDates, startOfWeek, todayISO, isoDate,
-  type MovementEvent, type MovementSource,
+  type MovementEvent, type MovementSource, type Source,
 } from '../services/movement'
 
 /* ====================================================================
@@ -142,45 +142,129 @@ function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
 }
 
 /* ====================================================================
-   Sheet — quick-add / edit / read-only detail
+   Sheet — day view (list of sessions) + detail (add / edit / read-only)
 ==================================================================== */
 
 interface SheetState {
-  iso:  string
-  ev:   MovementEvent | null
+  iso:        string
+  dayEvents:  MovementEvent[]               // every event on this day
+  active:     'list' | 'new' | string       // 'list' = day list; 'new' = blank form; string = event id
 }
 
 interface SheetProps {
   state:    SheetState | null
   onClose:  () => void
+  onChange: (next: SheetState) => void      // navigate within the sheet (list <-> detail)
   onSaved:  () => void
 }
 
-function MovementSheet({ state, onClose, onSaved }: SheetProps) {
+function dayLabel(iso: string): string {
+  return new Date(iso + 'T00:00:00').toLocaleDateString(undefined, {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
+}
+
+function sourceBadge(s: Source): string {
+  if (s === 'done')    return 'done'
+  if (s === 'booked')  return 'booked'
+  if (s === 'planned') return 'planned'
+  return 'rest'
+}
+
+function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
   const [title,    setTitle]    = useState('')
   const [duration, setDuration] = useState('')
   const [intensity, setIntensity] = useState<'low' | 'moderate' | 'high' | ''>('')
   const [saving, setSaving] = useState(false)
 
+  const activeEvent: MovementEvent | null =
+    state && typeof state.active === 'string' && state.active !== 'list' && state.active !== 'new'
+      ? state.dayEvents.find(e => e.id === state.active) ?? null
+      : null
+
   useEffect(() => {
     if (!state) return
-    if (state.ev) {
-      setTitle(state.ev.title ?? '')
-      setDuration(state.ev.durationMinutes ? String(state.ev.durationMinutes) : '')
-      setIntensity(state.ev.intensity ?? '')
+    if (activeEvent) {
+      setTitle(activeEvent.title ?? '')
+      setDuration(activeEvent.durationMinutes ? String(activeEvent.durationMinutes) : '')
+      setIntensity(activeEvent.intensity ?? '')
     } else {
       setTitle(''); setDuration(''); setIntensity('')
     }
-  }, [state])
+  }, [state, activeEvent])
 
   if (!state) return null
 
-  const ev   = state.ev
   const iso  = state.iso
-  const dateLabel = new Date(iso + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' })
+  const date = dayLabel(iso)
 
+  /* ---------------- LIST VIEW ---------------- */
+  if (state.active === 'list') {
+    const hasRest = state.dayEvents.some(e => e.source === 'rest')
+    return (
+      <Modal isOpen={true} onClose={onClose} title="Day" accent="var(--ink)">
+        <div className="movement-sheet">
+          <div className="movement-sheet-date">{date}</div>
+
+          <ul className="movement-day-list">
+            {state.dayEvents.map(e => (
+              <li key={e.id}>
+                <button
+                  type="button"
+                  className="movement-day-row"
+                  onClick={() => onChange({ ...state, active: e.id })}
+                >
+                  <span className="movement-day-row-title">{e.title}</span>
+                  <span className="movement-day-row-meta">
+                    {e.startTime ? e.startTime : null}
+                    {e.startTime && (e.durationMinutes || e.location) ? ' · ' : ''}
+                    {e.durationMinutes ? `${e.durationMinutes} min` : ''}
+                    {e.durationMinutes && e.location ? ' · ' : ''}
+                    {e.location ?? ''}
+                  </span>
+                  <span className={`movement-day-row-badge badge-${e.source}`}>{sourceBadge(e.source)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <div className="movement-sheet-actions">
+            <button
+              className="movement-btn-primary"
+              onClick={() => onChange({ ...state, active: 'new' })}
+            >
+              + Add another session
+            </button>
+            {!hasRest && (
+              <button
+                className="movement-btn-quiet"
+                onClick={async () => {
+                  setSaving(true)
+                  try {
+                    await source.createEvent({ date: iso, source: 'rest', title: 'Rest day' })
+                    onSaved(); onClose()
+                  } finally { setSaving(false) }
+                }}
+                disabled={saving}
+              >
+                Mark rest day
+              </button>
+            )}
+          </div>
+        </div>
+      </Modal>
+    )
+  }
+
+  /* ---------------- DETAIL / FORM VIEW ---------------- */
+  const ev = activeEvent
   const editable = !ev || ev.source === 'planned' || ev.source === 'rest'
   const readonly = ev && (ev.source === 'booked' || ev.source === 'done')
+  const canBack = state.dayEvents.length > 0
+
+  function back() {
+    if (state) onChange({ ...state, active: 'list' })
+  }
 
   async function handleSave() {
     if (!title.trim()) return
@@ -212,14 +296,6 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
     finally { setSaving(false) }
   }
 
-  async function handleMarkRest() {
-    setSaving(true)
-    try {
-      await source.createEvent({ date: iso, source: 'rest', title: 'Rest day' })
-      onSaved(); onClose()
-    } finally { setSaving(false) }
-  }
-
   async function handleMarkDone() {
     if (!ev) return
     setSaving(true)
@@ -234,11 +310,8 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
         intensity:        ev.intensity,
       }
       if (ev.source === 'planned') {
-        // Writable mock event — flip in place.
         await source.updateEvent(ev.id, payload)
       } else {
-        // Booked or external — create a local done sibling so we don't try to
-        // mutate a read-only source. The done takes precedence in the chart.
         await source.createEvent(payload)
       }
       onSaved(); onClose()
@@ -252,7 +325,12 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
   return (
     <Modal isOpen={true} onClose={onClose} title={title0} accent="var(--ink)">
       <div className="movement-sheet">
-        <div className="movement-sheet-date">{dateLabel}</div>
+        {canBack && (
+          <button type="button" className="movement-sheet-back" onClick={back}>
+            ← Back to {date}
+          </button>
+        )}
+        <div className="movement-sheet-date">{date}</div>
 
         {readonly && ev && (
           <>
@@ -357,14 +435,92 @@ function MovementSheet({ state, onClose, onSaved }: SheetProps) {
                   Delete
                 </button>
               )}
-              {!ev && (
-                <button className="movement-btn-quiet" onClick={handleMarkRest} disabled={saving}>
-                  Mark rest day
-                </button>
-              )}
             </div>
           </>
         )}
+      </div>
+    </Modal>
+  )
+}
+
+/* ====================================================================
+   Schedule modal — column view of every upcoming session
+==================================================================== */
+
+interface ScheduleModalProps {
+  isOpen:   boolean
+  onClose:  () => void
+  events:   MovementEvent[]
+  onTapEvent: (ev: MovementEvent) => void
+  onTapDay:   (iso: string) => void
+}
+
+function MovementScheduleModal({ isOpen, onClose, events, onTapEvent, onTapDay }: ScheduleModalProps) {
+  const today = todayISO()
+
+  // Upcoming = today onwards, planned/booked/rest only (done is past).
+  // Sorted by date then start time so the column reads chronologically.
+  const upcoming = useMemo(() => {
+    return events
+      .filter(e => e.date >= today && e.source !== 'done')
+      .sort((a, b) => {
+        if (a.date !== b.date) return a.date < b.date ? -1 : 1
+        const at = a.startTime ?? '99:99'
+        const bt = b.startTime ?? '99:99'
+        return at < bt ? -1 : at > bt ? 1 : 0
+      })
+  }, [events, today])
+
+  const grouped = useMemo(() => {
+    const out: Array<{ iso: string; events: MovementEvent[] }> = []
+    for (const e of upcoming) {
+      const last = out[out.length - 1]
+      if (last && last.iso === e.date) last.events.push(e)
+      else out.push({ iso: e.date, events: [e] })
+    }
+    return out
+  }, [upcoming])
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Movement schedule" accent="var(--ink)">
+      <div className="movement-schedule">
+        {grouped.length === 0 && (
+          <div className="movement-schedule-empty">
+            <span>Nothing planned yet.</span>
+            <button
+              className="movement-btn-primary"
+              onClick={() => { onClose(); onTapDay(today) }}
+            >
+              + Plan a session
+            </button>
+          </div>
+        )}
+        {grouped.map(group => (
+          <section key={group.iso} className="movement-schedule-group">
+            <h4 className="movement-schedule-day">{dayLabel(group.iso)}</h4>
+            <ul className="movement-schedule-list">
+              {group.events.map(e => (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    className="movement-day-row"
+                    onClick={() => { onClose(); onTapEvent(e) }}
+                  >
+                    <span className="movement-day-row-title">{e.title}</span>
+                    <span className="movement-day-row-meta">
+                      {e.startTime ? e.startTime : null}
+                      {e.startTime && e.durationMinutes ? ' · ' : ''}
+                      {e.durationMinutes ? `${e.durationMinutes} min` : ''}
+                      {(e.startTime || e.durationMinutes) && e.location ? ' · ' : ''}
+                      {e.location ?? ''}
+                    </span>
+                    <span className={`movement-day-row-badge badge-${e.source}`}>{sourceBadge(e.source)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
       </div>
     </Modal>
   )
@@ -384,6 +540,7 @@ const MAX_WEEKS_BACK  = 8
 export default function MovementTile({ recovery }: Props) {
   const [events, setEvents]   = useState<MovementEvent[]>([])
   const [sheet,  setSheet]    = useState<SheetState | null>(null)
+  const [scheduleOpen, setScheduleOpen] = useState(false)
   const [bump,   setBump]     = useState(0)
 
   const today = useMemo(() => new Date(), [])
@@ -428,7 +585,15 @@ export default function MovementTile({ recovery }: Props) {
   const session  = useMemo(() => todaysSession(events, today), [events, today])
 
   function openDay(iso: string) {
-    setSheet({ iso, ev: byDate.get(iso) ?? null })
+    const dayEvents = events.filter(e => e.date === iso)
+    // No events on this day → jump straight to a blank form. With existing
+    // events → list them so the user can edit one or tap "Add another".
+    setSheet({ iso, dayEvents, active: dayEvents.length === 0 ? 'new' : 'list' })
+  }
+
+  function openEvent(ev: MovementEvent) {
+    const dayEvents = events.filter(e => e.date === ev.date)
+    setSheet({ iso: ev.date, dayEvents, active: ev.id })
   }
 
   function openToday() {
@@ -443,7 +608,9 @@ export default function MovementTile({ recovery }: Props) {
       ...weekDates(todayWeekStart).filter(d => d >= todayISO()),
     ]
     const next = candidates.find(d => !byDate.get(d))
-    setSheet({ iso: next ?? todayISO(), ev: null })
+    const iso  = next ?? todayISO()
+    const dayEvents = events.filter(e => e.date === iso)
+    setSheet({ iso, dayEvents, active: 'new' })
   }
 
   function stepWeek(deltaWeeks: number) {
@@ -509,17 +676,31 @@ export default function MovementTile({ recovery }: Props) {
           <span className="movement-foot-line">{plannedLine(cadence.plannedThisWeek, cadence.thisWeek)}</span>
           <span className="movement-foot-sub">{hoursLine(cadence.hoursDone)}</span>
         </div>
-        {cadence.plannedThisWeek === 0 && (
-          <button className="movement-foot-cta" onClick={openNextEmpty}>
-            Plan one →
+        <div className="movement-foot-actions">
+          {cadence.plannedThisWeek === 0 && (
+            <button className="movement-foot-cta" onClick={openNextEmpty}>
+              Plan one →
+            </button>
+          )}
+          <button className="movement-foot-link" onClick={() => setScheduleOpen(true)}>
+            View schedule →
           </button>
-        )}
+        </div>
       </div>
 
       <MovementSheet
         state={sheet}
         onClose={() => setSheet(null)}
+        onChange={(next) => setSheet(next)}
         onSaved={() => setBump(b => b + 1)}
+      />
+
+      <MovementScheduleModal
+        isOpen={scheduleOpen}
+        onClose={() => setScheduleOpen(false)}
+        events={events}
+        onTapEvent={(ev) => openEvent(ev)}
+        onTapDay={(iso) => openDay(iso)}
       />
     </section>
   )
