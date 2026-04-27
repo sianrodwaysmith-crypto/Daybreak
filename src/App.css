@@ -667,7 +667,18 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  opacity: 0.85;
+  opacity: 0.95;
+}
+.tile-dot-done    { background: #19a35a; }
+.tile-dot-pending { background: rgba(10,10,10,0.18); }
+/* When the dot is rendered inline inside a custom-tile head row (Movement
+   / Moments) rather than the standard absolute Tile, switch off the
+   absolute positioning so it flows as a normal flex item. */
+.movement-head .tile-dot,
+.moments-head  .tile-dot {
+  position: static;
+  margin-left: 8px;
+  flex-shrink: 0;
 }
 .tile-full {
   grid-column: 1 / -1;

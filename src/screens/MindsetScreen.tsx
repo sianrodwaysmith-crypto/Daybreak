@@ -13,6 +13,22 @@ interface Saved {
   reflection: string
 }
 
+/**
+ * Whether today's mindset entry has been filled in. Used by the home
+ * grid to flip the Daily mindset tile's status dot from grey to green.
+ * Recomputes the date key on each call so it stays correct across
+ * midnight without remounting the screen.
+ */
+export function hasMindsetEntryToday(): boolean {
+  try {
+    const today = new Date().toISOString().split('T')[0]
+    const raw = localStorage.getItem(`daybreak-mindset-${today}`)
+    if (!raw) return false
+    const parsed = JSON.parse(raw) as Partial<Saved>
+    return Boolean(parsed?.greatDay?.trim() || parsed?.affirmation?.trim())
+  } catch { return false }
+}
+
 export default function MindsetScreen() {
   const { registerContent } = useDayBreakContext()
   const [g1, setG1]                 = useState('')

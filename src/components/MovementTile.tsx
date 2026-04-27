@@ -584,6 +584,13 @@ export default function MovementTile({ recovery }: Props) {
   const cadence  = useMemo(() => computeCadence(events, today), [events, today])
   const session  = useMemo(() => todaysSession(events, today), [events, today])
 
+  // Daily completion status (drives the head dot). Done = today has at
+  // least one logged session (source 'done') OR a rest day.
+  const doneToday = useMemo(() => {
+    const t = todayISO()
+    return events.some(e => e.date === t && (e.source === 'done' || e.source === 'rest'))
+  }, [events])
+
   function openDay(iso: string) {
     const dayEvents = events.filter(e => e.date === iso)
     // No events on this day → jump straight to a blank form. With existing
@@ -625,6 +632,10 @@ export default function MovementTile({ recovery }: Props) {
           movement
         </span>
         {recovery != null && <span className="movement-recovery">{recoveryLabel(recovery)}</span>}
+        <span
+          className={`tile-dot tile-dot-${doneToday ? 'done' : 'pending'}`}
+          aria-label={doneToday ? 'Done today' : 'Not yet today'}
+        />
       </div>
 
       <button className="movement-today" onClick={openToday}>

@@ -166,6 +166,10 @@ export function MomentsTile({ userId = 'sian', nowOverride, forceEvening, onConn
               {copy.tile.collectionLink()}
             </button>
           </span>
+          <span
+            className={`tile-dot tile-dot-${state.kind === 'evening_submitted' ? 'done' : 'pending'}`}
+            aria-label={state.kind === 'evening_submitted' ? 'Done today' : 'Not yet today'}
+          />
         </div>
 
         <button type="button" className="moments-body" onClick={openTile}>
