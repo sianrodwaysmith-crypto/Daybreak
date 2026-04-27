@@ -65,7 +65,7 @@ The talking_points block is REQUIRED. Output 2 to 3 <point> children, each under
 
   return `
 
-Output ONLY ${storyCount} <story> blocks (and the talking_points block where required) in this exact XML format, with no other text outside the tags:
+Output up to ${storyCount} <story> blocks (and the talking_points block where required) in this exact XML format, with no other text outside the tags:
 
 <story>
 <title>Article title in sentence case, max 12 words.</title>
@@ -77,13 +77,13 @@ Output ONLY ${storyCount} <story> blocks (and the talking_points block where req
 
 Hard rules:
 - Wrap each story in <story>...</story> with one each of <title>, <date>, <what>, <impact>, <source> as children.
-- Output exactly ${storyCount} stories.
-- Every story MUST be from the last 30 days. If you cannot find ${storyCount} qualifying recent stories, reduce the count rather than reaching back further.
+- Output up to ${storyCount} stories. Prefer fewer high-quality stories from the last 30 days over padding the count with weaker matches. If you can only justify 1 story, output 1. If nothing reputable from the last 30 days qualifies, output zero stories${withTalkingPoints ? ' and omit the talking_points block too' : ''} — that is a valid response.
+- Every story MUST be from the last 30 days.
 - <date> MUST be the article's publication date in ISO YYYY-MM-DD format (e.g. 2026-04-19). If the article shows only month and year, use the 1st of that month. Never invent a date.
 - Title is plain text, sentence case, no markdown, no bold markers, capped at 12 words.
 - <what> and <impact> are plain text, single sentence each, under 25 words. No markdown, no bold, no inline citations.
 - <source> must be a single direct URL to the original news article (not a search results page, not a homepage).
-- Your very first character must be the < of the first <story>${withTalkingPoints ? ', and your last character must be the > of </talking_points>' : ', and your last character must be the > of the last </story>'}. No preamble, no framing, no closing line, no separator text between stories, no commentary.
+- If you output any stories, your first character must be the < of the first <story>${withTalkingPoints ? ', and your last character must be the > of </talking_points>' : ', and your last character must be the > of the last </story>'}. No preamble, no framing, no closing line, no separator text between stories, no commentary.
 - Punctuation: never use the em-dash character "—" anywhere in your output. Use commas, periods, parentheses, or semicolons. En-dashes "–" only in number or date ranges. Hyphens in compound words like "day-to-day" are fine.`
 }
 
@@ -118,10 +118,17 @@ Using web search, find ${args.storyCount} of the most recent and relevant news i
 
 Frame the <impact> sentence as a sales-relevant conversation hook the AE could lead with on a call.${accountFormatTail(args.storyCount, args.withTalkingPoints)}`
 
-  return callPulse(prompt, `account-${args.name.slice(0, 24)}`)
+  // Three searches (vs Pulse's two) gives the model headroom to spend one
+  // on disambiguation for ambiguous account names (e.g. "Aztec Group")
+  // without starving the actual content searches.
+  return callPulse(prompt, `account-${args.name.slice(0, 24)}`, { maxSearches: 3 })
 }
 
-async function callPulse(prompt: string, debugKey: string): Promise<string> {
+async function callPulse(
+  prompt:   string,
+  debugKey: string,
+  opts:     { maxSearches?: number } = {},
+): Promise<string> {
   const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY as string | undefined
 
   // Bail after 45s so the UI doesn't sit on "Updating…" forever when the
@@ -150,7 +157,7 @@ async function callPulse(prompt: string, debugKey: string): Promise<string> {
           {
             type:     'web_search_20250305',
             name:     'web_search',
-            max_uses: 2,
+            max_uses: opts.maxSearches ?? 2,
           },
         ],
         messages: [
