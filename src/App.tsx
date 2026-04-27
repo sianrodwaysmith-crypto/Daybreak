@@ -22,6 +22,7 @@ import PulseScreen from './screens/PulseScreen'
 import MindsetScreen, { hasMindsetEntryToday } from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
 import { JournalTile } from './journal'
+import { LibraryFooterLink } from './library'
 import { looksLikeMovement } from './services/movement'
 import { useDayBreakContext } from './contexts/DayBreakContext'
 import SettingsScreen from './screens/SettingsScreen'
@@ -269,6 +270,8 @@ function HomeView() {
         <MovementTile recovery={readinessScore} />
 
         <MomentsTile onConnect={() => setSettings(true)} />
+
+        <LibraryFooterLink />
 
         <footer className="home-footer">
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
