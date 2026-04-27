@@ -149,31 +149,17 @@ function HomeView() {
     scheduleEvents, calendar.loading, calendar.connected, new Date(),
   )
 
-  // Lessons tile subtitle — derived from the module's own state.
-  const lessonsSubtitle =
-    lessonsState.state.kind === 'ready'      ? `Day ${lessonsState.state.dayNumber} — ${lessonsState.state.lesson.title}`
-    : lessonsState.state.kind === 'done'     ? `Day ${lessonsState.state.dayNumber} done.`
-    : lessonsState.state.kind === 'completed'? 'Course complete.'
-    : lessonsState.state.kind === 'no_course'? 'Begin a course.'
-    : undefined
-
   const TOP_TILES = [
     { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
     { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
-    { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
-    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', subtitle: lessonsSubtitle },
-  ]
-
-  // Journal + Client research live below Movement and Moments — see render
-  // block below. They're kept in their own array so the active-tile lookup
-  // and modal wiring still work uniformly.
-  const BOTTOM_TILES = [
     { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.' },
+    { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
+    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa' },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
   ]
 
-  const activeTile = [...TOP_TILES, ...BOTTOM_TILES].find(t => t.id === activeId)
+  const activeTile = TOP_TILES.find(t => t.id === activeId)
 
   function getContent(id: string | null) {
     switch (id) {
@@ -241,20 +227,6 @@ function HomeView() {
         <MovementTile recovery={readinessScore} />
 
         <MomentsTile onConnect={() => setSettings(true)} />
-
-        <div className="tile-grid">
-          {BOTTOM_TILES.map(t => (
-            <Tile
-              key={t.id}
-              icon={t.icon}
-              title={t.title}
-              subtitle={'subtitle' in t ? t.subtitle : undefined}
-              accent={t.accent}
-              loading={false}
-              onClick={() => setActiveId(t.id)}
-            />
-          ))}
-        </div>
 
         <footer className="home-footer">
           <Link to="/privacy" className="home-footer-link">Privacy Policy</Link>
