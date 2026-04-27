@@ -76,6 +76,10 @@ function NewsBlock({ state, accountName, hasNotes, onLoad, onRetry, onEdit, show
               ? 'The web search came back empty for the last 30 days. Try refreshing later, or refine the notes (e.g. specific division, parent company) so the search lands on the right entity.'
               : `If the name is ambiguous, add context in notes (industry, location, full company name) so the search knows which ${accountName} you mean.`}
           </span>
+          <details className="account-news-empty-debug">
+            <summary>Show what the model returned</summary>
+            <pre className="account-news-empty-debug-pre">{state.content}</pre>
+          </details>
         </div>
         <div className="account-news-empty-actions">
           {!hasNotes && (
