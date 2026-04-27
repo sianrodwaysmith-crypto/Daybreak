@@ -29,14 +29,39 @@ async function exchangeRefresh(
 }
 
 interface GCalEventDate { date?: string; dateTime?: string; timeZone?: string }
+interface GCalWorkingLocation {
+  type?:           'homeOffice' | 'officeLocation' | 'customLocation'
+  homeOffice?:     Record<string, unknown>
+  officeLocation?: { label?: string; buildingId?: string; floorId?: string; deskId?: string }
+  customLocation?: { label?: string }
+}
 interface GCalEvent {
-  id?:         string
-  summary?:    string
-  location?:   string
-  start?:      GCalEventDate
-  end?:        GCalEventDate
-  status?:     string
-  htmlLink?:   string
+  id?:                       string
+  summary?:                  string
+  location?:                 string
+  start?:                    GCalEventDate
+  end?:                      GCalEventDate
+  status?:                   string
+  htmlLink?:                 string
+  eventType?:                string
+  workingLocationProperties?: GCalWorkingLocation
+}
+
+// Google's events.list returns workingLocation entries only when they're
+// explicitly listed in eventTypes. Without this param the API silently
+// drops them, which is why "Working from home" never reaches the schedule.
+function formatWorkingLocationTitle(wl: GCalWorkingLocation | undefined, fallback: string): string {
+  if (!wl) return fallback
+  if (wl.type === 'homeOffice') return 'Working from home'
+  if (wl.type === 'officeLocation') {
+    const label = wl.officeLocation?.label?.trim()
+    return label ? `At the office (${label})` : 'At the office'
+  }
+  if (wl.type === 'customLocation') {
+    const label = wl.customLocation?.label?.trim()
+    return label ? `Working from ${label}` : fallback
+  }
+  return fallback
 }
 
 function startOfTodayLocal(): Date {
@@ -105,6 +130,10 @@ export default async function handler(req: any, res: any) {
     orderBy:       'startTime',
     maxResults:    '250',
   })
+  // eventTypes is repeated, not comma-separated, in Google's API.
+  for (const t of ['default', 'focusTime', 'outOfOffice', 'workingLocation']) {
+    params.append('eventTypes', t)
+  }
   const eventsUrl = `https://www.googleapis.com/calendar/v3/calendars/primary/events?${params.toString()}`
   const authHeaders = { Authorization: `Bearer ${currentAccess}` }
 
@@ -144,14 +173,19 @@ export default async function handler(req: any, res: any) {
       const allDay = !!e.start?.date
       const startISO = e.start?.dateTime ?? `${e.start?.date}T00:00:00`
       const endISO   = e.end?.dateTime   ?? `${e.end?.date   ?? e.start?.date}T23:59:59`
+      const fallback = e.summary ?? '(untitled)'
+      const title = e.eventType === 'workingLocation'
+        ? formatWorkingLocationTitle(e.workingLocationProperties, fallback)
+        : fallback
       return {
-        id:       e.id ?? `${startISO}-${e.summary ?? 'untitled'}`,
-        title:    e.summary ?? '(untitled)',
-        start:    startISO,
-        end:      endISO,
+        id:        e.id ?? `${startISO}-${title}`,
+        title,
+        start:     startISO,
+        end:       endISO,
         allDay,
-        location: e.location,
-        htmlLink: e.htmlLink,
+        location:  e.location,
+        htmlLink:  e.htmlLink,
+        eventType: e.eventType,
       }
     })
 
