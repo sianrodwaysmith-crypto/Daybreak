@@ -1,5 +1,6 @@
 import WhoopRings from '../components/WhoopRings'
-import type { WhoopData } from '../hooks/useWhoop'
+import MovementTrends from '../components/MovementTrends'
+import type { WhoopData, WhoopCyclePoint } from '../hooks/useWhoop'
 
 interface Props {
   score:            number | null
@@ -14,6 +15,7 @@ interface Props {
   strain?:          number | null
   avgHr?:           number | null
   maxHr?:           number | null
+  cycleHistory?:    WhoopCyclePoint[]
   connected:        boolean
 }
 
@@ -58,6 +60,7 @@ export default function ReadinessScreen(props: Props) {
     sleep, sleepEfficiency, sleepConsistency,
     sleepHours, remHours, deepHours,
     strain, avgHr, maxHr,
+    cycleHistory,
     connected,
   } = props
 
@@ -137,6 +140,13 @@ export default function ReadinessScreen(props: Props) {
               )}
             </div>
           </div>
+
+          {cycleHistory && cycleHistory.length > 0 && (
+            <div className="screen-section">
+              <div className="screen-label">Active calories · 14 days</div>
+              <MovementTrends history={cycleHistory} />
+            </div>
+          )}
         </>
       )}
 

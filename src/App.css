@@ -602,18 +602,19 @@
 /* ---------- Readiness bar (above the tile grid) ---------- */
 .readiness-bar {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   background: transparent;
   border: none;
-  padding: 8px 2px 2px;
+  padding: 10px 2px 4px;
   cursor: pointer;
   text-align: left;
 }
 .readiness-bar-track {
-  height: 4px;
-  width: 100%;
+  flex: 1;
+  height: 3px;
   background: rgba(10,10,10,0.07);
   border-radius: 999px;
   overflow: hidden;
@@ -623,12 +624,12 @@
   border-radius: 999px;
   transition: width 320ms ease, background 320ms ease;
 }
-.readiness-bar-label {
-  font-family: 'DM Serif Display', serif;
-  font-style: italic;
+.readiness-bar-num {
   font-size: 12px;
-  line-height: 1.4;
-  opacity: 0.92;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  min-width: 36px;
+  text-align: right;
 }
 
 /* ---------- Tile grid ---------- */

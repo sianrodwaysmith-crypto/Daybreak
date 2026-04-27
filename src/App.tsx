@@ -6,7 +6,6 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
-import MovementTrends from './components/MovementTrends'
 import ReadinessBar from './components/ReadinessBar'
 import { MomentsTile } from './moments'
 import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
@@ -132,7 +131,6 @@ function useWhoopFlash(): { msg: string | null; clear: () => void } {
 function HomeView() {
   const [activeId,        setActiveId]     = useState<string | null>(null)
   const [showSettings,    setSettings]     = useState(false)
-  const [showTrends,      setShowTrends]   = useState(false)
   const weather  = useWeather()
   const calendar = useCalendar()
   const whoop    = useWhoop()
@@ -208,6 +206,7 @@ function HomeView() {
         strain={whoop.strain}
         avgHr={whoop.avgHr}
         maxHr={whoop.maxHr}
+        cycleHistory={whoop.cycleHistory}
         connected={whoop.connected}
       />
       case 'client':   return <ClientResearchScreen />
@@ -276,10 +275,8 @@ function HomeView() {
         </div>
 
         <MovementTile
-          recovery={readinessScore}
           strain={whoop.strain}
           activeCalories={whoop.activeCalories}
-          onOpenTrends={() => setShowTrends(true)}
         />
 
         <MomentsTile onConnect={() => setSettings(true)} />
@@ -313,16 +310,6 @@ function HomeView() {
         accent="rgba(255,255,255,0.7)"
       >
         <SettingsScreen calendar={calendar} whoop={whoop} />
-      </Modal>
-
-      {/* Movement trends modal */}
-      <Modal
-        isOpen={showTrends}
-        onClose={() => setShowTrends(false)}
-        title="Active calories"
-        accent="rgba(255,255,255,0.7)"
-      >
-        {showTrends && <MovementTrends history={whoop.cycleHistory} />}
       </Modal>
 
       <ChatWidget />
