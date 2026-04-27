@@ -129,15 +129,21 @@ export default async function handler(req: any, res: any) {
       ms != null ? Math.round((ms / 3_600_000) * 10) / 10 : null
     const round1 = (n: number | null | undefined): number | null =>
       n != null ? Math.round(n * 10) / 10 : null
+    // Whoop returns the sleep percentages as floats with several
+    // decimal places (e.g. 87.456789). They display as percentages and
+    // also ride along in the chat LLM context, so rounding to integer
+    // both tidies the UI and trims tokens off every chat message.
+    const roundInt = (n: number | null | undefined): number | null =>
+      n != null ? Math.round(n) : null
 
     const payload: any = {
       connected:        true,
       recovery:         rec?.score?.recovery_score              ?? null,
       hrv:              round1(rec?.score?.hrv_rmssd_milli),
       rhr:              rec?.score?.resting_heart_rate          ?? null,
-      sleep:            sleep?.score?.sleep_performance_percentage ?? null,
-      sleepEfficiency:  sleep?.score?.sleep_efficiency_percentage  ?? null,
-      sleepConsistency: sleep?.score?.sleep_consistency_percentage ?? null,
+      sleep:            roundInt(sleep?.score?.sleep_performance_percentage),
+      sleepEfficiency:  roundInt(sleep?.score?.sleep_efficiency_percentage),
+      sleepConsistency: roundInt(sleep?.score?.sleep_consistency_percentage),
       sleepHours:       toHours(stage?.total_in_bed_time_milli),
       remHours:         toHours(stage?.total_rem_sleep_time_milli),
       deepHours:        toHours(stage?.total_slow_wave_sleep_time_milli),

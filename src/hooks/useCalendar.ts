@@ -12,6 +12,20 @@ import { useDayBreakContext } from '../contexts/DayBreakContext'
      - Diagnostic capture for the Settings panel
 ==================================================================== */
 
+// ISO 8601 in the user's local timezone with offset, e.g.
+// "2026-04-27T19:00:00+01:00". Date.toISOString() always returns UTC,
+// which silently shifts a 19:00 BST event to "18:00:00Z" — the chat LLM
+// then reads it as 18:00. Sending wall-clock time with an explicit
+// offset removes the ambiguity.
+function toLocalISO(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0')
+  const offsetMin = -d.getTimezoneOffset()
+  const sign = offsetMin >= 0 ? '+' : '-'
+  const oh = pad(Math.floor(Math.abs(offsetMin) / 60))
+  const om = pad(Math.abs(offsetMin) % 60)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${oh}:${om}`
+}
+
 export interface CalEvent {
   id:        string
   title:     string
@@ -206,8 +220,8 @@ export function useCalendar(): CalendarHook {
     }
     registerContent('calendar_today', events.map(e => ({
       title:    e.title,
-      start:    e.start.toISOString(),
-      end:      e.end.toISOString(),
+      start:    toLocalISO(e.start),
+      end:      toLocalISO(e.end),
       location: e.location ?? undefined,
       all_day:  e.allDay,
     })))
