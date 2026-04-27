@@ -19,10 +19,11 @@ import { useWhoop } from './hooks/useWhoop'
 import ReadinessScreen from './screens/ReadinessScreen'
 import ClientResearchScreen from './screens/ClientResearchScreen'
 import PulseScreen from './screens/PulseScreen'
-import MindsetScreen from './screens/MindsetScreen'
+import MindsetScreen, { hasMindsetEntryToday } from './screens/MindsetScreen'
 import ScheduleScreen from './screens/ScheduleScreen'
 import JournalScreen from './screens/JournalScreen'
 import { looksLikeMovement } from './services/movement'
+import { useDayBreakContext } from './contexts/DayBreakContext'
 import SettingsScreen from './screens/SettingsScreen'
 import PrivacyScreen from './screens/PrivacyScreen'
 import TermsScreen from './screens/TermsScreen'
@@ -134,6 +135,15 @@ function HomeView() {
   const whoopFlash = useWhoopFlash()
   const lessonsState = useLessons('sian')
 
+  // Subscribe to context version so the home grid re-renders when a tile
+  // submits (e.g. mindset entry saved) and the status dot can flip.
+  const { version: ctxVersion } = useDayBreakContext()
+  const mindsetDoneToday = hasMindsetEntryToday()
+  // ctxVersion intentionally referenced so this re-runs after submission.
+  void ctxVersion
+  const lessonKind = lessonsState.state.kind
+  const lessonsDoneToday = lessonKind === 'done' || lessonKind === 'completed'
+
   const readinessScore = whoop.recovery
   const { ai, retry, refreshPulse } = useAIContent()
 
@@ -149,13 +159,17 @@ function HomeView() {
     scheduleEvents, calendar.loading, calendar.connected, new Date(),
   )
 
+  // status: 'done' | 'pending' is set ONLY on tiles representing a daily
+  // action (mindset, journal, lessons). Movement and Moments are custom
+  // tiles that render their own status dot. The passive-data tiles
+  // (schedule, readiness, pulse, client) get no dot.
   const TOP_TILES = [
     { id: 'schedule',icon: <ScheduleIcon />,       title: 'Schedule',        accent: '#38bdf8', fullWidth: true, loading: calendar.loading, subtitle: scheduleSubtitle },
-    { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b' },
+    { id: 'mindset', icon: <MindsetIcon />,        title: 'Daily mindset',   accent: '#f59e0b', status: (mindsetDoneToday ? 'done' : 'pending') as 'done' | 'pending' },
     { id: 'ready',   icon: <ReadinessIcon />,      title: 'Readiness',       accent: readinessColor(readinessScore), loading: whoop.loading },
-    { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.' },
+    { id: 'journal', icon: <JournalIcon />,        title: 'Journal',         accent: '#94a3b8', subtitle: 'Coming soon.', status: 'pending' as 'pending' },
     { id: 'pulse',   icon: <PulseIcon />,          title: 'Pulse',           accent: '#ffc800', loading: pulseLoading },
-    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa' },
+    { id: 'lessons', icon: <LessonsIcon />,        title: 'Lessons',         accent: '#a78bfa', status: (lessonsDoneToday ? 'done' : 'pending') as 'done' | 'pending' },
     { id: 'client',  icon: <ClientResearchIcon />, title: 'Client research', accent: '#64b5f6' },
   ]
 
@@ -217,6 +231,7 @@ function HomeView() {
               title={t.title}
               subtitle={'subtitle' in t ? t.subtitle : undefined}
               accent={t.accent}
+              status={'status' in t ? t.status : undefined}
               fullWidth={'fullWidth' in t && t.fullWidth}
               loading={'loading' in t ? t.loading : false}
               onClick={() => setActiveId(t.id)}
