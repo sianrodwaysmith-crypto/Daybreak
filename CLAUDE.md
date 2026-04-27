@@ -14,21 +14,29 @@ commit by more than a few minutes, the deploy did not ship.
 ## Workflow Claude sessions must follow
 
 Each Claude Code session is given its own feature branch named
-`claude/<task>-<id>`. **Commits on that branch do not reach production by
-themselves.** When a session is wrapping up:
+`claude/<task>-<id>`. The user has standing authorisation for Claude to
+open and **squash-merge** its own PRs into `main` via the GitHub MCP — do
+this as part of wrapping up the session, don't make the user click merge.
+
+When a session is wrapping up:
 
 1. Confirm everything is committed and the branch is pushed to `origin`.
-2. Surface the exact PR URL to the user:
-   `https://github.com/sianrodwaysmith-crypto/Daybreak/pull/new/<branch>`
-3. State plainly that production won't update until the PR is merged into
-   `main` — don't assume the user knows.
+2. Open a PR into `main` (`mcp__github__create_pull_request`) and squash-
+   merge it (`mcp__github__merge_pull_request`, `merge_method: "squash"`).
+   Tell the user the PR URL and the merge SHA.
+3. The push to `main` triggers `.github/workflows/deploy.yml`, which fires
+   the Vercel deploy hook **and verifies** that the live site's
+   `index.html` hash actually changes within ~5 min. A red action means
+   production didn't update — surface that loudly to the user instead of
+   declaring success.
 4. If a previous session left a long-lived feature branch (e.g.
-   `claude/ui-overhaul`) ahead of `main`, flag it. Production has been silently
-   stuck behind that branch before.
+   `claude/ui-overhaul`) ahead of `main`, flag it. Production has been
+   silently stuck behind that branch before.
 
-Do **not** push directly to `main` from a Claude session unless the user
-explicitly authorises it for that session. Branches are cheap; surprises on
-production are not.
+Do **not** push directly to `main`. Always merge through a PR so the
+deploy workflow runs and verifies. The verification step is what catches
+silent failures (stale deploy hook, build error, Vercel coalescing) —
+without it, a green action does not mean production updated.
 
 ## Caching
 
