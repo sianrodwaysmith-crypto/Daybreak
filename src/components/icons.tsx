@@ -1,7 +1,7 @@
 /**
  * Editorial line icons used on the home tile grid.
- * All drawn at 24x24, 1.5px ink stroke, no fill (except the small dot
- * inside the Mindset target). Tile CSS controls colour via currentColor.
+ * Drawn at hairline weight in a centered viewBox so paths can be copied
+ * straight from the Daybreak section-mark design without recomputation.
  */
 
 interface IconProps {
@@ -18,7 +18,7 @@ const COMMON = {
 
 function Svg({ size = 24, children }: IconProps & { children: React.ReactNode }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" {...COMMON} aria-hidden>
+    <svg width={size} height={size} viewBox="-25 -25 50 50" {...COMMON} aria-hidden>
       {children}
     </svg>
   )
@@ -27,8 +27,9 @@ function Svg({ size = 24, children }: IconProps & { children: React.ReactNode })
 export function MindsetIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
-      <circle cx="12" cy="12" r="9" />
-      <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="0" cy="0" r="22" />
+      <circle cx="0" cy="0" r="11" />
+      <circle cx="0" cy="0" r="2.4" fill="currentColor" stroke="none" />
     </Svg>
   )
 }
@@ -36,18 +37,7 @@ export function MindsetIcon({ size }: IconProps = {}) {
 export function ReadinessIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
-      <path d="M12 20.5s-7-4.4-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 10.5c0 5.6-7 10-7 10z" />
-    </Svg>
-  )
-}
-
-export function ClientResearchIcon({ size }: IconProps = {}) {
-  return (
-    <Svg size={size}>
-      <rect x="6" y="3" width="12" height="18" rx="1.5" />
-      <line x1="9"  y1="8"  x2="15" y2="8" />
-      <line x1="9"  y1="12" x2="15" y2="12" />
-      <line x1="9"  y1="16" x2="13" y2="16" />
+      <path d="M 0 18 C -10 12, -22 2, -22 -8 C -22 -16, -14 -18, -7 -12 Q -2 -8, 0 -8 Q 2 -8, 7 -12 C 14 -18, 22 -16, 22 -8 C 22 2, 10 12, 0 18 Z" />
     </Svg>
   )
 }
@@ -55,34 +45,28 @@ export function ClientResearchIcon({ size }: IconProps = {}) {
 export function PulseIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
-      <polyline points="3,14 8,14 11,7 13,18 16,14 21,14" />
-    </Svg>
-  )
-}
-
-export function ScheduleIcon({ size }: IconProps = {}) {
-  return (
-    <Svg size={size}>
-      <circle cx="12" cy="12" r="9" />
-      <polyline points="12,7 12,12 15.5,14" />
-    </Svg>
-  )
-}
-
-export function MovementIcon({ size }: IconProps = {}) {
-  return (
-    <Svg size={size}>
-      <path d="M3 17 Q12 5 21 17" />
+      <path d="M -22 0 L -12 0 L -8 -10 L -2 14 L 4 -8 L 10 4 L 22 4" />
     </Svg>
   )
 }
 
 export function LessonsIcon({ size }: IconProps = {}) {
-  // Open book — two facing pages on a spine.
   return (
     <Svg size={size}>
-      <path d="M3 5.5C3 5.5 6 4 9 4C10.5 4 11.5 4.5 12 5C12.5 4.5 13.5 4 15 4C18 4 21 5.5 21 5.5V19C21 19 18 17.5 15 17.5C13.5 17.5 12.5 18 12 18.5C11.5 18 10.5 17.5 9 17.5C6 17.5 3 19 3 19V5.5Z" />
-      <path d="M12 5V18.5" />
+      <path d="M -20 -14 L -20 14 L 0 12 L 20 14 L 20 -14 L 0 -12 Z" />
+      <line x1="0" y1="-12" x2="0" y2="12" />
+    </Svg>
+  )
+}
+
+export function ClientResearchIcon({ size }: IconProps = {}) {
+  return (
+    <Svg size={size}>
+      <path d="M -16 -20 L -16 22 L 16 22 L 16 -20 L 6 -20 M -6 -20 L -16 -20" />
+      <rect x="-7" y="-24" width="14" height="6" rx="1" />
+      <line x1="-9" y1="-6" x2="9" y2="-6" strokeWidth={0.8} />
+      <line x1="-9" y1="2" x2="9" y2="2" strokeWidth={0.8} />
+      <line x1="-9" y1="10" x2="3" y2="10" strokeWidth={0.8} />
     </Svg>
   )
 }
@@ -90,7 +74,31 @@ export function LessonsIcon({ size }: IconProps = {}) {
 export function JournalIcon({ size }: IconProps = {}) {
   return (
     <Svg size={size}>
-      <line x1="5" y1="19" x2="19" y2="5" />
+      <path d="M -18 22 L 18 -16 L 22 -20 L 18 -12 L -14 18 Z" />
+      <line x1="-14" y1="18" x2="-10" y2="22" strokeWidth={0.8} />
+      <line x1="-22" y1="22" x2="-12" y2="22" strokeWidth={0.8} />
+    </Svg>
+  )
+}
+
+export function MovementIcon({ size }: IconProps = {}) {
+  return (
+    <Svg size={size}>
+      <line x1="-24" y1="10" x2="24" y2="10" />
+      <path d="M -20 10 Q 0 -22 20 10" />
+      <circle cx="-20" cy="10" r="2.4" fill="currentColor" stroke="none" />
+      <circle cx="20"  cy="10" r="2.4" fill="currentColor" stroke="none" />
+    </Svg>
+  )
+}
+
+export function ScheduleIcon({ size }: IconProps = {}) {
+  return (
+    <Svg size={size}>
+      <circle cx="0" cy="0" r="22" />
+      <line x1="0" y1="0" x2="0" y2="-14" />
+      <line x1="0" y1="0" x2="10" y2="6" />
+      <circle cx="0" cy="0" r="1.6" fill="currentColor" stroke="none" />
     </Svg>
   )
 }
