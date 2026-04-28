@@ -1034,5 +1034,157 @@ For an annuity insurer specifically, Solvency II rewards good asset-liability ma
         },
       ],
     },
+
+    {
+      id:               'rothesay-d13',
+      dayNumber:        13,
+      title:            "What's happening in the market right now",
+      hook:             'What this means for selling software into UK pension insurers.',
+      estimatedMinutes: 3,
+      conceptTags:      ['market-today', 'capacity', 'volume'],
+      body:
+`The bulk annuity market has had two unusually busy years. New business in 2023 broke records, and 2024 came close behind. The combination of higher interest rates (which improved scheme funding levels, making buy-outs affordable) and accumulating sponsor pressure to remove pension risk from corporate balance sheets created an unusual concentration of supply.
+
+Rothesay was active throughout this period — winning a number of large transactions and continuing to expand the asset base. They also led one of the larger Part VII transfers in recent UK history, taking on a sizeable annuity book from Scottish Widows over a multi-year process. That deal was a notable signal of the firm's scale and risk appetite.
+
+Around the headline transactions, the structural picture continues. UK DB schemes are getting older, smaller, and more demanding to administer. The remaining schemes that haven't yet bought out are usually either small (where pricing is harder for insurers) or unusually complex (where due diligence runs longer). Insurers are picking which ones to compete for; trustees are picking which insurers to invite.
+
+For people working at the edges of this — software vendors, consultants, asset managers — the takeaway is that the market is at peak capacity. Insurers are stretched. Anything that helps them write more, faster, with the same operational footprint is being looked at. The window for new tools to land is unusually open, even in this conservative market.`,
+      takeaway:         'The market is at peak capacity. Tools that help insurers do more with the same headcount get attention.',
+      questions: [
+        {
+          id:           'rothesay-d13-q1',
+          prompt:       'How has the UK bulk annuity market been recently?',
+          options: [
+            'Slowing significantly',
+            'Setting records — 2023 was the largest year on record, 2024 close behind',
+            'Frozen by regulator action',
+            'Limited to a single insurer',
+          ],
+          correctIndex: 1,
+          explanation:  'Recent years have seen record-breaking new business volumes in UK pension risk transfer.',
+          difficulty:   'easy',
+          conceptTags:  ['volume'],
+        },
+        {
+          id:           'rothesay-d13-q2',
+          prompt:       'What drove the recent boom?',
+          options: [
+            'A new tax incentive',
+            'Higher interest rates improving scheme funding + accumulating sponsor pressure to remove pension risk',
+            'A regulatory mandate',
+            'A merger between two large insurers',
+          ],
+          correctIndex: 1,
+          explanation:  'Higher rates pushed many schemes into a position where buy-out became affordable, and sponsors had every reason to act.',
+          difficulty:   'medium',
+          conceptTags:  ['market-today'],
+        },
+        {
+          id:           'rothesay-d13-q3',
+          prompt:       'What was a notable recent Rothesay Part VII?',
+          options: [
+            'Their transfer of an annuity book from Aviva',
+            "Their transfer of an annuity book from Scottish Widows",
+            'Their acquisition of L&G',
+            'Their exit from the bulk annuity market',
+          ],
+          correctIndex: 1,
+          explanation:  "Rothesay's Part VII bringing in the Scottish Widows annuity book completed in this period and was one of the larger such transfers in recent UK history.",
+          difficulty:   'medium',
+          conceptTags:  ['market-today'],
+        },
+        {
+          id:           'rothesay-d13-q4',
+          prompt:       'Why is the window for new software tools unusually open right now?',
+          options: [
+            'Regulators have lifted vendor approval rules',
+            'Insurers are at peak capacity; anything that helps them write more without growing operationally is in focus',
+            'Software prices fell sharply',
+            'Cloud adoption became mandatory',
+          ],
+          correctIndex: 1,
+          explanation:  'When the deal pipeline outruns headcount, vendors that improve throughput per person get attention even at conservative buyers.',
+          difficulty:   'hard',
+          conceptTags:  ['capacity'],
+        },
+      ],
+    },
+
+    {
+      id:               'rothesay-d14',
+      dayNumber:        14,
+      title:            'Why this matters for software sales',
+      hook:             'End of the course. Onward.',
+      estimatedMinutes: 3,
+      conceptTags:      ['software-sales', 'salesforce', 'integration'],
+      body:
+`A UK pensions insurer is a different software buyer than a fund administrator or a London market underwriter. The asset side is heavy and technical: portfolio management, asset-liability modelling, credit analytics. The pricing side is actuarial: longevity models, inflation curves, capital optimisation. The operational side runs payments to hundreds of thousands of pensioners on the right day every month.
+
+Salesforce typically fits at a UK pensions insurer in three places. First, the deal pipeline — tracking which schemes the firm is engaging with, where each is in the funnel, what the next interaction is. Bulk annuity sales are long, complex, multi-stakeholder; CRM is genuinely useful for keeping the picture coherent. Second, the EBC and trustee relationships that compound across transactions — each interaction is part of a multi-year relationship the firm wants to remember. Third, post-deal pensioner servicing — the inbound queries, ticket tracking, and communications around major events.
+
+What Salesforce is unlikely to replace is the actuarial and asset-management core. Pricing systems, asset-liability models, payment engines — these are deep, custom, and embedded. Salesforce sits alongside them as the relationship layer, not as a replacement. The integration question is always how to surface the right data from the cores into the CRM at the right time.
+
+As with the other markets we've covered: patience, reliability, and the right wedge use case win this kind of deal. A pensions insurer is a small market — the eight specialists know each other and trade software notes informally. A vendor that earns a name in one quickly gets considered by the others. The reverse is also true.`,
+      takeaway:         'Land in the relationship layer. Earn a name in one. The market is small enough to spread.',
+      questions: [
+        {
+          id:           'rothesay-d14-q1',
+          prompt:       "Where is a UK pensions insurer's heavy technical work concentrated?",
+          options: [
+            'Marketing and PR',
+            'Asset side, actuarial pricing, and pensioner operations',
+            'Branch banking',
+            'Real estate transactions',
+          ],
+          correctIndex: 1,
+          explanation:  'Asset-liability modelling, longevity and pricing, and pensioner payment operations are where the technical depth lives.',
+          difficulty:   'easy',
+          conceptTags:  ['software-sales'],
+        },
+        {
+          id:           'rothesay-d14-q2',
+          prompt:       'Where does Salesforce typically fit at a UK pensions insurer?',
+          options: [
+            'Replacing the actuarial pricing model',
+            'Deal pipeline, EBC/trustee relationships, and post-deal pensioner servicing',
+            'Running the payment engine',
+            'Performing the longevity reinsurance',
+          ],
+          correctIndex: 1,
+          explanation:  'CRM is the natural home for the relationship and pipeline layer that the actuarial cores don\'t touch.',
+          difficulty:   'medium',
+          conceptTags:  ['salesforce'],
+        },
+        {
+          id:           'rothesay-d14-q3',
+          prompt:       'What is Salesforce unlikely to replace at a pensions insurer?',
+          options: [
+            'Email',
+            'The actuarial pricing systems, asset-liability models, and payment engines',
+            'Investor portals',
+            'Document management',
+          ],
+          correctIndex: 1,
+          explanation:  'The technical cores are deep, custom, and embedded. Salesforce coexists with them; it does not replace them.',
+          difficulty:   'medium',
+          conceptTags:  ['integration'],
+        },
+        {
+          id:           'rothesay-d14-q4',
+          prompt:       'Why does reputation spread quickly between UK bulk annuity insurers?',
+          options: [
+            'A regulator publishes vendor scores',
+            'The eight specialists know each other and trade software notes informally; a name in one travels to the others',
+            'Vendor switching is mandated by Solvency II',
+            'They share a single procurement department',
+          ],
+          correctIndex: 1,
+          explanation:  'Small market, long memory: a vendor known to be excellent — or poor — becomes known to all of them quickly.',
+          difficulty:   'hard',
+          conceptTags:  ['software-sales'],
+        },
+      ],
+    },
   ],
 }
