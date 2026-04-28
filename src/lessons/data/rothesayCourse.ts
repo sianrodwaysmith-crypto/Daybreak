@@ -882,5 +882,157 @@ Investment returns are the upside. The insurer needs to earn a yield on their as
         },
       ],
     },
+
+    {
+      id:               'rothesay-d11',
+      dayNumber:        11,
+      title:            'The Part VII transfer',
+      hook:             'Solvency II and the regulatory lens.',
+      estimatedMinutes: 3,
+      conceptTags:      ['part-vii', 'transfer', 'court-process'],
+      body:
+`Annuity books don't sit still forever. Sometimes one insurer sells a chunk to another. When that happens, the legal mechanism is called a Part VII transfer, named after the section of the Financial Services and Markets Act 2000 that governs it. It's a court-supervised process, and it takes years.
+
+The reason it's slow is that pensioners' rights are involved. Each affected policyholder must be informed. Their interests must be considered by an independent expert. The court has to approve the transfer. The PRA and FCA review it. Objections from pensioners or member groups can be heard. By the time it completes, the original announcement is usually 18-24 months in the past.
+
+Part VIIs happen for several reasons. An insurer might want to exit the bulk annuity market and transfer their book to a competitor. A holding company might consolidate insurance subsidiaries. A regulator might require capital or operational restructuring that pushes a book to a different entity. Recent years have seen several large Part VII transfers between major UK insurers.
+
+For pensioners the rule is that they must end up no worse off. Same pension. Same inflation linkage. Same payment date. From their point of view, only the name on the annual statement changes — and even that often without much fanfare. The legal architecture exists precisely to keep promises portable across insurers.`,
+      takeaway:         'Annuities are portable across insurers — legally, slowly, and only with everyone\'s consent.',
+      questions: [
+        {
+          id:           'rothesay-d11-q1',
+          prompt:       'What is a Part VII transfer?',
+          options: [
+            "A regulatory levy on insurance transactions",
+            "The court-supervised mechanism for transferring an annuity (or other insurance) book between insurers",
+            "An accounting standard for pension liabilities",
+            "A specific type of buy-out",
+          ],
+          correctIndex: 1,
+          explanation:  "Part VII (of FSMA 2000) is the legal route for transferring insurance business from one regulated insurer to another.",
+          difficulty:   'easy',
+          conceptTags:  ['part-vii'],
+        },
+        {
+          id:           'rothesay-d11-q2',
+          prompt:       'Why do Part VII transfers take so long?',
+          options: [
+            'Insurers are slow to negotiate price',
+            "Pensioner rights, an independent expert report, court approval, and PRA/FCA review all have to happen — typically 18-24 months",
+            'Tax authorities require a 24-month settlement period',
+            'Reinsurance approval delays it',
+          ],
+          correctIndex: 1,
+          explanation:  'The process is structured around protecting policyholders, which involves notification, expert review, and court approval. Months of process.',
+          difficulty:   'medium',
+          conceptTags:  ['court-process'],
+        },
+        {
+          id:           'rothesay-d11-q3',
+          prompt:       'After a Part VII transfer, a pensioner should…',
+          options: [
+            'See their pension reduced by a transfer fee',
+            "Be no worse off — same pension, same inflation linkage, same payment date",
+            'Receive a separate cheque from each insurer',
+            'Have to re-apply for benefits',
+          ],
+          correctIndex: 1,
+          explanation:  '"No worse off" is the regulatory and legal standard. The court will not approve a transfer that prejudices pensioners.',
+          difficulty:   'medium',
+          conceptTags:  ['transfer'],
+        },
+        {
+          id:           'rothesay-d11-q4',
+          prompt:       'Why is the Part VII process structured the way it is?',
+          options: [
+            'To make consolidation deliberately expensive',
+            "To keep insurance promises portable across insurers without harming policyholders' rights",
+            "Because it's a vestige of pre-1986 law nobody has updated",
+            "To prevent any cross-border activity",
+          ],
+          correctIndex: 1,
+          explanation:  "The architecture exists to let books move between insurers when commercially needed, while ensuring policyholders are protected.",
+          difficulty:   'hard',
+          conceptTags:  ['part-vii'],
+        },
+      ],
+    },
+
+    {
+      id:               'rothesay-d12',
+      dayNumber:        12,
+      title:            'Solvency II and the regulatory lens',
+      hook:             "What's happening in the market right now.",
+      estimatedMinutes: 3,
+      conceptTags:      ['solvency-ii', 'scr', 'matching-adjustment'],
+      body:
+`Insurers are regulated more heavily than many other financial firms because their promises run for so long. Solvency II is the EU-derived regulatory framework that the UK still operates under — it sets the capital, governance, and reporting requirements for insurance companies in Europe.
+
+At the heart of Solvency II is the SCR — Solvency Capital Requirement. This is the capital an insurer must hold so that, if they were unwound today, they could meet their obligations even after a one-in-200-year stress event. The number is calibrated to be a hard floor, not an aspiration. Below it, regulators intervene; well below it, the firm is in serious trouble.
+
+Above the SCR, insurers report a coverage ratio — how many times over the SCR is covered. A ratio of 200% means twice the regulatory minimum is held; 150% is more typical for a strong insurer. Coverage ratios are scrutinised by the PRA, by rating agencies, by reinsurers, and by anyone selling a buy-in to the insurer. They are the headline number for insurer strength.
+
+For an annuity insurer specifically, Solvency II rewards good asset-liability matching with capital relief — the matching adjustment is a UK-specific rule that lets insurers count expected illiquidity premia toward their solvency cushion. It's a technical but important piece of the model. Without it, the economics of UK bulk annuities would look quite different.`,
+      takeaway:         "Capital ratios are the insurer's headline number. Solvency II is the rulebook that sets them.",
+      questions: [
+        {
+          id:           'rothesay-d12-q1',
+          prompt:       'What is Solvency II?',
+          options: [
+            "A solvency rating issued by Moody's",
+            'The EU/UK regulatory framework setting capital, governance, and reporting for insurance companies',
+            'A bilateral agreement between the PRA and FCA',
+            'A specific buffer above the SCR',
+          ],
+          correctIndex: 1,
+          explanation:  "Solvency II is the comprehensive regulatory regime under which UK insurers operate; it defines the SCR, governance, and reporting framework.",
+          difficulty:   'easy',
+          conceptTags:  ['solvency-ii'],
+        },
+        {
+          id:           'rothesay-d12-q2',
+          prompt:       'What is the SCR?',
+          options: [
+            "The total of an insurer's premiums",
+            'The Solvency Capital Requirement, calibrated to a one-in-200-year stress',
+            "The schemes' contribution rate",
+            "A regulator's annual fee",
+          ],
+          correctIndex: 1,
+          explanation:  'The SCR is a stress-based capital floor: enough capital to survive a 1-in-200-year shock and still meet obligations.',
+          difficulty:   'medium',
+          conceptTags:  ['scr'],
+        },
+        {
+          id:           'rothesay-d12-q3',
+          prompt:       'What does a coverage ratio of 150% mean?',
+          options: [
+            'The insurer holds 50% of the SCR',
+            'The insurer holds 1.5× the SCR — half again above the minimum',
+            'The insurer needs to raise more capital urgently',
+            "The insurer's premium grew 150% year on year",
+          ],
+          correctIndex: 1,
+          explanation:  '150% means 1.5× the regulatory minimum is held — a healthy buffer above the SCR.',
+          difficulty:   'medium',
+          conceptTags:  ['scr'],
+        },
+        {
+          id:           'rothesay-d12-q4',
+          prompt:       'Why does the matching adjustment matter for UK annuity insurers?',
+          options: [
+            'It allows insurers to skip Solvency II entirely',
+            'It lets insurers count expected illiquidity premia toward their solvency cushion, which underpins the economics of UK bulk annuities',
+            "It increases the SCR for matched portfolios",
+            'It is a tax credit on long-dated assets',
+          ],
+          correctIndex: 1,
+          explanation:  'Without it, the UK bulk annuity model would look quite different. The matching adjustment is structurally important for the sector.',
+          difficulty:   'hard',
+          conceptTags:  ['matching-adjustment'],
+        },
+      ],
+    },
   ],
 }
