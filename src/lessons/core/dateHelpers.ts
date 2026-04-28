@@ -33,3 +33,21 @@ export function formatLongDate(iso: string): string {
   const date = new Date(y, m - 1, d)
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })
 }
+
+/**
+ * Human-friendly relative time for "last touched" labels in the
+ * library. Input is an ISO timestamp (or null/undefined). Output:
+ * "today", "yesterday", "N days ago", "N weeks ago", or "—".
+ */
+export function relativeTouched(iso: string | null | undefined, now: Date = new Date()): string {
+  if (!iso) return '—'
+  const t = new Date(iso)
+  if (Number.isNaN(t.getTime())) return '—'
+  const dateOnly = todayISO(t)
+  const days = daysSince(dateOnly, now)
+  if (days <= 0)  return 'today'
+  if (days === 1) return 'yesterday'
+  if (days < 7)   return `${days} days ago`
+  const weeks = Math.floor(days / 7)
+  return weeks === 1 ? 'a week ago' : `${weeks} weeks ago`
+}

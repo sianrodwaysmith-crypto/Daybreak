@@ -16,11 +16,17 @@ interface Props {
   correctCount:  number
   questionCount: number
   nextLesson:    Lesson | null
+  /** True when this is a SUBSEQUENT same-day lesson — i.e. the user
+   *  had already completed today's first lesson on a different course
+   *  before starting this one. Drives the "bonus" transition copy
+   *  rather than the usual "Tomorrow: …" peek. */
+  bonusToday?:   boolean
   onClose:       () => void
 }
 
 export function RecapScreen({
-  lesson, course, dayNumber, totalDays, correctCount, questionCount, nextLesson, onClose,
+  lesson, course, dayNumber, totalDays, correctCount, questionCount, nextLesson,
+  bonusToday = false, onClose,
 }: Props) {
   const finished = nextLesson === null
 
@@ -46,10 +52,13 @@ export function RecapScreen({
         </div>
       </div>
 
-      {nextLesson && !finished && (
+      {nextLesson && !finished && !bonusToday && (
         <p className="recap-transition">
           {copy.recap.transitionLine(nextLesson.title, nextLesson.hook)}
         </p>
+      )}
+      {nextLesson && !finished && bonusToday && (
+        <p className="recap-transition">{copy.recap.bonusTransitionLine}</p>
       )}
       {finished && (
         <p className="recap-transition">{copy.recap.finishedLine}</p>
