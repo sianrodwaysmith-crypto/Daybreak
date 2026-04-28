@@ -20,6 +20,7 @@ export interface LessonsStorage {
   recordAnswer(userId: string, courseId: string, answer: Answer, conceptTags: string[]): Promise<void>
   completeLesson(userId: string, courseId: string, lessonId: string): Promise<void>
   enroll(userId: string, courseId: string):     Promise<void>
+  enrollSilently(userId: string, courseId: string): Promise<void>
   setActive(userId: string, courseId: string | null): Promise<void>
 }
 
@@ -43,6 +44,25 @@ function emptyProgress(userId: string): UserProgress {
   }
 }
 
+/**
+ * One-time migration: backfill lastEngagedAt on any pre-existing
+ * enrolment that doesn't have it. Picks the most recent answer's
+ * timestamp if any, otherwise lastCompletedDate, otherwise startedAt.
+ * Runs idempotently on every getProgress() call so it self-heals.
+ */
+function migrateEnrollments(progress: UserProgress): { progress: UserProgress; changed: boolean } {
+  let changed = false
+  const enrollments = progress.enrollments.map(e => {
+    if (e.lastEngagedAt) return e
+    changed = true
+    const lastAnswer = e.questionHistory[e.questionHistory.length - 1]?.answeredAt
+    const fallbackFromDate = e.lastCompletedDate ? `${e.lastCompletedDate}T00:00:00.000Z` : null
+    const lastEngagedAt = lastAnswer ?? fallbackFromDate ?? e.startedAt
+    return { ...e, lastEngagedAt }
+  })
+  return { progress: { ...progress, enrollments }, changed }
+}
+
 export class MockLessonsStorage implements LessonsStorage {
 
   async listCourses(): Promise<Course[]> {
@@ -64,7 +84,11 @@ export class MockLessonsStorage implements LessonsStorage {
   }
 
   async getProgress(userId: string): Promise<UserProgress> {
-    return readJson<UserProgress>(PROGRESS_KEY(userId), emptyProgress(userId))
+    const raw = readJson<UserProgress>(PROGRESS_KEY(userId), emptyProgress(userId))
+    const { progress, changed } = migrateEnrollments(raw)
+    // Persist the migration so we don't keep recomputing it on every read.
+    if (changed) writeJson(PROGRESS_KEY(userId), progress)
+    return progress
   }
 
   async saveProgress(progress: UserProgress): Promise<UserProgress> {
@@ -81,18 +105,50 @@ export class MockLessonsStorage implements LessonsStorage {
       await this.saveProgress(progress)
       return
     }
+    const now = new Date().toISOString()
     const enrollment: Enrollment = {
       courseId,
-      startedAt:         new Date().toISOString(),
+      startedAt:         now,
       currentDay:        1,
       completedLessons:  [],
       questionHistory:   [],
       conceptMastery:    {},
       completedAt:       null,
       lastCompletedDate: null,
+      lastEngagedAt:     now,
     }
     progress.enrollments.push(enrollment)
     if (!progress.activeCourseId) progress.activeCourseId = courseId
+    await this.saveProgress(progress)
+  }
+
+  /**
+   * Auto-enrol without making active and without bumping recency.
+   * Used by the seeder when a new course ships: the user appears in
+   * the library, but the tile keeps surfacing whatever they were
+   * working on. lastEngagedAt is set to startedAt (which we choose to
+   * be a little earlier than 'now' so existing engaged enrolments
+   * remain on top of the recency sort).
+   */
+  async enrollSilently(userId: string, courseId: string): Promise<void> {
+    const progress = await this.getProgress(userId)
+    if (progress.enrollments.some(e => e.courseId === courseId)) return
+    // Place silent enrolments slightly in the past so any existing
+    // engaged Anthropic enrolment with a recent answer or migration-
+    // backfilled lastEngagedAt naturally outranks them.
+    const past = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const enrollment: Enrollment = {
+      courseId,
+      startedAt:         past,
+      currentDay:        1,
+      completedLessons:  [],
+      questionHistory:   [],
+      conceptMastery:    {},
+      completedAt:       null,
+      lastCompletedDate: null,
+      lastEngagedAt:     past,
+    }
+    progress.enrollments.push(enrollment)
     await this.saveProgress(progress)
   }
 
@@ -108,6 +164,7 @@ export class MockLessonsStorage implements LessonsStorage {
     if (!enrollment) return
 
     enrollment.questionHistory.push(answer)
+    enrollment.lastEngagedAt = answer.answeredAt
     enrollment.conceptMastery = recordAnswerToMastery(
       enrollment.conceptMastery,
       // We pass a synthetic question so SM-2 sees the concept tags.
@@ -128,6 +185,7 @@ export class MockLessonsStorage implements LessonsStorage {
     enrollment.completedLessons.push(lessonId)
     enrollment.currentDay        = enrollment.completedLessons.length + 1
     enrollment.lastCompletedDate = todayISO()
+    enrollment.lastEngagedAt     = new Date().toISOString()
 
     const course = await this.getCourse(courseId)
     if (course && enrollment.completedLessons.length >= course.totalDays) {
@@ -150,5 +208,6 @@ export class SupabaseLessonsStorage implements LessonsStorage {
   async recordAnswer(_u: string, _c: string, _a: Answer, _t: string[]) { throw new Error('not implemented') }
   async completeLesson(_u: string, _c: string, _l: string)              { throw new Error('not implemented') }
   async enroll(_u: string, _c: string)                                  { throw new Error('not implemented') }
+  async enrollSilently(_u: string, _c: string)                          { throw new Error('not implemented') }
   async setActive(_u: string, _c: string | null)                        { throw new Error('not implemented') }
 }
