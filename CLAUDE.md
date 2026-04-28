@@ -76,6 +76,18 @@ the running function instance keeps the old value cached for a while.
 except `src/lessons/index.ts`. Preserve this. User-facing strings live in
 `src/lessons/copy.ts`.
 
+The Lessons module supports multiple parallel courses with a deliberate
+**"one a day is enough"** semantic. Completing any single lesson on any
+enrolled course satisfies the day; subsequent same-day lessons are
+framed as bonus, never as a target. Do **not** introduce streaks, day
+counts, "lessons remaining today", "on track" framing, or any other
+language that would create pressure to do more than one lesson. The
+home tile surfaces the most recently engaged enrolment; auto-enrolment
+into newly-shipped courses uses `enrollSilently()` so the surfaced
+course doesn't change underneath the user. Each course's content lives
+in `src/lessons/data/<course>.ts` and is registered in
+`src/lessons/storage/index.ts`.
+
 `src/journal/` is sealed too, **and stricter**. Nothing outside the folder
 may import from anywhere except `src/journal/index.ts`. The public API is
 intentionally tiny: `JournalTile`, `JournalApp`, and a `journal` object
