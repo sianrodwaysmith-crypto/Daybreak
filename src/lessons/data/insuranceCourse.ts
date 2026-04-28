@@ -935,5 +935,233 @@ Claims is the part of the industry the buyer actually meets. Underwriting is inv
         },
       ],
     },
+
+    {
+      id:               'insurance-d12',
+      dayNumber:        12,
+      title:            'Regulation and the regulators',
+      hook:             'The market today: insurtech, modernisation, the Future at Lloyd\'s.',
+      estimatedMinutes: 3,
+      conceptTags:      ['regulation', 'pra', 'fca', 'lloyds-supervision'],
+      body:
+`Three bodies oversee the London insurance market, each with a different lens. The PRA — the Prudential Regulation Authority, sitting inside the Bank of England — looks at solvency. They want to know that an insurer has enough capital to survive a bad year. Their attention is balance sheets, capital ratios, stress tests. They are paid to worry about whether the insurer will still exist in five years.
+
+The FCA — the Financial Conduct Authority — looks at how insurers and brokers behave. Are products sold fairly? Are claims paid as promised? Is the market run honestly? Their attention is conduct and culture. The PRA cares whether you'll pay; the FCA cares how you'll behave while doing it.
+
+Lloyd's itself is also a regulator within its own marketplace. It supervises syndicates, sets capital requirements specific to the market, monitors business plans, and intervenes when a syndicate strays. A managing agent reports to Lloyd's as well as to the PRA and FCA. That three-layered oversight is unusual, and it's part of what gives Lloyd's its standing as a place where promises are kept.
+
+Together the three keep the market trustworthy. A buyer who places a risk in London is buying not just a policy but a regulatory promise: that the insurer will exist when the claim comes, that the claim will be paid fairly, and that the marketplace itself is solid.`,
+      takeaway:         'Solvency, conduct, and the marketplace itself — three lenses, one promise.',
+      questions: [
+        {
+          id:           'insurance-d12-q1',
+          prompt:       "The PRA's primary concern is…",
+          options: [
+            'How insurers behave with customers',
+            'Whether insurers have enough capital to survive bad years',
+            'Whether brokers disclose commission',
+            'How quickly claims are paid',
+          ],
+          correctIndex: 1,
+          explanation:  'Prudential regulation is about solvency: capital, reserves, and the firm\'s ability to keep its promises.',
+          difficulty:   'easy',
+          conceptTags:  ['pra'],
+        },
+        {
+          id:           'insurance-d12-q2',
+          prompt:       "The FCA's primary concern is…",
+          options: [
+            'Capital adequacy',
+            "How firms behave — fair treatment, honest sales, claims paid as promised",
+            "Lloyd's syndicate business plans",
+            'Reinsurance treaties',
+          ],
+          correctIndex: 1,
+          explanation:  'The FCA polices conduct and culture; the PRA polices solvency. The split is deliberate.',
+          difficulty:   'medium',
+          conceptTags:  ['fca'],
+        },
+        {
+          id:           'insurance-d12-q3',
+          prompt:       "Lloyd's role in regulation is…",
+          options: [
+            'Purely promotional — it has no regulatory powers',
+            "It supervises its own marketplace, alongside PRA and FCA oversight",
+            'It replaces the PRA for syndicates',
+            "It is regulated by the FCA but doesn't regulate anyone itself",
+          ],
+          correctIndex: 1,
+          explanation:  "Lloyd's adds a third, market-specific layer of supervision on top of the standard regulators.",
+          difficulty:   'medium',
+          conceptTags:  ['lloyds-supervision'],
+        },
+        {
+          id:           'insurance-d12-q4',
+          prompt:       "Why do Lloyd's syndicates have effectively three regulators?",
+          options: [
+            'A historical accident no one has fixed',
+            "Lloyd's prudential supervision sits in addition to the PRA's, with the FCA covering conduct — reflecting the market's unique structure",
+            'Lloyd\'s prefers more oversight than other insurers',
+            'EU rules mandate a third layer for marketplaces',
+          ],
+          correctIndex: 1,
+          explanation:  "The marketplace structure means Lloyd's adds market-specific prudential oversight on top of the standard PRA/FCA pair.",
+          difficulty:   'hard',
+          conceptTags:  ['regulation', 'lloyds-supervision'],
+        },
+      ],
+    },
+
+    {
+      id:               'insurance-d13',
+      dayNumber:        13,
+      title:            'The ecosystem today',
+      hook:             'What this means for selling software into London.',
+      estimatedMinutes: 3,
+      conceptTags:      ['modernisation', 'insurtech', 'data'],
+      body:
+`The London market is in the middle of a long modernisation. For decades, slips were paper, claims were manual, and a broker's job involved walking documents around EC3. The market still works that way for some risks. But a programme called Future at Lloyd's, and a follow-on called Blueprint Two, are moving the placement and claims pipework onto a more digital footing — electronic placement, structured data on slips, faster claims handling.
+
+Around this, an insurtech sector has grown up. Some are digital-first MGAs writing classes that suit data-driven underwriting. Some are platforms that sit between broker and insurer, modelling exposures or pricing. Some are claims-tech firms shortening the cycle from notification to settlement. Most are partnered with traditional carriers, not replacing them.
+
+Data is the through-line. Underwriters want better information on the risks they're being shown. Insurers want better information on the portfolios they hold. Reinsurers want better information on the cessions they're accepting. Every modernisation effort, sooner or later, becomes a question of who has the data and how cleanly it flows.
+
+The shape of the market hasn't changed — capital, syndicates, brokers, slips, claims. The pipes between them are getting modernised. Anyone selling software into London is selling, fundamentally, a way to make those pipes shorter or cleaner.`,
+      takeaway:         'The shape of the market is steady. The pipes between its parts are getting modernised.',
+      questions: [
+        {
+          id:           'insurance-d13-q1',
+          prompt:       "What is Future at Lloyd's?",
+          options: [
+            'A new syndicate writing only digital risks',
+            'A modernisation programme aimed at digitising placement and claims',
+            'A reinsurance facility for cyber risk',
+            "A pension scheme for Lloyd's underwriters",
+          ],
+          correctIndex: 1,
+          explanation:  "Future at Lloyd's, and Blueprint Two after it, are about moving the market's plumbing into the digital age.",
+          difficulty:   'easy',
+          conceptTags:  ['modernisation'],
+        },
+        {
+          id:           'insurance-d13-q2',
+          prompt:       'Most insurtechs in the London market are…',
+          options: [
+            'Replacing traditional insurers',
+            'Partnered with traditional carriers, sitting alongside rather than in place of them',
+            'Backed exclusively by reinsurers',
+            'Required to operate from outside the EU',
+          ],
+          correctIndex: 1,
+          explanation:  'Specialty risk needs capital and trust the incumbents already have; insurtechs typically partner rather than displace.',
+          difficulty:   'medium',
+          conceptTags:  ['insurtech'],
+        },
+        {
+          id:           'insurance-d13-q3',
+          prompt:       "What's the through-line of every modernisation effort in the market?",
+          options: [
+            'Office space costs',
+            'Data: who has it, how cleanly it flows, who can act on it',
+            'Brand awareness',
+            'Reducing the number of brokers',
+          ],
+          correctIndex: 1,
+          explanation:  'Underwriters, insurers, reinsurers and brokers all want better data; almost every initiative comes back to that.',
+          difficulty:   'medium',
+          conceptTags:  ['data'],
+        },
+        {
+          id:           'insurance-d13-q4',
+          prompt:       'Why has insurtech not displaced incumbents in specialty?',
+          options: [
+            'Regulators forbid it',
+            "The capital, expertise, and counterparty trust required for specialty risks live with established carriers",
+            'Insurtechs are technically less capable than incumbents',
+            'Specialty buyers actively boycott digital-first players',
+          ],
+          correctIndex: 1,
+          explanation:  'Specialty risk needs a counterparty buyers trust to be there in 30 years. That trust is hard to manufacture quickly.',
+          difficulty:   'hard',
+          conceptTags:  ['insurtech', 'modernisation'],
+        },
+      ],
+    },
+
+    {
+      id:               'insurance-d14',
+      dayNumber:        14,
+      title:            'Why this matters for software sales',
+      hook:             'End of the course. Onward.',
+      estimatedMinutes: 3,
+      conceptTags:      ['software-sales', 'buyers', 'london-market'],
+      body:
+`The London market is a business of judgement assisted by paperwork. The judgement is human and won't be automated soon — pricing a refinery, underwriting a satellite launch, defending a complex liability claim is exactly the kind of work software is bad at. The paperwork, by contrast, is exactly what software is good at, and most technology investment goes there.
+
+The recurring gaps are familiar. Policy administration systems are old; many were built in the 1990s and have been patched ever since. Underwriting workbenches — where underwriters manage incoming submissions, price, and bind risks — are often a mix of spreadsheets and email. Broker-insurer connectivity is still partly manual. Claims platforms are improving but uneven. Data ingestion from the slip into core systems is a long-running pain.
+
+Buyers vary. A primary insurer's CIO buys core platforms. An underwriting team buys workbenches and analytics. A broker buys placement and CRM. A claims function buys workflow and document handling. A managing agent or MGA, often a small team, buys whichever combination keeps them running. Buying centres are usually 3-5 people deep, and sales cycles are long.
+
+If you're selling into London, two things hold. First, the market is structurally conservative — losing a 200-year-old marketplace's data is an existential mistake, so trust takes time. Second, once a vendor is in, they are hard to dislodge. Patience and pipework rarely lose; cleverness and disruption rarely win.`,
+      takeaway:         'In London, patience and pipework rarely lose.',
+      questions: [
+        {
+          id:           'insurance-d14-q1',
+          prompt:       'What part of the London market is software best at addressing?',
+          options: [
+            'The judgement of pricing a complex specialty risk',
+            'The paperwork — operational systems, data flow, claims handling',
+            'Negotiating wordings',
+            'Lobbying regulators',
+          ],
+          correctIndex: 1,
+          explanation:  "Judgement is human; the paperwork around it is what software actually replaces or accelerates.",
+          difficulty:   'easy',
+          conceptTags:  ['software-sales'],
+        },
+        {
+          id:           'insurance-d14-q2',
+          prompt:       'What\'s typical of policy admin systems in the market?',
+          options: [
+            'They are mostly cloud-native and recent',
+            'Many were built in the 1990s and have been patched ever since',
+            'They are all built in-house by a single industry consortium',
+            'Lloyd\'s mandates a single platform across syndicates',
+          ],
+          correctIndex: 1,
+          explanation:  'The core systems are old. They are also business-critical, so replacement is slow and painful.',
+          difficulty:   'medium',
+          conceptTags:  ['buyers'],
+        },
+        {
+          id:           'insurance-d14-q3',
+          prompt:       'A typical buying centre at a London market firm involves…',
+          options: [
+            'A single CIO making the call',
+            'The CEO and a finance director only',
+            "3-5 people across CIO, underwriting, claims, and broker functions depending on the product",
+            'Lloyd\'s itself as the deciding party',
+          ],
+          correctIndex: 2,
+          explanation:  'Decisions touch multiple functions; the buying centre is usually a small panel that needs to align.',
+          difficulty:   'medium',
+          conceptTags:  ['buyers'],
+        },
+        {
+          id:           'insurance-d14-q4',
+          prompt:       'Why is the London market structurally conservative about new vendors?',
+          options: [
+            "Underwriters dislike change as a personality trait",
+            "Losing the marketplace's data or process integrity is an existential mistake; trust takes time, and once won, is sticky",
+            "Regulators ban any vendor under five years old",
+            'Buyers prefer in-house tools regardless of quality',
+          ],
+          correctIndex: 1,
+          explanation:  'A market built on 300 years of paying claims can\'t risk a vendor that breaks the chain. Conservatism is rational here.',
+          difficulty:   'hard',
+          conceptTags:  ['software-sales', 'london-market'],
+        },
+      ],
+    },
   ],
 }
