@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { copy } from '../copy'
 import { PLAYERS } from '../players'
+import { ARCHITECTURE } from '../architecture'
 import type { PlayerProfile } from '../types'
 
 interface Props {
@@ -30,6 +31,22 @@ export function TechMarketDrawer({ onBack }: Props) {
       <h2 className="library-h1">{copy.title}</h2>
       <p className="library-tagline">{copy.tagline}</p>
       <p className="techmarket-intro">{copy.intro}</p>
+
+      <section className="techmarket-section">
+        <div className="library-section-label">{copy.sections.architecture}</div>
+        {ARCHITECTURE.intro.split(/\n\s*\n/).map((p, i) => (
+          <p key={i} className="techmarket-prose">{p}</p>
+        ))}
+        <figure className="techmarket-diagram">
+          <div
+            className="techmarket-diagram-svg"
+            dangerouslySetInnerHTML={{ __html: ARCHITECTURE.diagramSvg }}
+          />
+          <figcaption className="techmarket-diagram-caption">
+            The five layers of the modern AI and cloud stack.
+          </figcaption>
+        </figure>
+      </section>
 
       <section>
         <div className="library-section-label">{copy.sections.players}</div>
