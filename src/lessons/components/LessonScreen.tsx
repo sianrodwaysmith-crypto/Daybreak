@@ -28,7 +28,11 @@ export function LessonScreen({ lesson, course, dayNumber, onBeginQuiz }: Props) 
   }, [secsLeft])
 
   const ready = secsLeft <= 0
-  const paragraphs = lesson.body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+  // Each block is either a paragraph or a single diagram marker
+  // ({{diagram:id}}) on its own line. We split on blank-line boundaries
+  // and let the renderer dispatch.
+  const blocks = lesson.body.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean)
+  const DIAGRAM_RE = /^\{\{diagram:([a-z0-9-]+)\}\}$/i
 
   return (
     <div className="lesson-screen">
@@ -38,7 +42,31 @@ export function LessonScreen({ lesson, course, dayNumber, onBeginQuiz }: Props) 
       <h1 className="lesson-screen-title">{lesson.title}</h1>
 
       <div className="lesson-screen-body">
-        {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
+        {blocks.map((block, i) => {
+          const m = block.match(DIAGRAM_RE)
+          if (m) {
+            const diagram = lesson.diagrams?.find(d => d.id === m[1])
+            if (diagram) {
+              return (
+                <figure key={i} className="lesson-diagram">
+                  <div
+                    className="lesson-diagram-svg"
+                    // Diagram SVG is authored in module-internal course
+                    // data, never user input.
+                    dangerouslySetInnerHTML={{ __html: diagram.svg }}
+                  />
+                  {diagram.caption && (
+                    <figcaption className="lesson-diagram-caption">{diagram.caption}</figcaption>
+                  )}
+                </figure>
+              )
+            }
+            // Marker without a matching diagram — render nothing rather
+            // than a broken {{...}} string.
+            return null
+          }
+          return <p key={i}>{block}</p>
+        })}
       </div>
 
       <p className="lesson-screen-takeaway">{lesson.takeaway}</p>

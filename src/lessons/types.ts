@@ -17,6 +17,19 @@ export interface Question {
   conceptTags:  string[]
 }
 
+export interface Diagram {
+  /** Stable identifier referenced by `{{diagram:id}}` markers in the
+   *  lesson body. Lowercase + hyphens; unique within a lesson. */
+  id:       string
+  /** Raw SVG markup. Authors hand-write this in Daybreak's hairline
+   *  visual language: 0.75-1px strokes, no fill except small discs,
+   *  sans-serif labels, minimal. Rendered via dangerouslySetInnerHTML
+   *  inside a contained figure — content is module-internal data so
+   *  the injection surface is trusted. */
+  svg:      string
+  caption?: string
+}
+
 export interface Lesson {
   id:               string
   dayNumber:        number
@@ -27,6 +40,9 @@ export interface Lesson {
   estimatedMinutes: number
   questions:        Question[]
   conceptTags:      string[]
+  /** Optional inline diagrams. Authors place `{{diagram:id}}` on its
+   *  own line between body paragraphs to position each figure. */
+  diagrams?:        Diagram[]
 }
 
 export interface Course {
