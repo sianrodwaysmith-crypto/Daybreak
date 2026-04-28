@@ -730,5 +730,157 @@ The market is large, but the players are few and the people involved know each o
         },
       ],
     },
+
+    {
+      id:               'rothesay-d9',
+      dayNumber:        9,
+      title:            'The trustee, the sponsor, the EBC',
+      hook:             'Pricing a buy-in: longevity, inflation, investment returns.',
+      estimatedMinutes: 3,
+      conceptTags:      ['trustees', 'sponsor', 'ebc'],
+      body:
+`A pension scheme has three sides on its buyer cast. The trustees are the legal stewards of the scheme, charged with acting in the interests of the beneficiaries. The corporate sponsor is the employer who set the scheme up and (still) has the funding obligation. The employee benefit consultant — the EBC — is the specialist adviser who walks both through the technical decisions.
+
+Trustees are usually a small board, sometimes including member-nominated trustees and an independent professional trustee. Their fiduciary duty is to the scheme's members, not to the sponsor. When a buy-in is being considered, the trustees are the buyer of record, but they cannot move without the sponsor's funding cooperation, and they rely on the EBC for the technical heavy lifting.
+
+The corporate sponsor cares about removing risk from its balance sheet — a closed pension scheme shows up as a liability the company has to fund. They want certainty of cost. They typically pay for the buy-in or buy-out itself if the scheme is underfunded; they get the relief when the scheme is fully gone.
+
+EBCs run the process — drafting the data pack, gathering quotes from insurers, evaluating quotes, advising on the best option. They are usually paid by the trustees or the sponsor on a project basis. The biggest UK firms — Aon, Mercer, Willis Towers Watson, LCP, Hymans Robertson — handle most of the major transactions.`,
+      takeaway:         'Trustees decide. Sponsor pays. EBC runs the process.',
+      questions: [
+        {
+          id:           'rothesay-d9-q1',
+          prompt:       "Who do the scheme's trustees owe their fiduciary duty to?",
+          options: [
+            'The corporate sponsor',
+            "The scheme's members",
+            'The chosen insurer',
+            'The EBC',
+          ],
+          correctIndex: 1,
+          explanation:  "Trustees act for the beneficiaries. The duty is to the members, not the sponsor or any external party.",
+          difficulty:   'easy',
+          conceptTags:  ['trustees'],
+        },
+        {
+          id:           'rothesay-d9-q2',
+          prompt:       'Who typically pays for a buy-in or buy-out itself?',
+          options: [
+            'The trustees personally',
+            'The corporate sponsor',
+            'The pensioners through reduced benefits',
+            'The EBC',
+          ],
+          correctIndex: 1,
+          explanation:  'The sponsor is on the hook for the funding. Where a scheme is underfunded, the sponsor pays the gap.',
+          difficulty:   'medium',
+          conceptTags:  ['sponsor'],
+        },
+        {
+          id:           'rothesay-d9-q3',
+          prompt:       'What does the EBC do in a bulk annuity transaction?',
+          options: [
+            "Underwrites the deal in place of the insurer",
+            'Runs the process: drafts data, gathers quotes, evaluates them, advises trustees and sponsor',
+            'Sets the regulatory capital required',
+            'Replaces the trustees as decision-maker',
+          ],
+          correctIndex: 1,
+          explanation:  "EBCs are the specialist process-runners and advisers — quote-gathering, evaluation, and recommendation.",
+          difficulty:   'medium',
+          conceptTags:  ['ebc'],
+        },
+        {
+          id:           'rothesay-d9-q4',
+          prompt:       "Why can't trustees move on a buy-out without the sponsor?",
+          options: [
+            'Sponsors hold a legal veto on all trustee decisions',
+            "Where the scheme is underfunded, the sponsor pays the funding cost; trustees need the sponsor's cooperation to make the move affordable",
+            'Regulators forbid trustees from acting without sponsor consent',
+            'EBCs only advise sponsors',
+          ],
+          correctIndex: 1,
+          explanation:  "The sponsor controls the funding. Trustees can decide, but a transaction can't happen if the sponsor won't fund it.",
+          difficulty:   'hard',
+          conceptTags:  ['trustees', 'sponsor'],
+        },
+      ],
+    },
+
+    {
+      id:               'rothesay-d10',
+      dayNumber:        10,
+      title:            'Pricing a buy-in',
+      hook:             'The Part VII transfer — how annuities legally move between insurers.',
+      estimatedMinutes: 3,
+      conceptTags:      ['pricing', 'longevity', 'inflation'],
+      body:
+`When an insurer prices a buy-in, they are estimating what the scheme's future pensions will cost them — and adding capital, operating costs, and a margin. Three risks dominate the price: longevity, inflation, and investment returns. Each has its own modelling and its own range of plausible outcomes.
+
+Longevity is how long pensioners are going to live. The insurer studies population data, scheme-specific mortality experience, deprivation indices, postcode patterns. Even a one-year shift in life expectancy across a 10,000-pensioner book can be a hundred million pounds of liability. Insurers reinsure most longevity risk to specialist longevity reinsurers.
+
+Inflation matters because most UK pensions are linked to inflation indices — usually CPI or RPI, often capped or floored. The insurer prices in a view on long-run inflation and uses index-linked gilts and inflation derivatives to hedge it. Inflation that runs higher than expected is bad for the insurer; inflation that runs lower is mostly neutral, save where pensioner floors kick in.
+
+Investment returns are the upside. The insurer needs to earn a yield on their assets that beats the pricing rate they used on the liabilities. Sourcing assets — long-dated credit, infrastructure deals, gilts, secured private debt — at sufficient yield is a differentiator between insurers. The cheapest credible quote in a competitive bid usually reflects the insurer with the best asset sourcing for that profile.`,
+      takeaway:         'Three risks set the price: longevity, inflation, investment returns.',
+      questions: [
+        {
+          id:           'rothesay-d10-q1',
+          prompt:       'What three risks dominate the pricing of a buy-in?',
+          options: [
+            'Currency, equity, geography',
+            'Longevity, inflation, investment returns',
+            'Liquidity, regulation, default',
+            'Credit, market, operational',
+          ],
+          correctIndex: 1,
+          explanation:  'These three drive almost all of the price variability and the technical work behind a quote.',
+          difficulty:   'easy',
+          conceptTags:  ['pricing'],
+        },
+        {
+          id:           'rothesay-d10-q2',
+          prompt:       'Why is longevity such a sensitive variable?',
+          options: [
+            "Pensioners can vary their date of death",
+            'Even a one-year shift across a large book can be hundreds of millions of pounds of liability',
+            'Regulators charge a longevity tax',
+            "Trustees can override the insurer's longevity assumption",
+          ],
+          correctIndex: 1,
+          explanation:  'Mortality assumptions hit thousands of pensioners over decades. Small assumption shifts compound to enormous liability moves.',
+          difficulty:   'medium',
+          conceptTags:  ['longevity'],
+        },
+        {
+          id:           'rothesay-d10-q3',
+          prompt:       'How do insurers typically hedge inflation exposure on bulk annuity books?',
+          options: [
+            'They don\'t — inflation is unhedgeable',
+            'Index-linked gilts and inflation derivatives',
+            'Currency forwards',
+            'Equity index futures',
+          ],
+          correctIndex: 1,
+          explanation:  'UK insurers use index-linked gilts plus inflation swaps/derivatives to match the inflation profile of their liabilities.',
+          difficulty:   'medium',
+          conceptTags:  ['inflation'],
+        },
+        {
+          id:           'rothesay-d10-q4',
+          prompt:       'What often distinguishes the cheapest credible quote in a competitive buy-in?',
+          options: [
+            "The insurer's marketing budget",
+            'The insurer with the best asset sourcing for that liability profile, capable of earning yield others can\'t',
+            'The insurer based closest to the trustees',
+            'The largest reinsurer behind the quote',
+          ],
+          correctIndex: 1,
+          explanation:  'Asset sourcing capability translates directly into the yield the insurer can earn — and therefore the price they can quote.',
+          difficulty:   'hard',
+          conceptTags:  ['pricing'],
+        },
+      ],
+    },
   ],
 }
