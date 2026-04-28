@@ -822,5 +822,335 @@ For managers, especially mid-sized ones, the trade-off is favourable. They get a
         },
       ],
     },
+
+    {
+      id:               'aztec-d11',
+      dayNumber:        11,
+      title:            'The technology stack they actually use',
+      hook:             'How fund administrators win and retain clients.',
+      estimatedMinutes: 3,
+      conceptTags:      ['technology', 'efront', 'investran', 'yardi'],
+      body:
+`An alternatives administrator's tech is unusual. The major core platforms are not built in-house but bought from a small set of specialist vendors who have served the industry for two or three decades. Nearly every administrator runs some combination of three core systems: eFront, Investran, and Yardi.
+
+eFront is the dominant private equity platform — fund accounting, investor reporting, capital activity, all on one stack. Investran is its main rival in the same space, with deep roots at the larger US administrators. Yardi is the real estate specialist — property, lease, and fund accounting purpose-built for the asset class. A fund administrator running real estate alongside private equity will commonly run two of these in parallel.
+
+Around the cores sit a constellation of operational tools — investor portals, treasury platforms, document management, KYC/AML systems, regulatory reporting tools. Many are SaaS. Some are decades-old internally hosted systems that no one wants to migrate off. Integration between them — getting the books, the investor records, and the regulatory filings to agree — is much of the technology challenge.
+
+For a software vendor selling into this space, the lesson is that you are usually selling into the gaps between the cores, not replacing them. The cores are old, sticky, and embedded; what's modernising is the layer that connects them and makes their data usable.`,
+      takeaway:         "Sell into the gaps between the cores. The cores themselves don't move.",
+      questions: [
+        {
+          id:           'aztec-d11-q1',
+          prompt:       'What are eFront, Investran, and Yardi?',
+          options: [
+            'Three competing fund administrators',
+            'Industry-standard core platforms used by fund administrators',
+            'Regulators in three different jurisdictions',
+            'Three legacy investor portals being phased out',
+          ],
+          correctIndex: 1,
+          explanation:  "These are the long-standing core platforms most administrators use — fund accounting, investor reporting, real estate accounting.",
+          difficulty:   'easy',
+          conceptTags:  ['technology'],
+        },
+        {
+          id:           'aztec-d11-q2',
+          prompt:       'Yardi is specifically known for…',
+          options: [
+            'Hedge fund accounting',
+            'Real estate property, lease, and fund accounting',
+            'AIFM regulatory reporting',
+            'Private credit only',
+          ],
+          correctIndex: 1,
+          explanation:  'Yardi is the real estate specialist — property and lease accounting purpose-built for that asset class.',
+          difficulty:   'medium',
+          conceptTags:  ['yardi'],
+        },
+        {
+          id:           'aztec-d11-q3',
+          prompt:       "Why are administrator core platforms rarely replaced?",
+          options: [
+            'Regulators forbid migration',
+            'They are old, deeply embedded, and migration carries operational risk; replacement is high-cost and high-risk',
+            'They are free, so there is no commercial pressure',
+            'Investors require continuity of vendor',
+          ],
+          correctIndex: 1,
+          explanation:  'Core systems hold years of fund history. Migrating them is high-risk, slow, and rarely cost-justified vs. patching.',
+          difficulty:   'medium',
+          conceptTags:  ['technology'],
+        },
+        {
+          id:           'aztec-d11-q4',
+          prompt:       'Where does software innovation typically happen at fund administrators?',
+          options: [
+            'Replacing the core systems',
+            'In the layer between the cores — investor portals, integrations, data tooling, automation',
+            'Only at regulator-mandated reporting tooling',
+            'In retail-facing front ends',
+          ],
+          correctIndex: 1,
+          explanation:  'The cores stay. The connecting layer — integrations, portals, data — is where most modernisation effort lands.',
+          difficulty:   'hard',
+          conceptTags:  ['technology'],
+        },
+      ],
+    },
+
+    {
+      id:               'aztec-d12',
+      dayNumber:        12,
+      title:            'How they win and retain clients',
+      hook:             'Who buys software at a fund administrator: the buying centre.',
+      estimatedMinutes: 3,
+      conceptTags:      ['retention', 'growth', 'switching'],
+      body:
+`A fund administrator's growth tends to come from two places. First, existing clients launching new funds. A manager that's happy with how their first fund is administered will, when they raise their next, default to the same firm. This is where the bulk of net new revenue actually comes from at a well-run administrator.
+
+Second is winning clients from competitors. This is harder. A switching fund manager has to migrate their books, their investor relationships, their regulatory filings — possibly across several entities and jurisdictions. The disruption is real. New clients only switch when their current administrator is failing them, or when they've grown beyond what their current administrator can handle.
+
+Retention is therefore the strategic battlefield. The metrics administrators publish — retention rate, awards, client testimonials — all roll up to the question of whether managers keep coming back for the next fund. Aztec publishes a retention rate that has been consistently among the highest in the industry; it's a deliberate strategic asset.
+
+For a software vendor, the implication is the same one that holds for the administrators themselves: stay in the relationship, get good at the unsexy, and the renewals look after themselves. Cleverness rarely wins. Reliability does.`,
+      takeaway:         'Retention is the strategic battlefield. New funds from existing clients are the prize.',
+      questions: [
+        {
+          id:           'aztec-d12-q1',
+          prompt:       "Where does most net new revenue come from at a well-run fund administrator?",
+          options: [
+            'Winning clients from competitors',
+            'Existing clients launching new funds',
+            'Cross-selling to retail investors',
+            'Regulator-driven mandate work',
+          ],
+          correctIndex: 1,
+          explanation:  'A happy manager defaults to the same administrator for the next fund. That repeat-business base is the engine.',
+          difficulty:   'easy',
+          conceptTags:  ['growth'],
+        },
+        {
+          id:           'aztec-d12-q2',
+          prompt:       'Why is winning clients from competitors hard for fund administrators?',
+          options: [
+            'Regulators require client lock-in',
+            'Migration disruption — books, investors, regulatory filings, often across multiple entities and jurisdictions',
+            'Competitors offer mandatory exit fees',
+            'There is no marketing channel for it',
+          ],
+          correctIndex: 1,
+          explanation:  'Switching is operationally painful. Managers do it only when something is wrong, or when they\'ve outgrown their current admin.',
+          difficulty:   'medium',
+          conceptTags:  ['switching'],
+        },
+        {
+          id:           'aztec-d12-q3',
+          prompt:       'What is a key retention metric for fund administrators?',
+          options: [
+            'Time spent in onboarding',
+            'Client retention rate (and the share of existing clients launching new funds with the same firm)',
+            'Number of slips signed per quarter',
+            'Average time to publish quarterly NAV',
+          ],
+          correctIndex: 1,
+          explanation:  'Retention rate is the headline strategic metric. Aztec publishes a high one; it\'s a deliberate marketing asset.',
+          difficulty:   'medium',
+          conceptTags:  ['retention'],
+        },
+        {
+          id:           'aztec-d12-q4',
+          prompt:       "What's the strategic insight for software vendors selling into this space?",
+          options: [
+            'Big-bang launches win deals',
+            'Reliability and relationship depth compound over time; cleverness rarely wins',
+            'Disruption is the fastest path to share',
+            'Vendors should target retail investors directly',
+          ],
+          correctIndex: 1,
+          explanation:  "The same dynamic the administrators face: stickiness comes from reliability. Vendors who get good at the unsexy keep their renewals.",
+          difficulty:   'hard',
+          conceptTags:  ['retention'],
+        },
+      ],
+    },
+
+    {
+      id:               'aztec-d13',
+      dayNumber:        13,
+      title:            'Who buys software at a fund administrator',
+      hook:             'Where Salesforce typically fits at a fund administrator.',
+      estimatedMinutes: 4,
+      conceptTags:      ['buying-centre', 'coo', 'cto', 'sales'],
+      body:
+`A fund administrator is not a single buyer. Software decisions touch several functions, and the people who matter sit at different levels with different incentives. Knowing the buying centre is half the work of selling into one of these firms.
+
+The COO is usually the centre of gravity. They run operations end to end and care most about reliability, scalability, and the cost of running the platform per fund. The CTO or Head of Technology owns the architecture and integrations. The Head of Fund Services cares about client experience and what their teams do day to day. Heads of regulatory or compliance care about audit, traceability, and regulator-facing risk.
+
+{{diagram:buying-centre}}
+
+The pattern across most deals is that 3-5 of these people need to be aligned for anything substantial to move. The COO sponsors. The technology team owns the integration. The function leads sign off on workflow fit. Procurement runs the contract. Lawyers review. Each one is a small veto point; deals stall when any of them stay quiet.
+
+For a vendor, the right approach is to map the centre early, find the genuine champion, and arm them with what each of the others needs to say yes. Selling into administrators is patient work. The reward is that, once a vendor is in, they stay.`,
+      takeaway:         'Map the centre, find the champion, give each veto point what they need to say yes.',
+      diagrams: [
+        {
+          id:      'buying-centre',
+          caption: 'A typical buying centre at a fund administrator. Each is a small veto point.',
+          svg: `<svg viewBox="0 0 600 220" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif">
+  <rect x="240" y="20" width="120" height="32" rx="4" stroke-width="1" />
+  <g stroke-width="0.75" opacity="0.7">
+    <line x1="300" y1="52" x2="300" y2="80" />
+    <line x1="80"  y1="80" x2="520" y2="80" />
+    <line x1="80"  y1="80" x2="80"  y2="100" />
+    <line x1="226" y1="80" x2="226" y2="100" />
+    <line x1="372" y1="80" x2="372" y2="100" />
+    <line x1="518" y1="80" x2="518" y2="100" />
+  </g>
+  <g stroke-width="1">
+    <rect x="20"  y="100" width="120" height="32" rx="4" />
+    <rect x="166" y="100" width="120" height="32" rx="4" />
+    <rect x="312" y="100" width="120" height="32" rx="4" />
+    <rect x="458" y="100" width="120" height="32" rx="4" />
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none">
+    <text x="300" y="40" text-anchor="middle">COO</text>
+    <text x="80"  y="120" text-anchor="middle">CTO / Head of Tech</text>
+    <text x="226" y="120" text-anchor="middle">Head of Fund Services</text>
+    <text x="372" y="120" text-anchor="middle">Head of Regulatory</text>
+    <text x="518" y="120" text-anchor="middle">Procurement / Legal</text>
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none" font-style="italic">
+    <text x="300" y="172" text-anchor="middle">3-5 stakeholders aligned to move a substantial deal.</text>
+    <text x="300" y="192" text-anchor="middle">Each is a small veto point. Map them early.</text>
+  </g>
+</svg>`,
+        },
+      ],
+      questions: [
+        {
+          id:           'aztec-d13-q1',
+          prompt:       'Who is usually the centre of gravity for software decisions at a fund administrator?',
+          options: ['The CFO', 'The COO', 'The Head of Marketing', 'The CEO'],
+          correctIndex: 1,
+          explanation:  'The COO owns operations end to end and is the most natural sponsor for platform decisions.',
+          difficulty:   'easy',
+          conceptTags:  ['coo'],
+        },
+        {
+          id:           'aztec-d13-q2',
+          prompt:       'How many stakeholders are typically involved in aligning a substantial deal?',
+          options: ['1', '2', '3-5', '8+'],
+          correctIndex: 2,
+          explanation:  '3-5 functional leaders need to align for anything substantial to move forward.',
+          difficulty:   'medium',
+          conceptTags:  ['buying-centre'],
+        },
+        {
+          id:           'aztec-d13-q3',
+          prompt:       'What does the CTO / Head of Technology focus on in a deal?',
+          options: [
+            'Marketing the chosen platform',
+            'Architecture and integrations',
+            'Pricing negotiations',
+            'Investor onboarding workflow',
+          ],
+          correctIndex: 1,
+          explanation:  'Tech leads care about how a new platform fits the existing architecture and what integration work it implies.',
+          difficulty:   'medium',
+          conceptTags:  ['cto'],
+        },
+        {
+          id:           'aztec-d13-q4',
+          prompt:       'Why is each stakeholder effectively a small veto point?',
+          options: [
+            'They each have a contractual block in the procurement process',
+            'Any of them can stall the deal by staying quiet; momentum requires explicit yeses across multiple functions',
+            'Regulators require unanimous consent',
+            'The CEO has delegated final approval to each',
+          ],
+          correctIndex: 1,
+          explanation:  'Silence is sufficient to stall. Vendors must surface and equip each stakeholder rather than rely on a single sponsor.',
+          difficulty:   'hard',
+          conceptTags:  ['sales'],
+        },
+      ],
+    },
+
+    {
+      id:               'aztec-d14',
+      dayNumber:        14,
+      title:            'Where Salesforce fits at a fund administrator',
+      hook:             'End of the course. Onward.',
+      estimatedMinutes: 3,
+      conceptTags:      ['salesforce', 'crm', 'integration'],
+      body:
+`Salesforce isn't core fund administration software. The core systems remain eFront, Investran, Yardi. But around those cores there's a recurring set of jobs Salesforce typically does well at administrators of this kind: investor relationship management, deal pipeline tracking, marketing automation, and case or service management.
+
+Investor relationship management — sometimes called LP management — is the most natural fit. Each fund has dozens of LPs, each with a relationship history, contact preferences, and document trails. Capturing all that in a CRM gives investor services and the CRL teams a single source of truth, vastly better than the email-and-spreadsheets default. This is usually the wedge.
+
+From there, several adjacent use cases follow. Pipeline tracking for new business — which managers are evaluating the firm, where each is in the funnel, what the next action is. Marketing automation for newsletters, regulatory updates, event invitations. Service Cloud for handling the inbound queries and tickets that any operationally-intensive business generates.
+
+The opportunity at any specific administrator depends on what they've already built. Salesforce typically slots in alongside the core platforms — never replacing them, often integrating with them via middleware. The right way to think about a Salesforce conversation here is as a way to make the relationship layer of the business — the bit the cores leave alone — coherent and operable.`,
+      takeaway:         'Salesforce belongs to the relationship layer the cores leave alone.',
+      questions: [
+        {
+          id:           'aztec-d14-q1',
+          prompt:       'Salesforce typically fits at a fund administrator as…',
+          options: [
+            'A replacement for eFront / Investran / Yardi',
+            'A CRM and relationship layer alongside the core fund admin platforms',
+            "An AIFM regulatory-reporting tool",
+            'A general ledger',
+          ],
+          correctIndex: 1,
+          explanation:  'Salesforce sits alongside the cores; it doesn\'t replace them. The relationship layer is its natural home.',
+          difficulty:   'easy',
+          conceptTags:  ['salesforce'],
+        },
+        {
+          id:           'aztec-d14-q2',
+          prompt:       "What's typically the wedge use case for Salesforce at a fund administrator?",
+          options: [
+            'Tax filing automation',
+            'Investor relationship / LP management',
+            "Replacing the firm's accounting platform",
+            'Direct-to-consumer marketing',
+          ],
+          correctIndex: 1,
+          explanation:  'LP management — relationship history, contacts, documents — is where Salesforce tends to land first and demonstrably help.',
+          difficulty:   'medium',
+          conceptTags:  ['crm'],
+        },
+        {
+          id:           'aztec-d14-q3',
+          prompt:       'What does Salesforce typically NOT replace at an administrator?',
+          options: [
+            'Email tools',
+            'The core platforms (eFront / Investran / Yardi)',
+            'Investor portals',
+            'Document management systems',
+          ],
+          correctIndex: 1,
+          explanation:  'The cores hold the system-of-record data and aren\'t displaced by a CRM. Coexistence is the model.',
+          difficulty:   'medium',
+          conceptTags:  ['salesforce', 'crm'],
+        },
+        {
+          id:           'aztec-d14-q4',
+          prompt:       'How does Salesforce relate to the core platforms?',
+          options: [
+            'It replaces them as the system of record',
+            'It runs in parallel with them, integrating where needed via middleware — never replacing the core',
+            'It sits underneath them as a database',
+            'It hosts the cores in its cloud',
+          ],
+          correctIndex: 1,
+          explanation:  'Salesforce in this context is the relationship layer; cores remain the operational system of record. Integration glues them.',
+          difficulty:   'hard',
+          conceptTags:  ['integration'],
+        },
+      ],
+    },
   ],
 }
