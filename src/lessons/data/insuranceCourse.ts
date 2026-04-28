@@ -608,5 +608,332 @@ The genius of the subscription model is that it lets the market write very large
         },
       ],
     },
+
+    {
+      id:               'insurance-d8',
+      dayNumber:        8,
+      title:            'Reinsurance — insurance for insurers',
+      hook:             'The single document that runs the market: the slip.',
+      estimatedMinutes: 3,
+      conceptTags:      ['reinsurance', 'treaty', 'facultative'],
+      body:
+`A reinsurer's customer is another insurer. The arrangement is the same shape as ordinary insurance — premium for risk transfer — but the buyer is a balance sheet that needs to lay off some of what it took on, not a person or a company protecting their assets directly.
+
+Treaty reinsurance is blanket. A primary insurer agrees with a reinsurer that all the policies it writes in a given class — say, North Atlantic marine cargo — get partly ceded automatically. The reinsurer takes a proportional slice of every risk written under the treaty in exchange for a proportional slice of the premium. The treaty is negotiated once, applies to thousands of policies underneath it, and renews annually.
+
+Facultative reinsurance is per-risk. The primary insurer takes a single big exposure to a reinsurer and asks: would you write 25% of this one? Facultative is the bespoke counterpart — slower, more expensive per pound, but useful when a treaty doesn't cover what the primary needs to cede.
+
+Reinsurance is the layer that lets primary insurers write as much as they do. Without it, every hurricane, every refinery fire, every global tort would land entirely on the primary's books. With it, the loss is shared up the chain — and behind some reinsurers sit retrocessionaires, doing the same for them.`,
+      takeaway:         'Reinsurance is what lets the primary market write what it does.',
+      questions: [
+        {
+          id:           'insurance-d8-q1',
+          prompt:       'Treaty reinsurance covers…',
+          options: [
+            'A single one-off risk negotiated specifically with the reinsurer',
+            'A whole class of policies under a single negotiated agreement',
+            'Only catastrophe losses above an agreed level',
+            'Reinsurance bought by the policyholder directly',
+          ],
+          correctIndex: 1,
+          explanation:  'A treaty is set up once and applies automatically to all policies the primary writes within its scope.',
+          difficulty:   'easy',
+          conceptTags:  ['treaty'],
+        },
+        {
+          id:           'insurance-d8-q2',
+          prompt:       'Facultative reinsurance is best described as…',
+          options: [
+            'Reinsurance covering an entire portfolio',
+            'Per-risk reinsurance, negotiated one risk at a time',
+            'Statutory reinsurance required by regulators',
+            'Reinsurance where the primary keeps no retention',
+          ],
+          correctIndex: 1,
+          explanation:  'Facultative is bespoke — the primary asks the reinsurer to write a slice of one specific risk.',
+          difficulty:   'medium',
+          conceptTags:  ['facultative'],
+        },
+        {
+          id:           'insurance-d8-q3',
+          prompt:       'Why use facultative when a treaty already exists?',
+          options: [
+            'It\'s cheaper per pound of cover',
+            'A specific risk falls outside what the treaty was set up to cede',
+            'Regulators require facultative in addition to treaty',
+            'The primary insurer prefers to disclose every risk separately',
+          ],
+          correctIndex: 1,
+          explanation:  'When a particular exposure doesn\'t fit the treaty\'s scope, the primary places it facultatively instead.',
+          difficulty:   'medium',
+          conceptTags:  ['facultative', 'treaty'],
+        },
+        {
+          id:           'insurance-d8-q4',
+          prompt:       'A retrocessionaire is…',
+          options: [
+            'A specialist regulator for reinsurance',
+            'A type of broker working only on treaty business',
+            "A reinsurer's reinsurer — they take risk a reinsurer in turn lays off",
+            'A reinsurance contract that pays only after the primary is bankrupt',
+          ],
+          correctIndex: 2,
+          explanation:  'Retrocession is reinsurance further up the chain: reinsurers themselves cede part of what they\'ve assumed.',
+          difficulty:   'hard',
+          conceptTags:  ['reinsurance'],
+        },
+      ],
+    },
+
+    {
+      id:               'insurance-d9',
+      dayNumber:        9,
+      title:            'The slip',
+      hook:             'Why insurance contracts read the way they do.',
+      estimatedMinutes: 3,
+      conceptTags:      ['slip', 'placement', 'documentation'],
+      body:
+`Every London market risk lives or dies by a single document called the slip. The slip is a short, structured summary of the risk: who's insured, what's covered, what the limit is, what the premium is, what the wording says, and which underwriters have signed for what percentage. Brokers prepare it. Underwriters sign it. The slip is the contract until a full policy is issued.
+
+Physically the slip used to be a paper folder, walked from one underwriter's box to another inside Lloyd's. Today most of the journey is digital — Lloyd's PPL, electronic placement systems, broker workflow tools — but the structure of the document is unchanged. It is still the canonical record of what's been agreed.
+
+The slip carries a hierarchy of information: a risk details section, a coverage section, a premium and brokerage section, and a signing section where each underwriter stamps a percentage. Endorsements come on top later, recording any change to terms after binding. If a claim is disputed, the slip is what the lawyers read first.
+
+The slip is the smallest possible artefact that makes the market work. It is to insurance what a contract is to law and a prescription is to medicine — small, dense, and the source of everything that follows.`,
+      takeaway:         "Every London market risk lives or dies by the slip.",
+      questions: [
+        {
+          id:           'insurance-d9-q1',
+          prompt:       'What is the slip?',
+          options: [
+            'A receipt issued after a claim is paid',
+            'A short structured document recording the agreed terms and signatures of the risk',
+            'A folder of historical claims data on the insured',
+            'A regulatory filing required for every policy',
+          ],
+          correctIndex: 1,
+          explanation:  'The slip is the canonical placement record — coverage, premium, signatures all in one document.',
+          difficulty:   'easy',
+          conceptTags:  ['slip'],
+        },
+        {
+          id:           'insurance-d9-q2',
+          prompt:       'Who prepares the slip?',
+          options: ['The lead underwriter', 'The broker', 'The reinsurer', 'Lloyd\'s itself'],
+          correctIndex: 1,
+          explanation:  'The broker drafts the slip on behalf of their client and walks it through the market for signatures.',
+          difficulty:   'medium',
+          conceptTags:  ['slip', 'placement'],
+        },
+        {
+          id:           'insurance-d9-q3',
+          prompt:       "Until the full policy is issued, what is the slip's role?",
+          options: [
+            'It is purely a draft and not legally binding',
+            'It IS the contract',
+            'It is a placeholder that needs separate countersigning',
+            'It is a regulator-only document not enforceable in court',
+          ],
+          correctIndex: 1,
+          explanation:  'The slip binds the agreement; the full policy is issued later but the slip\'s terms govern in the meantime.',
+          difficulty:   'medium',
+          conceptTags:  ['slip'],
+        },
+        {
+          id:           'insurance-d9-q4',
+          prompt:       'Why has the slip remained canonical even as placement has gone digital?',
+          options: [
+            'Tradition outweighs efficiency in the London market',
+            'Its structure — sections, signatures, endorsements — is what the market and lawyers rely on, regardless of medium',
+            'Digital placements are not yet legally recognised',
+            'Reinsurers refuse to read non-paper documents',
+          ],
+          correctIndex: 1,
+          explanation:  'The slip is a shape, not a paper format. Digital placement keeps the structure; the structure is what matters.',
+          difficulty:   'hard',
+          conceptTags:  ['slip', 'documentation'],
+        },
+      ],
+    },
+
+    {
+      id:               'insurance-d10',
+      dayNumber:        10,
+      title:            'Wordings, clauses, and the language of policies',
+      hook:             'Claims, and the moment of truth.',
+      estimatedMinutes: 3,
+      conceptTags:      ['wording', 'clauses', 'standards'],
+      body:
+`Insurance contracts read strangely because they have been litigated. Every phrase in a policy wording has, at some point, been argued over in court. The result is language that is precise to the point of stiffness, and almost completely unreadable to anyone outside the industry. That's not laziness — it's deliberate.
+
+The market relies on standard clauses to keep this manageable. Things like the Institute Cargo Clauses for marine, the Joint Rig clauses for energy, the standard war and terrorism wordings. These are not boilerplate written by a single firm; they are negotiated, published, and updated by industry bodies precisely so the same words mean the same thing across many insurers' policies.
+
+A bespoke wording for a complex risk is built up by stitching standard clauses together with custom amendments. The art of writing a wording is keeping it tight — every word does work, every defined term has a definition, every exclusion has a reason. Loose drafting is what claims disputes feed on.
+
+When you read a policy and feel it's unnecessarily complex, that complexity is usually scar tissue. Each odd phrase exists because, at some point, the lack of it cost someone a claim. The wording is what stands when everything else has gone wrong.`,
+      takeaway:         "Wording is the scar tissue of every claim that ever went to court.",
+      questions: [
+        {
+          id:           'insurance-d10-q1',
+          prompt:       'Why do insurance contracts read as densely as they do?',
+          options: [
+            'Lawyers are paid by the word',
+            'Each phrase has been litigated and refined over decades',
+            'Regulators require a minimum word count',
+            'It deliberately discourages reading',
+          ],
+          correctIndex: 1,
+          explanation:  'The dense, precise language is the residue of past disputes — wording sharpens with every claim that goes to court.',
+          difficulty:   'easy',
+          conceptTags:  ['wording'],
+        },
+        {
+          id:           'insurance-d10-q2',
+          prompt:       'The Institute Cargo Clauses are an example of…',
+          options: [
+            'A single insurer\'s proprietary wording',
+            "Lloyd's-specific terms unavailable in the company market",
+            'Industry-published standard clauses for marine cargo',
+            'A regulator-mandated form',
+          ],
+          correctIndex: 2,
+          explanation:  'They\'re widely-used standard clauses negotiated by industry, so the same words mean the same thing across insurers.',
+          difficulty:   'medium',
+          conceptTags:  ['standards'],
+        },
+        {
+          id:           'insurance-d10-q3',
+          prompt:       'A bespoke London wording is typically built from…',
+          options: [
+            'A blank document drafted from scratch',
+            'A single insurer\'s base wording, used unchanged',
+            'Standard clauses stitched together with custom amendments',
+            'A template owned by Lloyd\'s',
+          ],
+          correctIndex: 2,
+          explanation:  'Most bespoke wordings start from standard clauses and add the parts that make a particular risk specific.',
+          difficulty:   'medium',
+          conceptTags:  ['wording'],
+        },
+        {
+          id:           'insurance-d10-q4',
+          prompt:       'Why is loose drafting a problem in policy wording?',
+          options: [
+            'It increases premium tax',
+            'It creates ambiguity that claims disputes exploit',
+            'It makes the slip too long',
+            'Underwriters are paid less to sign loose wordings',
+          ],
+          correctIndex: 1,
+          explanation:  'Ambiguity is what dispute lawyers latch on to; tight, precise wording is the cheapest form of claims defence.',
+          difficulty:   'hard',
+          conceptTags:  ['wording', 'clauses'],
+        },
+      ],
+    },
+
+    {
+      id:               'insurance-d11',
+      dayNumber:        11,
+      title:            'Claims — the moment of truth',
+      hook:             'Who watches over all of this: the regulators.',
+      estimatedMinutes: 4,
+      conceptTags:      ['claims', 'reserving', 'lifecycle'],
+      body:
+`For most of a policy's life, nothing happens. A claim is the moment when the contract gets used. Everything an insurer does — pricing, capital, reserves, reinsurance — leads up to the moment a loss is reported and the company has to pay. It is the point at which the bargain becomes real.
+
+A claim's lifecycle has four broad phases. Notification: the insured tells the broker, the broker tells the lead underwriter, and the news flows down the slip. Reserve: the insurer estimates the eventual cost and posts that as a liability on its books. Investigation: adjusters work out what actually happened, what's covered, what isn't, and what the right payment is. Settlement: money moves; the file closes.
+
+{{diagram:claims-lifecycle}}
+
+Each phase has its own pace. Notification is fast — sometimes hours after a loss. Reserving is iterative — the number changes as more is known. Investigation can take days for a stolen laptop or years for a complex liability case. Settlement is sometimes a single payment, sometimes a structured series. The slip's lead is responsible for coordinating with the followers throughout.
+
+Claims is the part of the industry the buyer actually meets. Underwriting is invisible until something goes wrong. The relationship the insurer wants to be remembered for is the one they have during a claim — fast, fair, and present. Everything else is preface.`,
+      takeaway:         "Claims is where insurance becomes real.",
+      diagrams: [
+        {
+          id:      'claims-lifecycle',
+          caption: 'Notification → reserve → investigation → settlement.',
+          svg: `<svg viewBox="0 0 600 110" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif">
+  <g stroke-width="1">
+    <rect x="20" y="32" width="120" height="40" rx="4" />
+    <rect x="170" y="32" width="120" height="40" rx="4" />
+    <rect x="320" y="32" width="120" height="40" rx="4" />
+    <rect x="470" y="32" width="110" height="40" rx="4" />
+  </g>
+  <g stroke-width="0.75">
+    <line x1="140" y1="52" x2="170" y2="52" />
+    <polyline points="166,49 170,52 166,55" fill="currentColor" />
+    <line x1="290" y1="52" x2="320" y2="52" />
+    <polyline points="316,49 320,52 316,55" fill="currentColor" />
+    <line x1="440" y1="52" x2="470" y2="52" />
+    <polyline points="466,49 470,52 466,55" fill="currentColor" />
+  </g>
+  <g font-size="10.5" fill="currentColor" stroke="none">
+    <text x="80"  y="56" text-anchor="middle">Notification</text>
+    <text x="230" y="56" text-anchor="middle">Reserve</text>
+    <text x="380" y="56" text-anchor="middle">Investigation</text>
+    <text x="525" y="56" text-anchor="middle">Settlement</text>
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none" font-style="italic">
+    <text x="300" y="100" text-anchor="middle">A claim moves left to right. Reserves shift as facts emerge.</text>
+  </g>
+</svg>`,
+        },
+      ],
+      questions: [
+        {
+          id:           'insurance-d11-q1',
+          prompt:       "What is the first phase of a claim's lifecycle?",
+          options: ['Settlement', 'Investigation', 'Notification', 'Reserve'],
+          correctIndex: 2,
+          explanation:  'Notification is when the insured tells the broker about the loss; everything else flows from there.',
+          difficulty:   'easy',
+          conceptTags:  ['lifecycle'],
+        },
+        {
+          id:           'insurance-d11-q2',
+          prompt:       'What does reserving mean in claims?',
+          options: [
+            'Holding back part of the premium for later use',
+            "Posting the estimated eventual cost of the claim as a liability on the insurer's books",
+            'Reserving the right to deny the claim',
+            "Setting aside time on the underwriter's calendar",
+          ],
+          correctIndex: 1,
+          explanation:  'A reserve is the insurer\'s best current estimate of what the claim will ultimately cost; it sits on the balance sheet.',
+          difficulty:   'medium',
+          conceptTags:  ['reserving'],
+        },
+        {
+          id:           'insurance-d11-q3',
+          prompt:       'Why does the lead insurer coordinate the claim?',
+          options: [
+            'They keep all the premium until others sign',
+            'Followers signed at the lead\'s terms; the lead manages the file on the slip\'s behalf',
+            'Lloyd\'s rules forbid followers from communicating with the broker',
+            'Only the lead has access to the wording',
+          ],
+          correctIndex: 1,
+          explanation:  'Because followers accepted the lead\'s terms, the lead naturally runs the file — disputes flow back through them.',
+          difficulty:   'medium',
+          conceptTags:  ['claims'],
+        },
+        {
+          id:           'insurance-d11-q4',
+          prompt:       "Why does a claim's reserve typically change multiple times before settlement?",
+          options: [
+            'Insurers are required to revise reserves quarterly regardless of new information',
+            "Reserves shift as facts emerge — the estimate isn't final until the file closes",
+            'Reinsurers demand monthly reserve increases',
+            'The broker negotiates the reserve with the insured',
+          ],
+          correctIndex: 1,
+          explanation:  'A reserve is a moving estimate. Investigation reveals new facts; the number is revised until settlement.',
+          difficulty:   'hard',
+          conceptTags:  ['reserving'],
+        },
+      ],
+    },
   ],
 }
