@@ -1,11 +1,18 @@
 import { MockLessonsStorage, type LessonsStorage } from './MockLessonsStorage'
 import { ANTHROPIC_COURSE } from '../data/anthropicCourse'
+import { INSURANCE_COURSE } from '../data/insuranceCourse'
+import { AZTEC_COURSE }     from '../data/aztecCourse'
+import { ROTHESAY_COURSE }  from '../data/rothesayCourse'
 
 /* ====================================================================
    Storage factory + one-shot seeding.
    On first access we seed the bundled course(s) into local storage so
    the rest of the module can read everything through the same
    interface a real backend would expose.
+
+   Courses are seeded individually so adding a course doesn't require
+   re-seeding the others. Each course is saved only if a course with
+   that id isn't already in storage — preserving any user progress.
 ==================================================================== */
 
 let cached: LessonsStorage | null = null
@@ -18,8 +25,12 @@ function getInstance(): LessonsStorage {
 
 async function seedIfNeeded(storage: LessonsStorage): Promise<void> {
   const existing = await storage.listCourses()
-  if (!existing.find(c => c.id === ANTHROPIC_COURSE.id)) {
-    await storage.saveCourse(ANTHROPIC_COURSE)
+  const existingIds = new Set(existing.map(c => c.id))
+
+  for (const course of [ANTHROPIC_COURSE, INSURANCE_COURSE, AZTEC_COURSE, ROTHESAY_COURSE]) {
+    if (!existingIds.has(course.id)) {
+      await storage.saveCourse(course)
+    }
   }
 }
 
