@@ -557,5 +557,270 @@ These services don't get the spotlight that fund accounting does, but they are p
         },
       ],
     },
+
+    {
+      id:               'aztec-d8',
+      dayNumber:        8,
+      title:            'AIFM, depositary, and the regulatory edges',
+      hook:             'The six jurisdictions and why each matters.',
+      estimatedMinutes: 3,
+      conceptTags:      ['aifm', 'depositary', 'aifmd'],
+      body:
+`Two regulated services sit at the boundary between fund administration and the regulator: the AIFM and the depositary. They look adjacent, but they do quite different things, and a fund using an alternative investment vehicle in Europe needs both.
+
+The AIFM, as introduced yesterday, is the regulated entity that manages the fund. It carries the legal responsibility for risk management, portfolio management, valuation oversight, and regulatory reporting. AIFM rules came in via the AIFMD directive after the financial crisis to bring oversight to private funds in Europe. Where a manager doesn't have its own AIFM licence, an administrator can host the function on theirs.
+
+The depositary is the trusted independent. Their job is to hold or oversee the fund's assets, verify ownership, monitor cashflows, and act as a check on the AIFM. The regulator wants the depositary to be independent enough to flag things if the manager goes off-piste. In practice the depositary signs off on capital movements and provides assurance to investors that the assets are where the books say they are.
+
+Together they're the two regulatory pillars that European alternative funds rest on. An administrator that's licensed across both — and across the right jurisdictions — saves a manager from spinning up either capability themselves. It's a niche service inside fund admin, but a strategically important one.`,
+      takeaway:         'AIFM and depositary are the regulatory pillars European alternative funds rest on.',
+      questions: [
+        {
+          id:           'aztec-d8-q1',
+          prompt:       'What is the AIFM responsible for?',
+          options: [
+            'Custody of fund assets',
+            'Risk management, portfolio management, valuation oversight, and regulatory reporting',
+            'Marketing the fund to investors',
+            'Auditing the fund\'s books',
+          ],
+          correctIndex: 1,
+          explanation:  'The AIFM is the regulated manager carrying the legal accountability for how the fund is run.',
+          difficulty:   'easy',
+          conceptTags:  ['aifm'],
+        },
+        {
+          id:           'aztec-d8-q2',
+          prompt:       "What is the depositary's role?",
+          options: [
+            'Setting the fund\'s investment strategy',
+            'Holding/overseeing fund assets, verifying ownership, monitoring cashflows, acting as a check on the AIFM',
+            'Underwriting investor commitments',
+            'Producing the fund\'s tax returns',
+          ],
+          correctIndex: 1,
+          explanation:  'The depositary is the independent oversight layer for assets and cashflows. It exists to provide investor and regulator assurance.',
+          difficulty:   'medium',
+          conceptTags:  ['depositary'],
+        },
+        {
+          id:           'aztec-d8-q3',
+          prompt:       'Why does AIFMD exist?',
+          options: [
+            'It pre-dates the financial crisis',
+            'To bring regulatory oversight to private funds in Europe after the financial crisis',
+            'To allow tax-free fund structures',
+            'To replace MiFID for alternative funds',
+          ],
+          correctIndex: 1,
+          explanation:  'AIFMD post-2008 was the European framework bringing alternative funds into a regulated perimeter.',
+          difficulty:   'medium',
+          conceptTags:  ['aifmd'],
+        },
+        {
+          id:           'aztec-d8-q4',
+          prompt:       'Why must the depositary be independent of the AIFM?',
+          options: [
+            'Tax rules require it',
+            'Regulators want a credible check on the manager — the depositary should be willing and able to flag misconduct',
+            'Independence reduces costs',
+            'Depositaries are barred from any other regulated activity',
+          ],
+          correctIndex: 1,
+          explanation:  'The whole point of the depositary is that it can credibly raise an alarm. Independence from the manager is structural.',
+          difficulty:   'hard',
+          conceptTags:  ['depositary'],
+        },
+      ],
+    },
+
+    {
+      id:               'aztec-d9',
+      dayNumber:        9,
+      title:            'The six jurisdictions and why each matters',
+      hook:             "The Client Relationship Lead model — Aztec's distinctive operational shape.",
+      estimatedMinutes: 4,
+      conceptTags:      ['jurisdictions', 'channel-islands', 'luxembourg', 'ireland'],
+      body:
+`A fund administrator's geography is not arbitrary. Each jurisdiction has its own regulator, its own tax treatment, its own legal forms, and its own market of fund managers. Operating in six places isn't six times the work — it's six related but distinct businesses that need local people, local licences, and local expertise.
+
+Jersey and Guernsey, the Channel Islands, are the historic heart of the alternatives administration industry. A century of fund and trust expertise, English-language legal infrastructure, low tax for non-resident funds, and respected regulators. They are popular for private equity, real estate, and family office structures. Aztec's roots are in Jersey, and it remains a strategic centre.
+
+{{diagram:six-jurisdictions}}
+
+Luxembourg is the European heavyweight — the largest cross-border fund domicile in Europe, with regulated structures (SIF, RAIF, SCSp) European institutional money flows through. Ireland is increasingly its rival, particularly for funds wanting EU passporting and a common-law legal heritage. The UK, post-Brexit, remains the centre of the international management industry even as the funds themselves often live offshore. The US is the newest leg, supporting funds raising or deploying capital there.
+
+For a manager picking where to set up, the jurisdiction choice depends on the investors they're courting, the asset class, the regulatory access they need, and tax. An administrator that operates in all six can handle whatever choice the manager makes — and lets a manager run a fund touching several jurisdictions without juggling several administrators.`,
+      takeaway:         'Six jurisdictions, six related but distinct markets.',
+      diagrams: [
+        {
+          id:      'six-jurisdictions',
+          caption: "Aztec's six jurisdictions: a North Atlantic spread of related but distinct markets.",
+          svg: `<svg viewBox="0 0 600 220" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif">
+  <g stroke-width="0.5" opacity="0.22">
+    <path d="M 60 60 C 50 80 50 120 80 140 C 120 152 150 138 160 116 C 170 92 140 60 100 56 C 84 54 70 56 60 60 Z" />
+    <path d="M 320 56 C 308 66 305 96 322 110 C 350 122 388 116 412 104 C 432 94 434 70 416 60 C 392 50 354 50 332 52 C 326 53 322 54 320 56 Z" />
+    <path d="M 296 76 C 290 82 290 96 298 102 C 312 100 318 90 314 80 C 310 75 304 74 296 76 Z" />
+  </g>
+  <g stroke="none" fill="currentColor">
+    <circle cx="307" cy="84" r="3" />
+    <circle cx="294" cy="92" r="3" />
+    <circle cx="318" cy="103" r="3" />
+    <circle cx="324" cy="108" r="3" />
+    <circle cx="345" cy="86" r="3" />
+    <circle cx="100" cy="100" r="3" />
+  </g>
+  <g stroke="currentColor" stroke-width="0.5" opacity="0.55">
+    <line x1="307" y1="84" x2="307" y2="44" />
+    <line x1="294" y1="92" x2="245" y2="120" />
+    <line x1="318" y1="103" x2="290" y2="140" />
+    <line x1="324" y1="108" x2="350" y2="160" />
+    <line x1="345" y1="86" x2="430" y2="50" />
+    <line x1="100" y1="100" x2="100" y2="160" />
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none">
+    <text x="307" y="38" text-anchor="middle">UK</text>
+    <text x="240" y="124" text-anchor="end">Ireland</text>
+    <text x="285" y="144" text-anchor="end">Jersey</text>
+    <text x="358" y="164">Guernsey</text>
+    <text x="438" y="54">Luxembourg</text>
+    <text x="100" y="174" text-anchor="middle">US</text>
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none" font-style="italic">
+    <text x="300" y="208" text-anchor="middle">Six markets, related but distinct — each with its own regulator, tax, and legal forms.</text>
+  </g>
+</svg>`,
+        },
+      ],
+      questions: [
+        {
+          id:           'aztec-d9-q1',
+          prompt:       "Where are Aztec's roots?",
+          options: ['Luxembourg', 'Jersey', 'Dublin', 'London'],
+          correctIndex: 1,
+          explanation:  "Aztec was founded in Jersey in 2001 and the Channel Islands remain a strategic centre.",
+          difficulty:   'easy',
+          conceptTags:  ['channel-islands'],
+        },
+        {
+          id:           'aztec-d9-q2',
+          prompt:       'Why is Luxembourg significant in alternatives?',
+          options: [
+            'It hosts the largest stock exchange in Europe',
+            "It's the largest cross-border fund domicile in Europe, with regulated structures (SIF, RAIF, SCSp) European institutional money flows through",
+            'Luxembourg-domiciled funds are tax-exempt globally',
+            "It's the only EU country offering AIFM licences",
+          ],
+          correctIndex: 1,
+          explanation:  'Luxembourg is the European fund-domicile heavyweight; SIF/RAIF/SCSp are widely used institutional vehicles.',
+          difficulty:   'medium',
+          conceptTags:  ['luxembourg'],
+        },
+        {
+          id:           'aztec-d9-q3',
+          prompt:       'On what does Ireland increasingly compete with Luxembourg?',
+          options: [
+            'Lowest tax rates in Europe',
+            'EU passporting access for funds, with a common-law legal heritage',
+            'Real estate fund domicile only',
+            'Direct US fund licensing',
+          ],
+          correctIndex: 1,
+          explanation:  'Ireland\'s common-law roots and EU passporting make it an attractive alternative to Luxembourg for many managers.',
+          difficulty:   'medium',
+          conceptTags:  ['ireland'],
+        },
+        {
+          id:           'aztec-d9-q4',
+          prompt:       "Why isn't operating in six jurisdictions simply 6× the work?",
+          options: [
+            'Six jurisdictions share one set of regulations',
+            'Each requires local people, licences, and expertise — the businesses are related but distinct, not parallel',
+            'Five of the six are administrative pass-throughs',
+            'Most of the work is centralised in London',
+          ],
+          correctIndex: 1,
+          explanation:  'Local regulators, tax, and legal forms make each jurisdiction a separate operating problem with its own complexity.',
+          difficulty:   'hard',
+          conceptTags:  ['jurisdictions'],
+        },
+      ],
+    },
+
+    {
+      id:               'aztec-d10',
+      dayNumber:        10,
+      title:            'The Client Relationship Lead model',
+      hook:             'The technology stack: eFront, Investran, Yardi.',
+      estimatedMinutes: 3,
+      conceptTags:      ['operating-model', 'crl', 'retention'],
+      body:
+`Most fund administrators are organised by function. A client of theirs talks to an accounting team for accounting, an investor services team for investor questions, a tax team for tax. The client has many counterparts; coordination falls on the client's COO. It's how the industry has worked for decades.
+
+Aztec's offering is structured differently. The Client Relationship Lead — CRL — is a single named person who heads up a small dedicated team handling that client's funds across functions. Accounting, investor services, valuations, regulatory — they sit inside the team, organised around the client rather than around the discipline.
+
+This is a "team rather than function" model. It's more expensive to run than the conventional functional org because individual specialists are deployed to specific clients rather than pooled. But it gives the client a single point of contact, a team that knows their funds in detail, and an operational rhythm that doesn't require the client to coordinate between departments at the administrator.
+
+For managers, especially mid-sized ones, the trade-off is favourable. They get a coherent relationship rather than a hub of fragments. The CRL model is one of the things distinctive about Aztec's positioning, and a lot of why managers stay once they've onboarded.`,
+      takeaway:         'A team organised around the client, not the discipline.',
+      questions: [
+        {
+          id:           'aztec-d10-q1',
+          prompt:       'How are most fund administrators traditionally organised?',
+          options: [
+            'Around clients, with a single named team per client',
+            'By function — separate accounting, investor services, tax, etc. teams',
+            'By geography only',
+            'Around individual investments',
+          ],
+          correctIndex: 1,
+          explanation:  'Functional org is the industry default: clients deal with multiple teams across the administrator.',
+          difficulty:   'easy',
+          conceptTags:  ['operating-model'],
+        },
+        {
+          id:           'aztec-d10-q2',
+          prompt:       'What is the CRL model?',
+          options: [
+            'A single named lead heading a dedicated team that handles the client across functions',
+            "A regulator's framework for client meetings",
+            'A category of managed accounts',
+            'A specific software platform',
+          ],
+          correctIndex: 0,
+          explanation:  'CRL — Client Relationship Lead — anchors a per-client team that spans accounting, investor services, etc.',
+          difficulty:   'medium',
+          conceptTags:  ['crl'],
+        },
+        {
+          id:           'aztec-d10-q3',
+          prompt:       "What's a downside of the CRL model from the administrator's side?",
+          options: [
+            'Clients receive worse service',
+            'It is more expensive to run than the functional org because specialists are deployed to specific clients rather than pooled',
+            'It cannot scale beyond a few clients',
+            'It is only legal in one jurisdiction',
+          ],
+          correctIndex: 1,
+          explanation:  'Per-client teams cost more in specialist headcount than functional pools. Aztec accepts that trade-off as a strategic choice.',
+          difficulty:   'medium',
+          conceptTags:  ['operating-model'],
+        },
+        {
+          id:           'aztec-d10-q4',
+          prompt:       'Why does the CRL model tend to improve retention for managers?',
+          options: [
+            'Clients are contractually locked in',
+            'Managers deal with one coherent team that knows their funds in depth — reducing coordination cost and the friction of switching',
+            'Pricing discounts increase over time',
+            'It enables single-sign-on across multiple administrators',
+          ],
+          correctIndex: 1,
+          explanation:  'A coherent named team is sticky. The cost of replicating that relationship elsewhere keeps managers from switching lightly.',
+          difficulty:   'hard',
+          conceptTags:  ['retention'],
+        },
+      ],
+    },
   ],
 }
