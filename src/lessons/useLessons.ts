@@ -24,6 +24,13 @@ export interface UseLessons {
   tomorrowsLesson:   Lesson | null
   allCourses:        Course[]
   progress:          UserProgress | null
+  /** True when the user has already completed at least one lesson on
+   *  any enrolled course on the local calendar day. Drives "bonus"
+   *  framing on subsequent same-day lessons. */
+  hasCompletedToday: boolean
+  /** Count of in-progress (non-completed) enrolments. The tile uses
+   *  this to decide whether to show the 'switch course →' link. */
+  activeEnrolmentCount: number
   refresh:           () => void
   enrollAndActivate: (courseId: string) => Promise<void>
   setActive:         (courseId: string | null) => Promise<void>
@@ -52,15 +59,34 @@ export function useLessons(userId: string = 'sian'): UseLessons {
     return () => { alive = false }
   }, [userId, bump])
 
-  const activeCourse = useMemo<Course | null>(() => {
-    if (!progress?.activeCourseId) return null
-    return courses.find(c => c.id === progress.activeCourseId) ?? null
-  }, [progress, courses])
-
+  // The "active" course for surfacing is the most recently engaged
+  // enrolment that isn't completed. If everything is complete, we fall
+  // back to whichever was finished last so the tile can render the
+  // 'completed' state. The activeCourseId field is honoured as a tie-
+  // breaker for backwards compatibility with progress that pre-dates
+  // the lastEngagedAt migration.
   const enrollment = useMemo<Enrollment | null>(() => {
-    if (!progress?.activeCourseId) return null
-    return progress.enrollments.find(e => e.courseId === progress.activeCourseId) ?? null
+    if (!progress) return null
+    if (progress.enrollments.length === 0) return null
+    const ranked = [...progress.enrollments].sort((a, b) => {
+      const aDone = !!a.completedAt
+      const bDone = !!b.completedAt
+      if (aDone !== bDone) return aDone ? 1 : -1
+      const aT = a.lastEngagedAt ?? a.startedAt
+      const bT = b.lastEngagedAt ?? b.startedAt
+      if (aT !== bT) return aT < bT ? 1 : -1
+      // Final tie-breaker: explicit activeCourseId wins.
+      if (progress.activeCourseId === a.courseId) return -1
+      if (progress.activeCourseId === b.courseId) return 1
+      return 0
+    })
+    return ranked[0] ?? null
   }, [progress])
+
+  const activeCourse = useMemo<Course | null>(() => {
+    if (!enrollment) return null
+    return courses.find(c => c.id === enrollment.courseId) ?? null
+  }, [enrollment, courses])
 
   const completedCount = enrollment?.completedLessons.length ?? 0
 
@@ -131,10 +157,22 @@ export function useLessons(userId: string = 'sian'): UseLessons {
   }, [userId, activeCourse, refresh])
 
   const recordAnswerFn = useCallback(async (answer: Answer, conceptTags: string[]) => {
-    if (!activeCourse) return
-    await getStorage().recordAnswer(userId, activeCourse.id, answer, conceptTags)
+    // Resolve the course from the answer's lessonId rather than the
+    // currently-surfaced activeCourse. With multi-course enrolment a
+    // user could be answering on a non-surfaced course (e.g. they
+    // tapped 'switch course →' mid-flow) and we need to write the
+    // mastery update to the right enrolment.
+    const target = courses.find(c => c.lessons.some(l => l.id === answer.lessonId))
+    if (!target) return
+    await getStorage().recordAnswer(userId, target.id, answer, conceptTags)
     refresh()
-  }, [userId, activeCourse, refresh])
+  }, [userId, courses, refresh])
+
+  const today = todayISO()
+  const hasCompletedToday = !!progress?.enrollments.some(
+    e => e.lastCompletedDate === today,
+  )
+  const activeEnrolmentCount = progress?.enrollments.filter(e => !e.completedAt).length ?? 0
 
   return {
     state,
@@ -145,6 +183,8 @@ export function useLessons(userId: string = 'sian'): UseLessons {
     tomorrowsLesson,
     allCourses: courses,
     progress,
+    hasCompletedToday,
+    activeEnrolmentCount,
     refresh,
     enrollAndActivate,
     setActive:      setActiveFn,

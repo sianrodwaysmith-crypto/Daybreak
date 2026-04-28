@@ -68,6 +68,12 @@ export interface Enrollment {
   // gate "next day" availability — re-opening the app the same day after
   // completing a lesson must not advance the user to tomorrow.
   lastCompletedDate: string | null
+  // ISO timestamp of the user's most recent interaction with this
+  // enrolment (lesson completed, question answered, or initial enrol).
+  // Drives which course the tile surfaces when the user is in multiple
+  // courses simultaneously. Optional for backwards-compat with stored
+  // progress predating this field; the migration in storage backfills.
+  lastEngagedAt?:    string
 }
 
 export interface UserProgress {
