@@ -7,15 +7,28 @@ import type { TileState } from '../types'
    Renders one of four states (loading / no_course / ready / done /
    completed). Every visible string comes from copy.ts; the tile owns
    no business logic of its own.
+
+   Multi-course additions:
+   - When the user has 2+ in-progress enrolments, a small italic-serif
+     "switch course →" link sits bottom-right (alongside the existing
+     "all courses" link). Tapping it opens the library directly.
+   - In the "done" state the tile shows a quiet "Today's lesson done.
+     More if you'd like." line, where "More if you'd like" is itself
+     tappable to open the library. Never framed as a target/quota.
 ==================================================================== */
 
 interface Props {
-  state:         TileState
-  onOpenLesson:  () => void
-  onOpenLibrary: () => void
+  state:                TileState
+  /** In-progress enrolment count (excludes completed). >=2 enables the
+   *  switch-course link. */
+  activeEnrolmentCount: number
+  onOpenLesson:         () => void
+  onOpenLibrary:        () => void
 }
 
-export function LessonsTile({ state, onOpenLesson, onOpenLibrary }: Props) {
+export function LessonsTile({ state, activeEnrolmentCount, onOpenLesson, onOpenLibrary }: Props) {
+  const showSwitchLink = activeEnrolmentCount >= 2
+
   return (
     <section className="lessons-tile">
       <div className="lessons-tile-head">
@@ -60,6 +73,16 @@ export function LessonsTile({ state, onOpenLesson, onOpenLibrary }: Props) {
           {state.nextHook && (
             <div className="lessons-tile-sub">{copy.tile.tomorrow(state.nextHook)}</div>
           )}
+          <p className="lessons-tile-bonus">
+            {copy.tile.doneTodayLeading}{' '}
+            <button
+              type="button"
+              className="lessons-tile-bonus-link"
+              onClick={onOpenLibrary}
+            >
+              {copy.tile.doneTodayLink}
+            </button>
+          </p>
         </div>
       )}
 
@@ -77,6 +100,11 @@ export function LessonsTile({ state, onOpenLesson, onOpenLibrary }: Props) {
         <button type="button" className="lessons-tile-library-link" onClick={onOpenLibrary}>
           {copy.tile.libraryLink}
         </button>
+        {showSwitchLink && (
+          <button type="button" className="lessons-tile-switch-link" onClick={onOpenLibrary}>
+            {copy.tile.switchCourseLink}
+          </button>
+        )}
       </div>
     </section>
   )

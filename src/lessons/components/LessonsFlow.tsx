@@ -24,6 +24,7 @@ type Mode =
       dayNumber:      number
       correctCount:   number
       questionCount:  number
+      bonusToday:     boolean
     }
   | { kind: 'unavailable' }
 
@@ -67,6 +68,10 @@ export function LessonsFlow({ userId = 'sian', onClose }: Props) {
   async function handleQuizComplete(outs: QuizAnswerOut[]) {
     if (current.kind !== 'quiz') return
     const correct = outs.filter(a => a.correct).length
+    // Capture "did the user already finish another course's lesson
+    // today" BEFORE we complete this one — completeLesson() will flip
+    // hasCompletedToday true regardless of which is first.
+    const bonusToday = lessons.hasCompletedToday
     await lessons.completeLesson(current.lesson.id)
     setMode({
       kind:          'recap',
@@ -75,6 +80,7 @@ export function LessonsFlow({ userId = 'sian', onClose }: Props) {
       dayNumber:     current.dayNumber,
       correctCount:  correct,
       questionCount: outs.length,
+      bonusToday,
     })
   }
 
@@ -131,6 +137,7 @@ export function LessonsFlow({ userId = 'sian', onClose }: Props) {
         correctCount={current.correctCount}
         questionCount={current.questionCount}
         nextLesson={nextLesson}
+        bonusToday={current.bonusToday}
         onClose={onClose}
       />
     )

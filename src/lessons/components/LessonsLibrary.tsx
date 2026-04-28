@@ -1,24 +1,30 @@
 import { useMemo, useState } from 'react'
 import { copy } from '../copy'
-import { formatLongDate } from '../core/dateHelpers'
+import { formatLongDate, relativeTouched } from '../core/dateHelpers'
 import { useLessons } from '../useLessons'
 import { ActiveCourseView } from './ActiveCourseView'
 import { CourseSummaryScreen } from './CourseSummaryScreen'
+import { LessonsFlow } from './LessonsFlow'
 import type { Course, Enrollment } from '../types'
 
 /* ====================================================================
    LessonsLibrary — the entry point reached via the tile's "all
-   courses" link. Shows three groups: active course (drill-in to
-   ActiveCourseView), enrolled courses (tap to switch active),
-   completed courses (drill-in to CourseSummary), and a final
-   "Available" section listing courses the user has not enrolled in
-   yet. Self-contained navigation via a small view-state machine.
+   courses" link, or when the user taps Lessons after today's first
+   lesson is already done.
+
+   With multi-course enrolment, the model here is simpler:
+   - All in-progress enrolments are listed in one section, sorted by
+     lastEngagedAt descending. Each card shows a "last touched X"
+     label and a "continue" affordance that drops the user straight
+     into that course's next lesson.
+   - Completed courses live in their own section below.
+   - Unenrolled courses appear last as "Available".
 ==================================================================== */
 
 type View =
   | { kind: 'list' }
-  | { kind: 'active';    courseId: string }
   | { kind: 'completed'; courseId: string }
+  | { kind: 'lesson';    courseId: string }    // drives directly into LessonsFlow
 
 interface Props {
   userId?: string
@@ -27,52 +33,41 @@ interface Props {
 export function LessonsLibrary({ userId = 'sian' }: Props) {
   const lessons = useLessons(userId)
   const [view, setView] = useState<View>({ kind: 'list' })
-  const [pendingSwitch, setPendingSwitch] = useState<string | null>(null)
+
+  const enrollments = lessons.progress?.enrollments ?? []
+  const courses     = lessons.allCourses
 
   const enrolledIds = useMemo(
-    () => new Set((lessons.progress?.enrollments ?? []).map(e => e.courseId)),
-    [lessons.progress],
+    () => new Set(enrollments.map(e => e.courseId)),
+    [enrollments],
   )
 
-  const enrollments  = lessons.progress?.enrollments ?? []
-  const courses      = lessons.allCourses
-  const activeId     = lessons.progress?.activeCourseId ?? null
+  const inProgress = useMemo(() => {
+    return enrollments
+      .filter(e => !e.completedAt)
+      .map(e => ({ course: courses.find(c => c.id === e.courseId) ?? null, enrollment: e }))
+      .filter((x): x is { course: Course; enrollment: Enrollment } => x.course !== null)
+      .sort((a, b) => {
+        const at = a.enrollment.lastEngagedAt ?? a.enrollment.startedAt
+        const bt = b.enrollment.lastEngagedAt ?? b.enrollment.startedAt
+        return at < bt ? 1 : at > bt ? -1 : 0
+      })
+  }, [enrollments, courses])
 
-  const activeEntry: { course: Course; enrollment: Enrollment } | null = (() => {
-    if (!activeId) return null
-    const c = courses.find(c => c.id === activeId)
-    const e = enrollments.find(e => e.courseId === activeId)
-    if (!c || !e) return null
-    return { course: c, enrollment: e }
-  })()
+  const completed = useMemo(() => {
+    return enrollments
+      .filter(e => !!e.completedAt)
+      .map(e => ({ course: courses.find(c => c.id === e.courseId) ?? null, enrollment: e }))
+      .filter((x): x is { course: Course; enrollment: Enrollment } => x.course !== null)
+      .sort((a, b) => (b.enrollment.completedAt ?? '').localeCompare(a.enrollment.completedAt ?? ''))
+  }, [enrollments, courses])
 
-  const otherEnrolled = enrollments
-    .filter(e => e.courseId !== activeId && !e.completedAt)
-    .map(e => ({ course: courses.find(c => c.id === e.courseId)!, enrollment: e }))
-    .filter(x => x.course)
-    .sort((a, b) => b.enrollment.startedAt.localeCompare(a.enrollment.startedAt))
-
-  const completed = enrollments
-    .filter(e => !!e.completedAt)
-    .map(e => ({ course: courses.find(c => c.id === e.courseId)!, enrollment: e }))
-    .filter(x => x.course)
-    .sort((a, b) => (b.enrollment.completedAt ?? '').localeCompare(a.enrollment.completedAt ?? ''))
-
-  const available = courses.filter(c => !enrolledIds.has(c.id))
+  const available = useMemo(
+    () => courses.filter(c => !enrolledIds.has(c.id)),
+    [courses, enrolledIds],
+  )
 
   /* ---------- Drill-ins ---------- */
-
-  if (view.kind === 'active') {
-    const c = courses.find(c => c.id === view.courseId)
-    const e = enrollments.find(e => e.courseId === view.courseId) ?? null
-    if (!c) { setView({ kind: 'list' }); return null }
-    return (
-      <div className="lessons-library">
-        <button className="lessons-library-back" onClick={() => setView({ kind: 'list' })}>← back</button>
-        <ActiveCourseView course={c} enrollment={e} onSwitch={() => setView({ kind: 'list' })} />
-      </div>
-    )
-  }
 
   if (view.kind === 'completed') {
     const c = courses.find(c => c.id === view.courseId)
@@ -87,6 +82,19 @@ export function LessonsLibrary({ userId = 'sian' }: Props) {
           onAddToLibrary={() => setView({ kind: 'list' })}
           onChooseNext={()   => setView({ kind: 'list' })}
         />
+      </div>
+    )
+  }
+
+  if (view.kind === 'lesson') {
+    return (
+      <div className="lessons-library">
+        <button
+          type="button"
+          className="lessons-library-back"
+          onClick={() => setView({ kind: 'list' })}
+        >← back</button>
+        <LessonsFlow userId={userId} onClose={() => setView({ kind: 'list' })} />
       </div>
     )
   }
@@ -106,64 +114,45 @@ export function LessonsLibrary({ userId = 'sian' }: Props) {
     await lessons.enrollAndActivate(courseId)
   }
 
-  function askSwitch(courseId: string) {
-    setPendingSwitch(courseId)
+  /**
+   * Continue button on an in-progress card. We make the chosen course
+   * "active" before opening LessonsFlow, because LessonsFlow reads
+   * today's lesson from useLessons (which surfaces by recency); setting
+   * active stamps lastEngagedAt and pulls the chosen course to the top
+   * of the recency stack so LessonsFlow renders THAT course's day.
+   */
+  async function handleContinue(courseId: string) {
+    await lessons.setActive(courseId)
+    setView({ kind: 'lesson', courseId })
   }
-  async function confirmSwitch() {
-    if (!pendingSwitch) return
-    await lessons.setActive(pendingSwitch)
-    setPendingSwitch(null)
-  }
-  function cancelSwitch() { setPendingSwitch(null) }
 
   return (
     <div className="lessons-library">
-      {pendingSwitch && (
-        <div className="lessons-library-confirm">
-          <span>{copy.library.switchActive}</span>
-          <span className="lessons-library-confirm-actions">
-            <button onClick={cancelSwitch}>{copy.library.switchCancel}</button>
-            <button className="is-primary" onClick={confirmSwitch}>{copy.library.switchConfirm}</button>
-          </span>
-        </div>
-      )}
-
-      {activeEntry && (
+      {inProgress.length > 0 && (
         <section className="lessons-library-section">
           <h3 className="lessons-library-heading">{copy.library.activeHeader}</h3>
-          <button
-            type="button"
-            className="lessons-library-card is-active"
-            onClick={() => setView({ kind: 'active', courseId: activeEntry.course.id })}
-          >
-            <span className="lessons-library-card-badge">{copy.library.activeBadge}</span>
-            <span className="lessons-library-card-title">{activeEntry.course.title}</span>
-            <span className="lessons-library-card-meta">
-              {copy.library.dayProgress(
-                activeEntry.enrollment.completedLessons.length + 1,
-                activeEntry.course.totalDays,
-              )}
-            </span>
-          </button>
-        </section>
-      )}
-
-      {otherEnrolled.length > 0 && (
-        <section className="lessons-library-section">
-          <h3 className="lessons-library-heading">{copy.library.enrolledHeader}</h3>
-          {otherEnrolled.map(({ course, enrollment }) => (
-            <button
-              key={course.id}
-              type="button"
-              className="lessons-library-card"
-              onClick={() => askSwitch(course.id)}
-            >
-              <span className="lessons-library-card-title">{course.title}</span>
-              <span className="lessons-library-card-meta">
-                {copy.library.dayProgress(enrollment.completedLessons.length + 1, course.totalDays)}
-              </span>
-            </button>
-          ))}
+          {inProgress.map(({ course, enrollment }) => {
+            const day = enrollment.completedLessons.length + 1
+            return (
+              <article key={course.id} className="lessons-library-card is-active">
+                <div className="lessons-library-card-row">
+                  <span className="lessons-library-card-title">{course.title}</span>
+                  <button
+                    type="button"
+                    className="lessons-library-continue"
+                    onClick={() => handleContinue(course.id)}
+                  >continue →</button>
+                </div>
+                <div className="lessons-library-card-meta">
+                  {copy.library.dayProgress(day, course.totalDays)}
+                  <span className="lessons-library-card-sep" aria-hidden> · </span>
+                  <span className="lessons-library-card-touched">
+                    last touched {relativeTouched(enrollment.lastEngagedAt ?? enrollment.startedAt)}
+                  </span>
+                </div>
+              </article>
+            )
+          })}
         </section>
       )}
 
@@ -207,3 +196,7 @@ export function LessonsLibrary({ userId = 'sian' }: Props) {
     </div>
   )
 }
+
+// ActiveCourseView is still part of the public API exports but no longer
+// reached from this list view. Kept as a re-export consumer can mount.
+export { ActiveCourseView }

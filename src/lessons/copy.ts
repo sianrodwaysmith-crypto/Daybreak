@@ -20,6 +20,14 @@ export const copy = {
     courseCompleteLine: (courseTitle: string) => `Course complete: ${courseTitle}.`,
     courseCompleteSub:  'Browse the library for what to learn next.',
     libraryLink:        'all courses',
+    // After today's first lesson is done on any course. The "More if
+    // you'd like" portion is rendered as a tappable link to the
+    // library — never framed as a quota or a target.
+    doneTodayLeading:   "Today's lesson done.",
+    doneTodayLink:      "More if you'd like.",
+    // Shown bottom-right of the tile when the user has 2+ in-progress
+    // enrolments. Tapping opens the library directly.
+    switchCourseLink:   'switch course →',
   },
 
   lesson: {
@@ -45,6 +53,11 @@ export const copy = {
     progressHeading: 'progress',
     progressValue:   (done: number, total: number) => `${done} of ${total}`,
     transitionLine:  (nextTitle: string, hook: string) => `Tomorrow: ${nextTitle}. ${hook}`,
+    // Shown when this lesson was completed AFTER the day's first one
+    // (i.e. user did one earlier on a different course). Deliberately
+    // does not name "tomorrow's" lesson — the user already saw that
+    // peek on the first completion.
+    bonusTransitionLine: "A bonus today. Tomorrow's lesson awaits.",
     finishedLine:    'You finished the course. Tomorrow opens the recap.',
     backCta:         'Back to Daybreak',
   },

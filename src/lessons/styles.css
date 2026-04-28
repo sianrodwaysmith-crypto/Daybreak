@@ -94,8 +94,12 @@
   position: absolute;
   bottom: 10px;
   right: 14px;
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
 }
-.lessons-tile-library-link {
+.lessons-tile-library-link,
+.lessons-tile-switch-link {
   background: none;
   border: none;
   font-family: 'DM Serif Display', serif;
@@ -107,7 +111,31 @@
   padding: 4px 0;
   touch-action: manipulation;
 }
-.lessons-tile-library-link:hover { color: var(--ink); }
+.lessons-tile-switch-link { font-size: 10px; }
+.lessons-tile-library-link:hover,
+.lessons-tile-switch-link:hover { color: var(--ink); }
+
+/* ---------- "Today's lesson done. More if you'd like." ---------- */
+.lessons-tile-bonus {
+  margin: 8px 0 0;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.lessons-tile-bonus-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--ink-2);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-thickness: 0.5px;
+  text-underline-offset: 2px;
+}
+.lessons-tile-bonus-link:hover { color: var(--ink); }
 
 /* ---------- Lesson screen ---------- */
 
@@ -474,6 +502,29 @@
   color: var(--muted);
   line-height: 1.4;
 }
+.lessons-library-card-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.lessons-library-card-touched {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+}
+.lessons-library-card-sep { color: var(--muted); opacity: 0.6; }
+.lessons-library-continue {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: var(--ink-2);
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.lessons-library-continue:hover { color: var(--ink); border-color: var(--line-strong); }
 
 .lessons-library-back {
   align-self: flex-start;
