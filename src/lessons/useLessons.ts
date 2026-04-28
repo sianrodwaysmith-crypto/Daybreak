@@ -51,9 +51,30 @@ export function useLessons(userId: string = 'sian'): UseLessons {
     Promise.all([
       storage.getProgress(userId),
       storage.listCourses(),
-    ]).then(([p, cs]) => {
+    ]).then(async ([p, cs]) => {
       if (!alive) return
-      setProgress(p)
+
+      // Auto-enrol the user silently in any course present in storage
+      // that they don't yet have an enrolment for. enrollSilently does
+      // NOT change activeCourseId and stamps lastEngagedAt to a past
+      // time, so the currently-surfaced course stays unchanged. Anthropic
+      // is naturally skipped because the user is already enrolled.
+      const enrolledIds = new Set(p.enrollments.map(e => e.courseId))
+      let anyAdded = false
+      for (const course of cs) {
+        if (!enrolledIds.has(course.id)) {
+          await storage.enrollSilently(userId, course.id)
+          anyAdded = true
+        }
+      }
+      if (!alive) return
+      if (anyAdded) {
+        const fresh = await storage.getProgress(userId)
+        if (!alive) return
+        setProgress(fresh)
+      } else {
+        setProgress(p)
+      }
       setCourses(cs)
     })
     return () => { alive = false }
