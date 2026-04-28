@@ -87,3 +87,15 @@ export function HouseIcon({ size }: IconProps = {}) {
     </Svg>
   )
 }
+
+export function TechMarketIcon({ size }: IconProps = {}) {
+  // Three stacked layers (silicon → cloud → apps), suggesting a stack
+  // diagram. Hairline strokes match the rest of the drawer icon set.
+  return (
+    <Svg size={size}>
+      <rect x="22" y="22" width="56" height="14" rx="2" />
+      <rect x="22" y="42" width="56" height="14" rx="2" />
+      <rect x="22" y="62" width="56" height="14" rx="2" />
+    </Svg>
+  )
+}

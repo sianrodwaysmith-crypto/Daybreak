@@ -9,12 +9,15 @@
 import type { DrawerManifest } from '../types'
 import {
   HolidaysIcon, OutfitsIcon, RecipesIcon, RestaurantsIcon, GiftsIcon, ReadingIcon, HouseIcon,
+  TechMarketIcon,
 } from './icons'
 import { PlaceholderDrawer } from '../components/PlaceholderDrawer'
-import { HolidaysDrawer }       from './holidays/components/HolidaysDrawer'
-import { useHolidaysMetaLine }  from './holidays/meta'
-import { HouseDrawer }       from './house/components/HouseDrawer'
-import { useHouseMetaLine }  from './house/meta'
+import { HolidaysDrawer }         from './holidays/components/HolidaysDrawer'
+import { useHolidaysMetaLine }    from './holidays/meta'
+import { HouseDrawer }            from './house/components/HouseDrawer'
+import { useHouseMetaLine }       from './house/meta'
+import { TechMarketDrawer }       from './tech-market/components/TechMarketDrawer'
+import { useTechMarketMetaLine }  from './tech-market/meta'
 
 const useNullMetaLine = () => null
 
@@ -79,6 +82,14 @@ export function buildRegistry(onBack: () => void): DrawerManifest[] {
       icon:         () => <HouseIcon />,
       useMetaLine:  useHouseMetaLine,
       component:    () => <HouseDrawer onBack={onBack} />,
+      status:       'live',
+    },
+    {
+      id:           'tech-market',
+      name:         'Tech market',
+      icon:         () => <TechMarketIcon />,
+      useMetaLine:  useTechMarketMetaLine,
+      component:    () => <TechMarketDrawer onBack={onBack} />,
       status:       'live',
     },
   ]

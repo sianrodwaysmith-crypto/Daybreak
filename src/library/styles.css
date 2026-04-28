@@ -450,3 +450,80 @@
 }
 .house-action-primary:disabled,
 .house-action-quiet:disabled { opacity: 0.45; cursor: default; }
+
+/* ---------- Tech market drawer ---------- */
+.techmarket-intro {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 0 0 14px;
+}
+.techmarket-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.techmarket-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.techmarket-row:active { background: rgba(10,10,10,0.02); }
+.techmarket-row-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.techmarket-row-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.techmarket-row-badge {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: lowercase;
+  flex-shrink: 0;
+}
+.techmarket-row-line {
+  font-size: 12px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.techmarket-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+.techmarket-prose {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.techmarket-prose + .techmarket-prose { margin-top: 6px; }
+.techmarket-empty {
+  margin: 0;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--muted);
+}
