@@ -72,11 +72,28 @@ More recently, Microsoft has been investing in its own foundation-model capabili
     shortName: 'Google',
     category:  'hyperscaler',
     oneLiner:  'The research powerhouse with Gemini, GCP, and a profitable ad business funding it all.',
-    snapshot:    '',
-    position:    '',
-    keyProducts: '',
-    competitors: '',
-    recentMoves: '',
+    snapshot:
+`Founded 1998. Now part of Alphabet, with a market cap among the world's largest. The cash engine is advertising — Search and YouTube — funding everything else. Google Cloud (GCP) is the third-largest hyperscaler. Google DeepMind is its consolidated AI research and product organisation, with the Gemini family of foundation models at the centre. CEO Sundar Pichai has run the firm since 2015.`,
+    position:
+`Google is the only company with a credible presence at every layer of the AI stack at once: custom silicon (TPU), data centres, foundation models (Gemini, via DeepMind), and consumer-scale applications (Search, YouTube, Workspace, Android). That vertical integration is the strategic story.
+
+The cloud business has been a longer story than rivals would like. Google Cloud was late, lost early enterprise deals, and spent years catching up on the fundamentals (sales coverage, support, regional presence). It has now reached genuine scale and grows fast, but remains third by some distance behind AWS and Azure.
+
+Where Google does lead is research and AI-native data products. The original transformer paper came out of Google, as did much of the work that powers everyone's foundation models today.`,
+    keyProducts:
+`At the consumer layer: Search, YouTube, Maps, Android, and Chrome — every one of which is a top-tier global product with billions of users. Google Workspace (Gmail, Docs, Drive, Meet) competes head-on with Microsoft 365 in productivity.
+
+GCP runs the same shape of infrastructure as AWS and Azure but with deeper AI tooling, BigQuery as a stand-out data warehouse, and a different network architecture. Custom TPU chips power Google's own training and are increasingly available to GCP customers.
+
+Gemini is the consumer-and-enterprise face of Google's AI work — the model family, the Gemini app, and the integrations into Workspace and Search. Google DeepMind also continues fundamental research that occasionally produces step-changes (AlphaFold, for example).`,
+    competitors:
+`In cloud, AWS and Azure. In productivity, Microsoft. In foundation models, OpenAI and Anthropic — both of whom Google partly funds (Anthropic) or competes directly with on a similar surface area. In search, AI-native rivals like Perplexity and ChatGPT-as-search are an emerging threat to the cash engine.
+
+The more uncomfortable competitive position is that Google's distribution advantages (Search, Android, Chrome) are exactly the surfaces a more capable AI assistant could disrupt. Defending those surfaces while integrating Gemini into them is the strategic balancing act of the next few years.`,
+    recentMoves:
+`The 2023 consolidation of Google Brain and DeepMind into a single Google DeepMind organisation centralised AI research under one leadership. The Gemini model family has been rolled out across Workspace (Gemini Side Panel, Help me write, etc.), Search (AI Overviews), and the standalone Gemini app. TPU generations continue to ship roughly annually.
+
+Google has also taken a meaningful stake in Anthropic — both as a strategic investor and as a cloud partner where Claude runs on GCP infrastructure. The dual relationship (compete with Anthropic via Gemini, partner with them via cloud) mirrors what Microsoft and AWS have done at their respective AI labs.`,
   },
   {
     id:        'anthropic',
