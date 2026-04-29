@@ -2,7 +2,7 @@
 // on iOS) hold onto old caches stubbornly, and only `activate` with a new
 // CACHE_NAME will evict them. Pair this with clients.claim() + reload-on-
 // activate so the home-screen WebView picks up the new bundle on next open.
-const CACHE_NAME = 'daybreak-v61';
+const CACHE_NAME = 'daybreak-v62';
 const APP_SHELL  = ['/', '/index.html', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
