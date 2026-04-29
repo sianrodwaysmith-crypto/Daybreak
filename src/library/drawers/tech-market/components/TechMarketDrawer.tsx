@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { copy } from '../copy'
 import { PLAYERS } from '../players'
 import { ARCHITECTURE } from '../architecture'
+import { LANDSCAPE }    from '../landscape'
 import type { PlayerProfile } from '../types'
 
 interface Props {
@@ -67,6 +68,22 @@ export function TechMarketDrawer({ onBack }: Props) {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="techmarket-section">
+        <div className="library-section-label">{copy.sections.landscape}</div>
+        {LANDSCAPE.intro.split(/\n\s*\n/).map((p, i) => (
+          <p key={i} className="techmarket-prose">{p}</p>
+        ))}
+        <figure className="techmarket-diagram">
+          <div
+            className="techmarket-diagram-svg"
+            dangerouslySetInnerHTML={{ __html: LANDSCAPE.diagramSvg }}
+          />
+          <figcaption className="techmarket-diagram-caption">
+            Major partnerships and competition lines among the profiled players.
+          </figcaption>
+        </figure>
       </section>
     </div>
   )
