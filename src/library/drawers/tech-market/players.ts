@@ -101,11 +101,30 @@ Google has also taken a meaningful stake in Anthropic — both as a strategic in
     shortName: 'Anthropic',
     category:  'ai-lab',
     oneLiner:  'The AI safety company building Claude.',
-    snapshot:    '',
-    position:    '',
-    keyProducts: '',
-    competitors: '',
-    recentMoves: '',
+    snapshot:
+`Founded 2021 in San Francisco. A public-benefit corporation that frames its mission around AI safety research as well as commercial product. Best known for Claude, a family of large language models, and for foundational research on alignment, interpretability, and responsible scaling. Backed by Google and Amazon among others. Co-founded by Dario and Daniela Amodei alongside other ex-OpenAI researchers.`,
+    position:
+`Anthropic sits at the AI lab layer of the stack — building foundation models, packaging them as APIs, and researching the techniques to keep increasingly capable systems aligned with human intent. The strategic position is unusual: a relatively small organisation producing models that compete head-to-head with the much larger OpenAI and Google.
+
+The company's distinctive stance is on safety. Frontier model releases are tied to a Responsible Scaling Policy that imposes capability-based safeguards. Research on interpretability, constitutional AI, and red-teaming is published rather than kept proprietary. The bet is that safety work and commercial success reinforce each other: a model that is harder to misuse and easier to predict is also more useful to deploy.
+
+Compared with OpenAI's consumer-first arc, Anthropic has leaned toward enterprise and developer surfaces — Claude as a coding assistant, an analyst, a customer-facing agent.`,
+    keyProducts:
+`Claude is the main product family. The flagship Claude Sonnet and Claude Opus models are general-purpose; Claude Haiku is the smaller, faster, cheaper sibling. They are accessible directly via the Anthropic API, through Amazon Bedrock, and via Google Cloud Vertex AI.
+
+Claude Code is the developer-tool branch — a CLI agent and IDE integrations that turn Claude into a coding partner inside a real codebase. Claude.ai is the consumer-facing chat product. The Claude Agent SDK lets developers build custom agents on the same primitives.
+
+Across all of these, distinctive technical work shows up in features like prompt caching, extended thinking, tool use, computer use, and the structured "agentic" patterns Anthropic has helped popularise.`,
+    competitors:
+`OpenAI is the principal direct rival on foundation models and developer APIs. Google DeepMind via Gemini is the other; Meta and Mistral compete on the open-weight side; xAI is a newer commercial entrant.
+
+The relationships with hyperscalers are a competitive landscape unto themselves. AWS and Google are both significant investors in Anthropic and both run Claude on their clouds — while also competing with Anthropic via their own first-party models. The same model is partner, customer, and competitor depending on the surface.
+
+Application platforms (Salesforce, Notion, Slack and many others) increasingly embed Claude alongside other models, treating foundation models as a commodity layer they shop across.`,
+    recentMoves:
+`Amazon's Anthropic investment reached around $8bn by late 2024, with Claude available primarily through Bedrock and Anthropic using AWS Trainium for training. Google has a separate stake and a separate cloud partnership.
+
+Recent product themes include Claude with extended thinking and computer use, Claude Code as a coding-agent surface, and continued releases in the Sonnet / Opus / Haiku family. Research releases on interpretability, on the responsible scaling policy, and on the practicalities of building agentic systems continue to appear in public.`,
   },
   {
     id:        'salesforce',
