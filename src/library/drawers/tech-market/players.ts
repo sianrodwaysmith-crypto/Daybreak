@@ -132,10 +132,29 @@ Recent product themes include Claude with extended thinking and computer use, Cl
     shortName: 'Salesforce',
     category:  'application-platform',
     oneLiner:  'The CRM platform building agentic AI on top of customer data.',
-    snapshot:    '',
-    position:    '',
-    keyProducts: '',
-    competitors: '',
-    recentMoves: '',
+    snapshot:
+`Founded 1999. The category-defining customer relationship management (CRM) software-as-a-service company, and one of the original SaaS pioneers. Best known for the Sales, Service, and Marketing clouds, plus a long string of acquisitions (Tableau, Slack, MuleSoft, Heroku) that broadened the platform. CEO Marc Benioff has led the company since founding.`,
+    position:
+`Salesforce sits at the application-platform layer of the stack. It is not a hyperscaler and not an AI lab — it is the system of record where enterprises hold customer, deal, and service data, and the workflow layer that runs on top of that data.
+
+The strategic position rests on three things. First, the customer data itself: years of CRM history that's hard to migrate. Second, a deeply embedded administrator and developer ecosystem — Salesforce admins, consultants, ISVs, AppExchange. Third, a steady acquisition strategy that has extended the platform into adjacent categories (analytics via Tableau, integration via MuleSoft, collaboration via Slack).
+
+The current strategic bet is that AI agents make the most sense when they have authoritative customer data to act on — and that Salesforce, sitting on that data, is the natural place those agents should run.`,
+    keyProducts:
+`The "core" clouds are Sales (pipeline, accounts, opportunities), Service (support cases, agent consoles), and Marketing (campaigns, journeys). Around those sit Commerce, Industries-specific clouds, and the Customer 360 platform that ties them together.
+
+Data Cloud is Salesforce's attempt to be the customer data backbone — a data platform that ingests data from other systems and exposes it back into the clouds and to AI surfaces. Slack provides the conversational layer; Tableau the analytics surface; MuleSoft the integration layer.
+
+Agentforce is the current AI surface. Customers can configure agents that draw on Data Cloud, take actions across the clouds, and invoke external services via integrations. Underneath, Agentforce can run on multiple foundation models including Anthropic's Claude.`,
+    competitors:
+`In CRM, the principal rivals are Microsoft Dynamics 365 (paired with the rest of Microsoft's enterprise stack), HubSpot (mid-market and inbound), and a long tail of vertical-specific players. In service, ServiceNow is a major competitor in adjacent ITSM territory.
+
+In agents and AI surfaces, the picture is less stable. Microsoft is a direct rival via Copilot inside Dynamics, Office, and the Power Platform. Hyperscalers' first-party AI services compete for the same workflows. New AI-native CRMs and customer-data platforms are smaller threats that may or may not scale.
+
+Salesforce's countermove is data plus distribution: the customer record they hold is hard to replicate, and the admin and ISV ecosystem makes switching expensive.`,
+    recentMoves:
+`Agentforce launched as the consolidated AI agent platform, replacing earlier Einstein branding for the agentic surface. A strategic partnership with Anthropic was announced making Claude one of the foundation models powering Agentforce, with deeper integration into Salesforce's data and workflow primitives.
+
+Beyond AI, the company has been pushing Data Cloud as the strategic centre of gravity (the unifying data platform), and signalling a more disciplined approach to operating margin after years of growth-led spending. Slack remains a key part of the agentic story — the surface where humans and AI agents are expected to collaborate.`,
   },
 ]
