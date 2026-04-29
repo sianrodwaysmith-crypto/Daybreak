@@ -45,11 +45,26 @@ Beyond AI, AWS continues to push custom silicon, expand into sovereign cloud reg
     shortName: 'Microsoft',
     category:  'hyperscaler',
     oneLiner:  'The enterprise incumbent that came back via Azure and OpenAI.',
-    snapshot:    '',
-    position:    '',
-    keyProducts: '',
-    competitors: '',
-    recentMoves: '',
+    snapshot:
+`Founded 1975. Today one of the world's most valuable companies. The business stretches across operating systems (Windows), productivity (Microsoft 365), developer tooling (GitHub), professional networks (LinkedIn), gaming (Xbox), and cloud (Azure). Azure is the second-largest public cloud globally and Microsoft's fastest-growing line. CEO Satya Nadella has led the firm since 2014.`,
+    position:
+`For most of its history Microsoft was a software company that sold to enterprises through licensing. Windows on every PC. Office on every desk. Contracts with every IT department. The Nadella era pivoted that base into the cloud — Azure leveraged decades of enterprise sales relationships into a credible number-two hyperscaler in well under a decade.
+
+Today Microsoft's strategic position rests on three pillars: the enterprise installed base (Windows, Active Directory, SQL Server, and the surrounding stack), the productivity suite (rebadged as Microsoft 365), and Azure as the cloud underneath both.
+
+The company's distinctive move is bundling. New AI capabilities tend to arrive as Copilot features inside products customers already buy, adding utility without new procurement cycles. That is a structural advantage no AI lab or pure-cloud rival has.`,
+    keyProducts:
+`Azure offers the same breadth as AWS — compute, storage, databases, AI services — with deeper hooks into Microsoft's enterprise stack. Microsoft 365 (Office, Teams, Outlook, and Copilot uplifts) is the productivity engine. Dynamics 365 covers CRM and ERP; Power Platform handles low-code, RPA, and business apps.
+
+GitHub, owned since 2018, has become a critical piece of the developer story; GitHub Copilot was the first widely-deployed coding assistant and remains the most-used. Underneath everything sits a vast investment in AI infrastructure, including custom silicon (Maia and Cobalt chips) and the OpenAI partnership.`,
+    competitors:
+`AWS is the principal cloud rival; Google Cloud the third. In productivity and CRM, Microsoft competes head-on with Google Workspace and Salesforce. In developer tooling, GitHub faces GitLab and a growing crop of AI-native coding assistants.
+
+The OpenAI partnership has put Microsoft in unusually direct competition with Anthropic and Google's foundation models — and, increasingly, with OpenAI itself as the two firms expand into adjacent agent and product surfaces.`,
+    recentMoves:
+`Microsoft has invested over $13bn in OpenAI through staged commitments, with Azure as OpenAI's primary cloud. The Copilot brand has been rolled out across nearly every product line. The Activision Blizzard acquisition (closed 2023) extended the gaming franchise.
+
+More recently, Microsoft has been investing in its own foundation-model capability via the Phi series of smaller models and through senior research hires — signalling a less exclusive dependence on OpenAI than the original deal implied.`,
   },
   {
     id:        'google',
