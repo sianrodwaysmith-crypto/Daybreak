@@ -1,24 +1,36 @@
 import { useEffect, useState } from 'react'
 import { copy } from '../copy'
-import { getStorage } from '../storage'
-import { todayISO, daysUntilNextWednesday, dayOfWeek } from '../dateHelpers'
+import { getStorage, isEncrypted } from '../storage'
+import { todayISO, daysUntilNextWednesday, dayOfWeek, fullDate } from '../dateHelpers'
 import type { WorryEntry } from '../types'
 
 interface Props {
-  onBack:   () => void
+  onLock:   () => void
   onSaved?: () => void
 }
 
 type Mode = { kind: 'list' } | { kind: 'new' } | { kind: 'detail'; id: string }
 
-export function WorryBankScreen({ onBack, onSaved }: Props) {
+/* ====================================================================
+   The journal's only surface, post-restructure: a single PIN-gated
+   worry bank with three short prompts. Active worries up top, past
+   (discussed) ones in a quiet section below — replaces the previous
+   separate Archive screen.
+==================================================================== */
+export function WorryBankScreen({ onLock, onSaved }: Props) {
   const [active, setActive] = useState<WorryEntry[]>([])
+  const [past,   setPast]   = useState<WorryEntry[]>([])
   const [mode,   setMode]   = useState<Mode>({ kind: 'list' })
   const [bump,   setBump]   = useState(0)
 
   useEffect(() => {
     let alive = true
-    getStorage().listActiveWorries().then(ws => { if (alive) setActive(ws) })
+    Promise.all([getStorage().listActiveWorries(), getStorage().listDiscussedWorries()])
+      .then(([a, p]) => {
+        if (!alive) return
+        setActive(a)
+        setPast(p)
+      })
     return () => { alive = false }
   }, [bump])
 
@@ -27,7 +39,7 @@ export function WorryBankScreen({ onBack, onSaved }: Props) {
   if (mode.kind === 'new') {
     return (
       <WorryEditor
-        onBack={() => setMode({ kind: 'list' })}
+        onBack={()  => setMode({ kind: 'list' })}
         onSaved={() => { refresh(); setMode({ kind: 'list' }) }}
       />
     )
@@ -36,7 +48,7 @@ export function WorryBankScreen({ onBack, onSaved }: Props) {
     return (
       <WorryEditor
         worryId={mode.id}
-        onBack={() => setMode({ kind: 'list' })}
+        onBack={()  => setMode({ kind: 'list' })}
         onSaved={() => { refresh(); setMode({ kind: 'list' }) }}
       />
     )
@@ -48,36 +60,82 @@ export function WorryBankScreen({ onBack, onSaved }: Props) {
   return (
     <div className="journal-screen">
       <header className="journal-screen-head">
-        <button type="button" className="journal-link" onClick={onBack}>{copy.worries.back}</button>
         <span className="journal-screen-title">{copy.worries.title}</span>
-        <button type="button" className="journal-pill" onClick={() => setMode({ kind: 'new' })}>
-          {copy.worries.new}
+        <button type="button" className="journal-link" onClick={onLock}>
+          {copy.worries.lock}
         </button>
       </header>
 
+      <p className="journal-home-privacy">
+        {isEncrypted() ? copy.worries.privacy : copy.worries.privacy}
+      </p>
+
       <div className="journal-screen-hint">{wedLine}</div>
 
-      {active.length === 0 && <div className="journal-empty">{copy.worries.empty}</div>}
+      <button
+        type="button"
+        className="mindset-btn complete"
+        onClick={() => setMode({ kind: 'new' })}
+      >
+        {copy.worries.new.toUpperCase()}
+      </button>
 
-      <ul className="journal-worry-list">
-        {active.map(w => (
-          <li key={w.id}>
-            <button type="button" className="journal-worry-card" onClick={() => setMode({ kind: 'detail', id: w.id })}>
-              <div className="journal-worry-moment">{w.theMoment}</div>
-              {w.whyItStuck && <div className="journal-worry-why">{w.whyItStuck}</div>}
-              <div className="journal-worry-bring">
-                {w.toBringUp?.trim()
-                  ? <><span className="journal-worry-bring-label">{copy.worries.bringUp}: </span>{w.toBringUp}</>
-                  : copy.worries.bringUpEmpty}
-              </div>
-              <div className="journal-worry-date">{dayOfWeek(w.loggedDate).toUpperCase()}</div>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {active.length === 0 && past.length === 0 && (
+        <div className="journal-empty">{copy.worries.empty}</div>
+      )}
+
+      {active.length > 0 && (
+        <ul className="journal-worry-list">
+          {active.map(w => (
+            <li key={w.id}>
+              <button type="button" className="journal-worry-card" onClick={() => setMode({ kind: 'detail', id: w.id })}>
+                <div className="journal-worry-moment">{w.theMoment}</div>
+                {w.whyItStuck && <div className="journal-worry-why">{w.whyItStuck}</div>}
+                <div className="journal-worry-bring">
+                  {w.toBringUp?.trim()
+                    ? <><span className="journal-worry-bring-label">{copy.worries.bringUpLabel}: </span>{w.toBringUp}</>
+                    : copy.worries.bringUpEmpty}
+                </div>
+                <div className="journal-worry-date">{dayOfWeek(w.loggedDate).toUpperCase()}</div>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {past.length > 0 && (
+        <>
+          <div className="mindset-section-divider" />
+          <div className="screen-section-label" style={{ marginBottom: 14 }}>{copy.worries.pastLabel}</div>
+          <ul className="journal-worry-list">
+            {past.map(w => (
+              <li key={w.id}>
+                <article className="journal-worry-card is-readonly">
+                  <div className="journal-worry-moment">{w.theMoment}</div>
+                  {w.whyItStuck && <div className="journal-worry-why">{w.whyItStuck}</div>}
+                  {w.toBringUp && (
+                    <div className="journal-worry-bring">
+                      <span className="journal-worry-bring-label">{copy.worries.bringUpLabel}: </span>{w.toBringUp}
+                    </div>
+                  )}
+                  <div className="journal-worry-date">
+                    {w.discussedDate ? fullDate(w.discussedDate).toUpperCase() : ''}
+                  </div>
+                </article>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   )
 }
+
+/* --------------------------------------------------------------------
+   Editor — three prompts in the same shape as Daily Mindset's section
+   blocks (uppercase label, big textarea), so the two surfaces feel
+   like the same family. Save sits at the bottom as a primary CTA.
+-------------------------------------------------------------------- */
 
 interface EditorProps {
   worryId?: string
@@ -86,11 +144,11 @@ interface EditorProps {
 }
 
 function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
-  const [moment,    setMoment]   = useState('')
-  const [why,       setWhy]      = useState('')
-  const [bring,     setBring]    = useState('')
-  const [busy,      setBusy]     = useState(false)
-  const [existing,  setExisting] = useState<WorryEntry | null>(null)
+  const [moment,   setMoment]   = useState('')
+  const [why,      setWhy]      = useState('')
+  const [bring,    setBring]    = useState('')
+  const [busy,     setBusy]     = useState(false)
+  const [existing, setExisting] = useState<WorryEntry | null>(null)
 
   useEffect(() => {
     if (!worryId) return
@@ -154,44 +212,58 @@ function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
     } finally { setBusy(false) }
   }
 
+  const canSave = moment.trim().length > 0
+
   return (
     <div className="journal-screen">
       <header className="journal-screen-head">
         <button type="button" className="journal-link" onClick={onBack}>{copy.worries.back}</button>
-        <span className="journal-screen-title">{existing ? copy.worries.title : copy.worries.new}</span>
-        <button type="button" className="journal-pill" onClick={save} disabled={busy}>{copy.worries.saveNew}</button>
+        <span className="journal-screen-title">{copy.worries.title}</span>
+        <span className="journal-screen-rightplaceholder" />
       </header>
 
-      <div className="journal-question-block">
-        <div className="journal-question-label">{copy.worries.moment}</div>
+      <div className="mindset-intention-section">
+        <div className="mindset-intention-label">{copy.worries.moment}</div>
         <textarea
-          className="journal-textarea"
+          className="mindset-textarea"
           value={moment}
-          onChange={(e) => setMoment(e.target.value)}
-          rows={2}
+          onChange={e => setMoment(e.target.value)}
+          placeholder={copy.worries.momentPlaceholder}
+          rows={3}
           autoFocus
         />
       </div>
 
-      <div className="journal-question-block">
-        <div className="journal-question-label">{copy.worries.why}</div>
+      <div className="mindset-intention-section">
+        <div className="mindset-intention-label">{copy.worries.why}</div>
         <textarea
-          className="journal-textarea"
+          className="mindset-textarea"
           value={why}
-          onChange={(e) => setWhy(e.target.value)}
+          onChange={e => setWhy(e.target.value)}
+          placeholder={copy.worries.whyPlaceholder}
           rows={3}
         />
       </div>
 
-      <div className="journal-question-block">
-        <div className="journal-question-label">{copy.worries.bringUp}</div>
+      <div className="mindset-intention-section">
+        <div className="mindset-intention-label">{copy.worries.bringUp}</div>
         <textarea
-          className="journal-textarea"
+          className="mindset-textarea"
           value={bring}
-          onChange={(e) => setBring(e.target.value)}
+          onChange={e => setBring(e.target.value)}
+          placeholder={copy.worries.bringUpPlaceholder}
           rows={2}
         />
       </div>
+
+      <button
+        type="button"
+        className={canSave ? 'mindset-btn complete' : 'mindset-btn incomplete'}
+        onClick={save}
+        disabled={busy || !canSave}
+      >
+        {busy ? copy.worries.saveBusy : copy.worries.save}
+      </button>
 
       {existing && (
         <div className="journal-actions">

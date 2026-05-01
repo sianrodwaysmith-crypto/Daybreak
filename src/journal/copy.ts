@@ -1,6 +1,12 @@
 /**
  * All user-facing strings for the Journal module live here.
  * Functions where copy depends on data; constants otherwise.
+ *
+ * Post-restructure: the journal is now a single-purpose worry bank.
+ * The morning intention block and the end-of-day reflection both
+ * live in Daily Mindset (morning + evening). What survives here is
+ * the bit that intentionally needs the PIN gate: things to take to
+ * therapy.
  */
 
 export const copy = {
@@ -18,62 +24,37 @@ export const copy = {
     cancel:       'cancel',
   },
 
-  home: {
-    label:                'journal',
-    lock:                 'lock',
-    privacyEncrypted:     'Encrypted on this device. Nothing here is visible to other parts of Daybreak.',
-    privacyUnencrypted:   'Private to this device. Nothing here is visible to other parts of Daybreak.',
-    roundup: {
-      title:    "Today's roundup",
-      empty:    'A space for the day in your own words.',
-    },
-    worry: {
-      title:    'Worry bank',
-      sitting:  (n: number) => `${n} sitting`,
-      empty:    'Things to bring to Wednesday.',
-    },
-    archive: {
-      title:    'Archive',
-      since:    (month: string) => `since ${month}`,
-      empty:    'Past entries, in your own time.',
-    },
-  },
-
-  roundup: {
-    back:        '← back',
-    title:       "today's roundup",
-    save:        'Save',
-    questionsHint: 'Three quiet questions, if you’d like them.',
-    questions: [
-      'What happened that mattered?',
-      'What did you notice about yourself?',
-      'What are you carrying into tomorrow?',
-    ],
-  },
-
   worries: {
-    back:    '← back',
-    title:   'worry bank',
-    new:     '+ new',
-    empty:   'Nothing in the bank.',
+    title:    'worry bank',
+    privacy:  'Private to this device. Nothing here is visible to other parts of Daybreak.',
+    lock:     'lock',
+    new:      '+ new',
+    empty:    'Nothing in the bank.',
     wedFuture: (n: number) => n === 1 ? 'Wednesday is in 1 day.' : `Wednesday is in ${n} days.`,
     wedToday:  'Today is therapy.',
-    moment:    'The moment',
-    why:       'Why it stuck',
-    bringUp:   'To bring up',
-    bringUpEmpty: 'To bring up: —',
-    saveNew:   'Save',
-    cancelNew: 'cancel',
-    discussed: 'mark as discussed',
-    stillSitting: 'still sitting with it',
-    delete:    'delete',
-  },
+    pastLabel: 'PAST',
+    pastEmpty: 'Discussed worries appear here once you mark them.',
 
-  archive: {
-    back:    '← back',
-    title:   'archive',
-    intro:   'Past roundups and resolved worries.',
-    empty:   'Nothing yet.',
-    therapyMarker: (n: number) => n === 1 ? 'therapy day · 1 worry discussed' : `therapy day · ${n} worries discussed`,
+    // The three prompts on the worry editor — kept short and concrete
+    // so the screen reads like a quick brain-dump rather than a form.
+    moment:    'WHAT HAPPENED',
+    why:       "HOW IT'S AFFECTING ME",
+    bringUp:   'WHAT I WANT TO BRING TO THERAPY',
+
+    // Placeholders sit inside the textareas as soft prompts.
+    momentPlaceholder:  'The situation, in your own words…',
+    whyPlaceholder:     'The feeling it left, the part that keeps replaying…',
+    bringUpPlaceholder: 'A sentence or two for Wednesday…',
+
+    // Labels on list cards.
+    bringUpLabel:  'To bring up',
+    bringUpEmpty:  'To bring up: —',
+
+    back:         '← back',
+    save:         'SAVE →',
+    saveBusy:     'Saving…',
+    discussed:    'mark as discussed',
+    stillSitting: 'still sitting with it',
+    delete:       'delete',
   },
 }
