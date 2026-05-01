@@ -1243,6 +1243,137 @@
   margin: 32px 0 24px;
 }
 
+/* Quiet link at the bottom of the mindset form that opens the
+   read-only history browser. */
+.mindset-history-link {
+  width: 100%;
+  margin-top: 18px;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  cursor: pointer;
+}
+.mindset-history-link:hover { color: var(--ink-2); }
+
+/* ---------- Mindset history (past entries browser) ---------- */
+.mindset-history {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mindset-history-head {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 8px;
+}
+.mindset-history-head > :first-child { justify-self: start; }
+.mindset-history-head > :last-child  { justify-self: end; }
+.mindset-history-back {
+  font-size: 12px;
+  color: var(--ink-2);
+  background: transparent;
+  border: none;
+  padding: 4px 0;
+  cursor: pointer;
+}
+.mindset-history-title {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--ink);
+  text-transform: lowercase;
+}
+.mindset-history-count {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+}
+.mindset-history-empty {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  text-align: center;
+  margin: 24px 0;
+}
+.mindset-history-themes {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  background: rgba(0, 0, 0, 0.025);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+.mindset-history-theme-word {
+  font-style: italic;
+  color: var(--ink);
+}
+.mindset-history-theme-count {
+  color: var(--muted);
+  font-size: 11px;
+}
+.mindset-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mindset-history-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: var(--card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mindset-history-date {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink);
+}
+.mindset-history-eyebrow {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.mindset-history-bullets {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 0;
+  font-family: 'DM Serif Display', serif;
+  font-size: 14px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+.mindset-history-bullets li { margin: 0; }
+.mindset-history-line {
+  font-family: 'DM Serif Display', serif;
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+  margin: 0;
+}
+.mindset-history-line em {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
 /* ---------- Schedule (calendar grid) ---------- */
 .schedule-summary {
   font-family: 'DM Serif Display', serif;
