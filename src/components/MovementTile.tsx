@@ -275,14 +275,26 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
     if (!ev) return
     setSaving(true)
     try {
+      // Form state is always pre-filled from `ev` on open, so for the
+      // read-only booked view it matches `ev.*` exactly. For the editable
+      // planned view, this preserves any tweaks the user made before
+      // tapping done (e.g. logging that they actually ran 45 min not 60).
+      const editedTitle    = title.trim()    || ev.title
+      const editedDuration = duration.trim() ? Number(duration) : ev.durationMinutes
+      const editedIntensity = intensity || ev.intensity
+
       const payload: Omit<MovementEvent, 'id'> = {
         date:             ev.date,
         source:           'done',
-        title:            ev.title,
+        title:            editedTitle,
         startTime:        ev.startTime,
-        durationMinutes:  ev.durationMinutes,
+        durationMinutes:  editedDuration,
         location:         ev.location,
-        intensity:        ev.intensity,
+        intensity:        editedIntensity,
+        // Carry the upstream id so the composite source can hide the
+        // read-only 'booked' record once we've shadowed it locally —
+        // otherwise the same session shows up twice on the day list.
+        externalId:       ev.externalId,
       }
       if (ev.source === 'planned') {
         await source.updateEvent(ev.id, payload)

@@ -345,7 +345,21 @@ export class CompositeMovementSource implements MovementSource {
 
   async loadEvents(startDate: string, endDate: string): Promise<MovementEvent[]> {
     const all = await Promise.all(this.sources.map(s => s.loadEvents(startDate, endDate)))
-    return all.flat().sort((a, b) => a.date.localeCompare(b.date))
+    const flat = all.flat()
+
+    // Hide any read-only 'booked' event whose external session is already
+    // shadowed by a local 'done' record — i.e. the user ticked off a Google
+    // Calendar workout. Without this the gcal source keeps returning the
+    // booked entry and the day list shows the same session twice.
+    const shadowedIds = new Set<string>()
+    for (const e of flat) {
+      if (e.source === 'done' && e.externalId) shadowedIds.add(e.externalId)
+    }
+    const deduped = flat.filter(e =>
+      !(e.source === 'booked' && e.externalId && shadowedIds.has(e.externalId)),
+    )
+
+    return deduped.sort((a, b) => a.date.localeCompare(b.date))
   }
 
   async createEvent(event: Omit<MovementEvent, 'id'>): Promise<MovementEvent> {
