@@ -219,8 +219,11 @@ function HomeView() {
       case 'mindset':  return <MindsetScreen />
       case 'schedule': return <ScheduleScreen events={scheduleEvents} tomorrow={tomorrowEvents} loading={calendar.loading} connected={calendar.connected} />
       case 'lessons':
-        // Daily flow when today's lesson is ready; library otherwise
-        // (sealed-for-today / no course / course completed).
+        // Multi-course users always land in the library first so all
+        // their enrolled courses are visible; single-course users keep
+        // the snappy "tap → today's lesson" path. Library handles the
+        // 'done / completed / no_course' surfaces for everyone else.
+        if (lessonsState.activeEnrolmentCount >= 2) return <LessonsLibrary />
         return lessonsState.state.kind === 'ready'
           ? <LessonsFlow onClose={() => setActiveId(null)} />
           : <LessonsLibrary />
