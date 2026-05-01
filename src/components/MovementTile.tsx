@@ -165,39 +165,46 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
   /* ---------------- LIST VIEW ---------------- */
   if (state.active === 'list') {
     const hasRest = state.dayEvents.some(e => e.source === 'rest')
+    const isEmpty = state.dayEvents.length === 0
     return (
       <Modal isOpen={true} onClose={onClose} title="Day" accent="var(--ink)">
         <div className="movement-sheet">
           <div className="movement-sheet-date">{date}</div>
 
-          <ul className="movement-day-list">
-            {state.dayEvents.map(e => (
-              <li key={e.id}>
-                <button
-                  type="button"
-                  className="movement-day-row"
-                  onClick={() => onChange({ ...state, active: e.id })}
-                >
-                  <span className="movement-day-row-title">{e.title}</span>
-                  <span className="movement-day-row-meta">
-                    {e.startTime ? e.startTime : null}
-                    {e.startTime && (e.durationMinutes || e.location) ? ' · ' : ''}
-                    {e.durationMinutes ? `${e.durationMinutes} min` : ''}
-                    {e.durationMinutes && e.location ? ' · ' : ''}
-                    {e.location ?? ''}
-                  </span>
-                  <span className={`movement-day-row-badge badge-${e.source}`}>{sourceBadge(e.source)}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          {isEmpty && (
+            <p className="movement-sheet-empty">Nothing planned for this day yet.</p>
+          )}
+
+          {!isEmpty && (
+            <ul className="movement-day-list">
+              {state.dayEvents.map(e => (
+                <li key={e.id}>
+                  <button
+                    type="button"
+                    className="movement-day-row"
+                    onClick={() => onChange({ ...state, active: e.id })}
+                  >
+                    <span className="movement-day-row-title">{e.title}</span>
+                    <span className="movement-day-row-meta">
+                      {e.startTime ? e.startTime : null}
+                      {e.startTime && (e.durationMinutes || e.location) ? ' · ' : ''}
+                      {e.durationMinutes ? `${e.durationMinutes} min` : ''}
+                      {e.durationMinutes && e.location ? ' · ' : ''}
+                      {e.location ?? ''}
+                    </span>
+                    <span className={`movement-day-row-badge badge-${e.source}`}>{sourceBadge(e.source)}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="movement-sheet-actions">
             <button
               className="movement-btn-primary"
               onClick={() => onChange({ ...state, active: 'new' })}
             >
-              + Add another session
+              {isEmpty ? '+ Plan a session' : '+ Add another session'}
             </button>
             {!hasRest && (
               <button
@@ -577,9 +584,11 @@ export default function MovementTile({ strain, activeCalories }: Props) {
 
   function openDay(iso: string) {
     const dayEvents = events.filter(e => e.date === iso)
-    // No events on this day → jump straight to a blank form. With existing
-    // events → list them so the user can edit one or tap "Add another".
-    setSheet({ iso, dayEvents, active: dayEvents.length === 0 ? 'new' : 'list' })
+    // Always land on the day's list view first — even when it's empty —
+    // so the "Plan a session" / "Mark rest day" buttons are reachable.
+    // Previously empty days jumped straight into a blank form, which
+    // hid the rest-day option entirely.
+    setSheet({ iso, dayEvents, active: 'list' })
   }
 
   function openEvent(ev: MovementEvent) {
