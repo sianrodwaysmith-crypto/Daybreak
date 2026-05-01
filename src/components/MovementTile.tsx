@@ -138,7 +138,6 @@ function sourceBadge(s: Source): string {
 function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
   const [title,    setTitle]    = useState('')
   const [duration, setDuration] = useState('')
-  const [intensity, setIntensity] = useState<'low' | 'moderate' | 'high' | ''>('')
   const [saving, setSaving] = useState(false)
 
   const activeEvent: MovementEvent | null =
@@ -151,9 +150,8 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
     if (activeEvent) {
       setTitle(activeEvent.title ?? '')
       setDuration(activeEvent.durationMinutes ? String(activeEvent.durationMinutes) : '')
-      setIntensity(activeEvent.intensity ?? '')
     } else {
-      setTitle(''); setDuration(''); setIntensity('')
+      setTitle(''); setDuration('')
     }
   }, [state, activeEvent])
 
@@ -246,7 +244,6 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
         source:           'planned' as const,
         title:            title.trim(),
         durationMinutes:  duration.trim() ? Number(duration) : undefined,
-        intensity:        intensity || undefined,
       }
       if (ev && ev.source === 'planned') {
         await source.updateEvent(ev.id, payload)
@@ -277,7 +274,6 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
       // tapping done (e.g. logging that they actually ran 45 min not 60).
       const editedTitle    = title.trim()    || ev.title
       const editedDuration = duration.trim() ? Number(duration) : ev.durationMinutes
-      const editedIntensity = intensity || ev.intensity
 
       const payload: Omit<MovementEvent, 'id'> = {
         date:             ev.date,
@@ -286,7 +282,6 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
         startTime:        ev.startTime,
         durationMinutes:  editedDuration,
         location:         ev.location,
-        intensity:        editedIntensity,
         // Carry the upstream id so the composite source can hide the
         // read-only 'booked' record once we've shadowed it locally —
         // otherwise the same session shows up twice on the day list.
@@ -324,9 +319,6 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
                 {ev.startTime && ev.location ? ' · ' : ''}
                 {ev.location ?? ''}
               </div>
-            )}
-            {ev.intensity && (
-              <div className="movement-sheet-readmeta">Intensity: {ev.intensity}</div>
             )}
             {ev.externalUrl && (
               <a
@@ -387,21 +379,6 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
                 inputMode="numeric"
               />
             </label>
-
-            <div className="movement-field">
-              <span className="movement-field-label">Intensity</span>
-              <div className="movement-intensity">
-                {(['low', 'moderate', 'high'] as const).map(opt => (
-                  <button
-                    key={opt}
-                    className={`movement-intensity-pill${intensity === opt ? ' is-on' : ''}`}
-                    onClick={() => setIntensity(intensity === opt ? '' : opt)}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <div className="movement-sheet-actions">
               {ev && ev.source === 'planned' && (
