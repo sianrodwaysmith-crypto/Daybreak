@@ -155,6 +155,15 @@ export class MockLessonsStorage implements LessonsStorage {
   async setActive(userId: string, courseId: string | null): Promise<void> {
     const progress = await this.getProgress(userId)
     progress.activeCourseId = courseId
+    // Stamp lastEngagedAt so useLessons' recency-based ranking surfaces
+    // this course on the next read. Without this, picking a non-Anthropic
+    // course from the library would silently bounce back to Anthropic
+    // because Anthropic's lastEngagedAt is more recent and the
+    // activeCourseId tiebreaker only fires when timestamps are equal.
+    if (courseId) {
+      const enrollment = progress.enrollments.find(e => e.courseId === courseId)
+      if (enrollment) enrollment.lastEngagedAt = new Date().toISOString()
+    }
     await this.saveProgress(progress)
   }
 
