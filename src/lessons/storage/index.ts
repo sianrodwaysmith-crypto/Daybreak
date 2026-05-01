@@ -40,4 +40,19 @@ export function getStorage(): LessonsStorage {
   return s
 }
 
+/**
+ * Awaitable handle on the seed. Callers that need to read courses or
+ * progress immediately after construction must await this first —
+ * otherwise their read can race ahead of the seed's writes and miss
+ * any newly-shipped courses (the original symptom: only the existing
+ * Anthropic course showed up after a version that added more).
+ */
+export function getSeedReady(): Promise<void> {
+  if (!seedPromise) {
+    const s = getInstance()
+    seedPromise = seedIfNeeded(s)
+  }
+  return seedPromise
+}
+
 export type { LessonsStorage }
