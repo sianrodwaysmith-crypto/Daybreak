@@ -2794,7 +2794,7 @@
   background: transparent;
 }
 .movement-day-row-badge.badge-done    { color: #19a35a; border-color: #19a35a; }
-.movement-day-row-badge.badge-booked  { color: #2563eb; border-color: #2563eb; }
+.movement-day-row-badge.badge-booked,
 .movement-day-row-badge.badge-planned { color: var(--ink-2); }
 .movement-day-row-badge.badge-rest    { color: var(--muted); }
 
