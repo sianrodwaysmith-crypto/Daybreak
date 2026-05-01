@@ -349,6 +349,13 @@ function MovementSheet({ state, onClose, onChange, onSaved }: SheetProps) {
                 </button>
               </div>
             )}
+            {ev.source === 'done' && (
+              <div className="movement-sheet-actions">
+                <button className="movement-btn-quiet" onClick={handleDelete} disabled={saving}>
+                  {saving ? 'Removing…' : 'Remove this entry'}
+                </button>
+              </div>
+            )}
           </>
         )}
 
