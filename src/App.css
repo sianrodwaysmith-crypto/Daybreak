@@ -2511,6 +2511,13 @@
   letter-spacing: 0.14em;
   color: var(--muted);
 }
+.movement-sheet-empty {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
 .movement-sheet-readtitle {
   font-family: 'DM Serif Display', serif;
   font-size: 22px;
