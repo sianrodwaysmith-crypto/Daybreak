@@ -1,8 +1,9 @@
 import { MockLessonsStorage, type LessonsStorage } from './MockLessonsStorage'
-import { ANTHROPIC_COURSE } from '../data/anthropicCourse'
-import { INSURANCE_COURSE } from '../data/insuranceCourse'
-import { AZTEC_COURSE }     from '../data/aztecCourse'
-import { ROTHESAY_COURSE }  from '../data/rothesayCourse'
+import { ANTHROPIC_COURSE }   from '../data/anthropicCourse'
+import { INSURANCE_COURSE }   from '../data/insuranceCourse'
+import { AZTEC_COURSE }       from '../data/aztecCourse'
+import { ROTHESAY_COURSE }    from '../data/rothesayCourse'
+import { TECH_MARKET_COURSE } from '../data/techMarketCourse'
 
 /* ====================================================================
    Storage factory + one-shot seeding.
@@ -27,11 +28,17 @@ async function seedIfNeeded(storage: LessonsStorage): Promise<void> {
   const existing = await storage.listCourses()
   const existingIds = new Set(existing.map(c => c.id))
 
+  // Tech-market is intentionally always upserted while it's still being
+  // authored in chunks: each commit bumps totalDays and appends lessons
+  // to the array, so we want the latest copy to overwrite whatever was
+  // seeded on the user's device. Once the course hits 14 days and stops
+  // changing we'll move it back to the "skip if already seeded" branch.
   for (const course of [ANTHROPIC_COURSE, INSURANCE_COURSE, AZTEC_COURSE, ROTHESAY_COURSE]) {
     if (!existingIds.has(course.id)) {
       await storage.saveCourse(course)
     }
   }
+  await storage.saveCourse(TECH_MARKET_COURSE)
 }
 
 export function getStorage(): LessonsStorage {
