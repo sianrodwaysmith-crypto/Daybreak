@@ -2,10 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { getStorage } from '../storage'
 import * as journalState from '../state'
 import { UnlockScreen }    from './UnlockScreen'
-import { HomeScreen }      from './HomeScreen'
-import { RoundupScreen }   from './RoundupScreen'
 import { WorryBankScreen } from './WorryBankScreen'
-import { ArchiveScreen }   from './ArchiveScreen'
 
 interface Props {
   /** Called when the user dismisses the journal — cancel from unlock,
@@ -13,14 +10,19 @@ interface Props {
   onClose: () => void
 }
 
-type Screen = 'unlock' | 'home' | 'roundup' | 'worries' | 'archive'
+type Screen = 'unlock' | 'worries'
 
 const INACTIVITY_MS = 5 * 60 * 1000
 
+/* ====================================================================
+   Post-restructure: the journal is just unlock → worry bank. The
+   morning intention block and end-of-day reflection both live in the
+   Daily Mindset module now. The PIN gate stays because therapy notes
+   warrant the friction; nothing else inside the journal does.
+==================================================================== */
 export function JournalApp({ onClose }: Props) {
   const [screen,    setScreen]    = useState<Screen>('unlock')
   const [setupMode, setSetupMode] = useState<boolean | null>(null)  // null = checking
-  const [refreshKey, setRefreshKey] = useState(0)
 
   const inactivityTimer = useRef<number | null>(null)
 
@@ -70,7 +72,7 @@ export function JournalApp({ onClose }: Props) {
 
   function unlock() {
     journalState.setUnlocked(true)
-    setScreen('home')
+    setScreen('worries')
   }
   function lockAndClose() {
     journalState.lock()
@@ -85,23 +87,6 @@ export function JournalApp({ onClose }: Props) {
   if (screen === 'unlock') {
     return <UnlockScreen setup={setupMode} onUnlock={unlock} onCancel={onClose} />
   }
-  if (screen === 'roundup') {
-    return <RoundupScreen onBack={() => setScreen('home')} onSaved={() => setRefreshKey(k => k + 1)} />
-  }
-  if (screen === 'worries') {
-    return <WorryBankScreen onBack={() => setScreen('home')} onSaved={() => setRefreshKey(k => k + 1)} />
-  }
-  if (screen === 'archive') {
-    return <ArchiveScreen onBack={() => setScreen('home')} />
-  }
 
-  return (
-    <HomeScreen
-      onLock={lockAndClose}
-      onOpenRoundup={() => setScreen('roundup')}
-      onOpenWorries={() => setScreen('worries')}
-      onOpenArchive={() => setScreen('archive')}
-      refreshKey={refreshKey}
-    />
-  )
+  return <WorryBankScreen onLock={lockAndClose} />
 }
