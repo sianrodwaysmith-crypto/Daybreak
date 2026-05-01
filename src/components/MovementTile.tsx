@@ -93,10 +93,15 @@ function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
             onClick={() => onTapDay(iso)}
             aria-label={`${DAY_LABELS[i]} ${iso}`}
           >
-            {ev?.source === 'done'    && <span className="movement-mark mark-done"    />}
-            {ev?.source === 'booked'  && <span className="movement-mark mark-booked"  />}
-            {ev?.source === 'planned' && <span className="movement-mark mark-planned" />}
-            {ev?.source === 'rest'    && <span className="movement-mark mark-rest"           />}
+            {/* Two states on the chart: planned (booked or manually planned, both
+                render the same outline mark) and done (filled). Rest is its own
+                small bar. The source distinction still exists in the data model
+                so calendar entries stay read-only and de-dupe correctly. */}
+            {ev?.source === 'done' && <span className="movement-mark mark-done" />}
+            {(ev?.source === 'planned' || ev?.source === 'booked') && (
+              <span className="movement-mark mark-planned" />
+            )}
+            {ev?.source === 'rest' && <span className="movement-mark mark-rest" />}
             <span className="movement-day-label">{DAY_LABELS[i]}</span>
           </button>
         )
@@ -129,9 +134,11 @@ function dayLabel(iso: string): string {
 }
 
 function sourceBadge(s: Source): string {
-  if (s === 'done')    return 'done'
-  if (s === 'booked')  return 'booked'
-  if (s === 'planned') return 'planned'
+  if (s === 'done') return 'done'
+  // Planned and booked collapse to one user-facing state — the chart and
+  // the day-list both read as "planned" regardless of where the entry
+  // came from.
+  if (s === 'booked' || s === 'planned') return 'planned'
   return 'rest'
 }
 
@@ -650,7 +657,6 @@ export default function MovementTile({ strain, activeCalories }: Props) {
 
       <div className="movement-legend">
         <span><span className="movement-legend-mark legend-done"   /> done</span>
-        <span><span className="movement-legend-mark legend-booked" /> booked</span>
         <span><span className="movement-legend-mark legend-planned"/> planned</span>
         <span><span className="movement-legend-mark legend-rest"   /> rest</span>
       </div>
