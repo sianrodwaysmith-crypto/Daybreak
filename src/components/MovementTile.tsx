@@ -72,30 +72,43 @@ function relativeWeekLabel(weekStart: Date, todayWeekStart: Date): string {
 ==================================================================== */
 
 interface ChartProps {
-  weekISO:    string[]                 // 7 ISO dates Monday-first
-  byDate:     Map<string, MovementEvent>
-  todayISO:   string
-  onTapDay:   (iso: string) => void
+  weekISO:       string[]                 // 7 ISO dates Monday-first
+  byDate:        Map<string, MovementEvent>
+  dayMinutes:    Map<string, number>      // total non-rest minutes per day
+  todayISO:      string
+  onTapDay:      (iso: string) => void
 }
 
-function intensityClass(ev: MovementEvent | undefined): string {
+/**
+ * Dot size encodes total effort on the day, not a single event's
+ * keyword-inferred intensity. Bigger dot = more time logged across
+ * every workout on that date (multiple sessions are summed). When we
+ * have no duration data at all (e.g. a calendar event with no end
+ * time), we fall back to the event's manual intensity tag so the dot
+ * isn't always tiny in that case.
+ */
+function intensityClassForDay(ev: MovementEvent | undefined, totalMinutes: number): string {
   if (!ev || ev.source === 'rest') return ''
+  if (totalMinutes > 0) {
+    if (totalMinutes < 30)  return ' intensity-low'
+    if (totalMinutes >= 75) return ' intensity-high'
+    return ' intensity-moderate'
+  }
   switch (ev.intensity) {
-    case 'low':      return ' intensity-low'
-    case 'high':     return ' intensity-high'
-    case 'moderate': return ' intensity-moderate'
-    default:         return ' intensity-moderate'
+    case 'low':  return ' intensity-low'
+    case 'high': return ' intensity-high'
+    default:     return ' intensity-moderate'
   }
 }
 
-function WeekChart({ weekISO, byDate, todayISO: today, onTapDay }: ChartProps) {
+function WeekChart({ weekISO, byDate, dayMinutes, todayISO: today, onTapDay }: ChartProps) {
   return (
     <div className="movement-week" role="group" aria-label="Movement this week">
       <div className="movement-horizon" aria-hidden />
       {weekISO.map((iso, i) => {
         const ev = byDate.get(iso)
         const isToday = iso === today
-        const ic = intensityClass(ev)
+        const ic = intensityClassForDay(ev, dayMinutes.get(iso) ?? 0)
         return (
           <button
             key={iso}
@@ -576,6 +589,21 @@ export default function MovementTile({ strain, activeCalories }: Props) {
     return m
   }, [events, week])
 
+  // Total non-rest minutes across every session on each day. Drives
+  // dot size on the chart so a day with two long sessions reads bigger
+  // than a day with a single short one — the previous behaviour just
+  // showed the highest-ranked event's intensity tag, which ignored
+  // both duration and additional sessions.
+  const dayMinutes = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const e of events) {
+      if (e.source === 'rest') continue
+      if (!week.includes(e.date)) continue
+      m.set(e.date, (m.get(e.date) ?? 0) + (e.durationMinutes ?? 0))
+    }
+    return m
+  }, [events, week])
+
   const cadence  = useMemo(() => computeCadence(events, today), [events, today])
   const session  = useMemo(() => todaysSession(events, today), [events, today])
 
@@ -669,6 +697,7 @@ export default function MovementTile({ strain, activeCalories }: Props) {
       <WeekChart
         weekISO={week}
         byDate={byDate}
+        dayMinutes={dayMinutes}
         todayISO={todayISO()}
         onTapDay={openDay}
       />
