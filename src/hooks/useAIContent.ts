@@ -112,10 +112,18 @@ export function useAIContent() {
   // peaked at ~45k of the 50k/min Haiku quota and was the main reason
   // 429s landed. Sequential keeps the morning's auto-fetch under the
   // limit with room to spare for the per-account searches.
+  // We also pause briefly between calls so the per-minute token window
+  // has room to drain — without this, three back-to-back search-heavy
+  // calls can still graze the limit when the user opens the app right
+  // after a recent burst of activity (e.g. a chat message).
+  const INTER_CALL_PAUSE_MS = 1500
   async function fetchSequential(ids: AITileId[]): Promise<void> {
-    for (const id of ids) {
-      try { await fetchOne(id) }
+    for (let i = 0; i < ids.length; i++) {
+      try { await fetchOne(ids[i]) }
       catch { /* fetchOne already captured the error into state */ }
+      if (i < ids.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, INTER_CALL_PAUSE_MS))
+      }
     }
   }
 

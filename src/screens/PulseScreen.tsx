@@ -117,6 +117,38 @@ interface SectionProps {
   onRetry: () => void
 }
 
+/* --------------------------------------------------------------------
+   Error classification. Anthropic's own error bodies tend to read like
+   "Number of tokens has exceeded your per-minute rate limit", which the
+   Pulse error card displays verbatim and reads to the user as if they
+   are out of usage. Map the recognisable shapes to friendlier copy;
+   fall back to the raw message when unfamiliar.
+-------------------------------------------------------------------- */
+function isRateLimited(msg: string | null): boolean {
+  if (!msg) return false
+  return /\b429\b|rate[-_ ]?limit|tokens per minute|tokens per day|requests per minute/i.test(msg)
+}
+function isOutOfCredit(msg: string | null): boolean {
+  if (!msg) return false
+  return /credit balance|insufficient quota|insufficient credit|payment required|\b402\b/i.test(msg)
+}
+function isAuthFailure(msg: string | null): boolean {
+  if (!msg) return false
+  return /\b401\b|invalid api key|authentication/i.test(msg)
+}
+function errorHeadline(msg: string | null): string {
+  if (isOutOfCredit(msg)) return 'Out of API credit.'
+  if (isAuthFailure(msg)) return "Pulse can't authenticate with Anthropic."
+  if (isRateLimited(msg)) return 'Pulse is briefly rate-limited.'
+  return "Couldn't fetch live content."
+}
+function errorDetail(msg: string | null): string {
+  if (isOutOfCredit(msg)) return 'Top up your Anthropic balance and refresh.'
+  if (isAuthFailure(msg)) return 'Check the API key in environment variables.'
+  if (isRateLimited(msg)) return 'Try again in about a minute. This usually clears itself.'
+  return msg ?? 'Try again, or check the network.'
+}
+
 function Section({ label, state, onRetry }: SectionProps) {
   return (
     <section className="pulse-section">
@@ -139,8 +171,8 @@ function Section({ label, state, onRetry }: SectionProps) {
       {!state.loading && state.error && (
         <div className="pulse-card pulse-card-error">
           <div className="pulse-error-stack">
-            <span className="pulse-error-text">Couldn't fetch live content.</span>
-            {state.errorMsg && <span className="pulse-error-detail">{state.errorMsg}</span>}
+            <span className="pulse-error-text">{errorHeadline(state.errorMsg)}</span>
+            <span className="pulse-error-detail">{errorDetail(state.errorMsg)}</span>
           </div>
           <button className="pulse-retry-btn" onClick={onRetry}>↻ Retry</button>
         </div>
