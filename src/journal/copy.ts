@@ -35,20 +35,14 @@ export const copy = {
     pastLabel: 'PAST',
     pastEmpty: 'Discussed worries appear here once you mark them.',
 
-    // The three prompts on the worry editor — kept short and concrete
+    // The two prompts on the worry editor — kept short and concrete
     // so the screen reads like a quick brain-dump rather than a form.
     moment:    'WHAT HAPPENED',
     why:       "HOW IT'S AFFECTING ME",
-    bringUp:   'WHAT I WANT TO BRING TO THERAPY',
 
     // Placeholders sit inside the textareas as soft prompts.
-    momentPlaceholder:  'The situation, in your own words…',
-    whyPlaceholder:     'The feeling it left, the part that keeps replaying…',
-    bringUpPlaceholder: 'A sentence or two for Wednesday…',
-
-    // Labels on list cards.
-    bringUpLabel:  'To bring up',
-    bringUpEmpty:  'To bring up: —',
+    momentPlaceholder: 'The situation, in your own words…',
+    whyPlaceholder:    'The feeling it left, the part that keeps replaying…',
 
     back:         '← back',
     save:         'SAVE →',

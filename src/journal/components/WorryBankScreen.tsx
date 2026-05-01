@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { copy } from '../copy'
-import { getStorage, isEncrypted } from '../storage'
+import { getStorage } from '../storage'
 import { todayISO, daysUntilNextWednesday, dayOfWeek, fullDate } from '../dateHelpers'
 import type { WorryEntry } from '../types'
 
@@ -13,7 +13,7 @@ type Mode = { kind: 'list' } | { kind: 'new' } | { kind: 'detail'; id: string }
 
 /* ====================================================================
    The journal's only surface, post-restructure: a single PIN-gated
-   worry bank with three short prompts. Active worries up top, past
+   worry bank with two short prompts. Active worries up top, past
    (discussed) ones in a quiet section below — replaces the previous
    separate Archive screen.
 ==================================================================== */
@@ -61,24 +61,21 @@ export function WorryBankScreen({ onLock, onSaved }: Props) {
     <div className="journal-screen">
       <header className="journal-screen-head">
         <span className="journal-screen-title">{copy.worries.title}</span>
+        <button
+          type="button"
+          className="journal-pill"
+          onClick={() => setMode({ kind: 'new' })}
+        >
+          {copy.worries.new}
+        </button>
         <button type="button" className="journal-link" onClick={onLock}>
           {copy.worries.lock}
         </button>
       </header>
 
-      <p className="journal-home-privacy">
-        {isEncrypted() ? copy.worries.privacy : copy.worries.privacy}
-      </p>
+      <p className="journal-home-privacy">{copy.worries.privacy}</p>
 
       <div className="journal-screen-hint">{wedLine}</div>
-
-      <button
-        type="button"
-        className="mindset-btn complete"
-        onClick={() => setMode({ kind: 'new' })}
-      >
-        {copy.worries.new.toUpperCase()}
-      </button>
 
       {active.length === 0 && past.length === 0 && (
         <div className="journal-empty">{copy.worries.empty}</div>
@@ -88,14 +85,13 @@ export function WorryBankScreen({ onLock, onSaved }: Props) {
         <ul className="journal-worry-list">
           {active.map(w => (
             <li key={w.id}>
-              <button type="button" className="journal-worry-card" onClick={() => setMode({ kind: 'detail', id: w.id })}>
+              <button
+                type="button"
+                className="journal-worry-card"
+                onClick={() => setMode({ kind: 'detail', id: w.id })}
+              >
                 <div className="journal-worry-moment">{w.theMoment}</div>
                 {w.whyItStuck && <div className="journal-worry-why">{w.whyItStuck}</div>}
-                <div className="journal-worry-bring">
-                  {w.toBringUp?.trim()
-                    ? <><span className="journal-worry-bring-label">{copy.worries.bringUpLabel}: </span>{w.toBringUp}</>
-                    : copy.worries.bringUpEmpty}
-                </div>
                 <div className="journal-worry-date">{dayOfWeek(w.loggedDate).toUpperCase()}</div>
               </button>
             </li>
@@ -113,11 +109,6 @@ export function WorryBankScreen({ onLock, onSaved }: Props) {
                 <article className="journal-worry-card is-readonly">
                   <div className="journal-worry-moment">{w.theMoment}</div>
                   {w.whyItStuck && <div className="journal-worry-why">{w.whyItStuck}</div>}
-                  {w.toBringUp && (
-                    <div className="journal-worry-bring">
-                      <span className="journal-worry-bring-label">{copy.worries.bringUpLabel}: </span>{w.toBringUp}
-                    </div>
-                  )}
                   <div className="journal-worry-date">
                     {w.discussedDate ? fullDate(w.discussedDate).toUpperCase() : ''}
                   </div>
@@ -132,7 +123,7 @@ export function WorryBankScreen({ onLock, onSaved }: Props) {
 }
 
 /* --------------------------------------------------------------------
-   Editor — three prompts in the same shape as Daily Mindset's section
+   Editor — two prompts in the same shape as Daily Mindset's section
    blocks (uppercase label, big textarea), so the two surfaces feel
    like the same family. Save sits at the bottom as a primary CTA.
 -------------------------------------------------------------------- */
@@ -146,7 +137,6 @@ interface EditorProps {
 function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
   const [moment,   setMoment]   = useState('')
   const [why,      setWhy]      = useState('')
-  const [bring,    setBring]    = useState('')
   const [busy,     setBusy]     = useState(false)
   const [existing, setExisting] = useState<WorryEntry | null>(null)
 
@@ -158,7 +148,6 @@ function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
       setExisting(w)
       setMoment(w.theMoment)
       setWhy(w.whyItStuck)
-      setBring(w.toBringUp ?? '')
     })
     return () => { alive = false }
   }, [worryId])
@@ -170,14 +159,15 @@ function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
     setBusy(true)
     try {
       const now = new Date().toISOString()
+      // toBringUp survives unchanged on existing entries (so legacy data
+      // isn't rewritten away); new entries simply don't set it.
       const entry: WorryEntry = existing
-        ? { ...existing, theMoment: m, whyItStuck: why.trim(), toBringUp: bring.trim() || undefined, updatedAt: now }
+        ? { ...existing, theMoment: m, whyItStuck: why.trim(), updatedAt: now }
         : {
             id:         `worry-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             loggedDate: todayISO(),
             theMoment:  m,
             whyItStuck: why.trim(),
-            toBringUp:  bring.trim() || undefined,
             status:     'sitting',
             createdAt:  now,
             updatedAt:  now,
@@ -242,17 +232,6 @@ function WorryEditor({ worryId, onBack, onSaved }: EditorProps) {
           onChange={e => setWhy(e.target.value)}
           placeholder={copy.worries.whyPlaceholder}
           rows={3}
-        />
-      </div>
-
-      <div className="mindset-intention-section">
-        <div className="mindset-intention-label">{copy.worries.bringUp}</div>
-        <textarea
-          className="mindset-textarea"
-          value={bring}
-          onChange={e => setBring(e.target.value)}
-          placeholder={copy.worries.bringUpPlaceholder}
-          rows={2}
         />
       </div>
 
