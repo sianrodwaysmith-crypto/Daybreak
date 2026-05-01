@@ -351,13 +351,28 @@ export class CompositeMovementSource implements MovementSource {
     // shadowed by a local 'done' record — i.e. the user ticked off a Google
     // Calendar workout. Without this the gcal source keeps returning the
     // booked entry and the day list shows the same session twice.
-    const shadowedIds = new Set<string>()
+    //
+    // Two ways a booked can be shadowed:
+    //   1. exact externalId match — set on any 'done' created by Mark-as-done
+    //      after the dedup shipped.
+    //   2. fallback: same date + same title (case-insensitive) as a local
+    //      'done'. This catches done records written before externalId was
+    //      tracked, which were the source of the user's "Wednesday is
+    //      doubling up" complaint.
+    const shadowedIds    = new Set<string>()
+    const shadowedTitles = new Set<string>()    // key: `${date}::${normTitle}`
+    const norm = (t: string) => t.trim().toLowerCase()
     for (const e of flat) {
-      if (e.source === 'done' && e.externalId) shadowedIds.add(e.externalId)
+      if (e.source !== 'done') continue
+      if (e.externalId) shadowedIds.add(e.externalId)
+      if (e.title)      shadowedTitles.add(`${e.date}::${norm(e.title)}`)
     }
-    const deduped = flat.filter(e =>
-      !(e.source === 'booked' && e.externalId && shadowedIds.has(e.externalId)),
-    )
+    const deduped = flat.filter(e => {
+      if (e.source !== 'booked') return true
+      if (e.externalId && shadowedIds.has(e.externalId)) return false
+      if (e.title && shadowedTitles.has(`${e.date}::${norm(e.title)}`)) return false
+      return true
+    })
 
     return deduped.sort((a, b) => a.date.localeCompare(b.date))
   }
