@@ -6,94 +6,196 @@ import { quoteForDay } from '../data/quotes'
 const TODAY = new Date().toISOString().split('T')[0]
 const KEY = `daybreak-mindset-${TODAY}`
 
+/* --------------------------------------------------------------------
+   Saved shape — single localStorage entry per day with both halves
+   of the 5-Min-Journal pattern. Evening fields are optional in older
+   payloads written before the morning/evening split shipped, so the
+   loader treats them all as Partial.
+-------------------------------------------------------------------- */
 interface Saved {
+  // Morning
   g1: string; g2: string; g3: string
   greatDay: string
   affirmation: string
   reflection: string
+  // Evening (added in the morning/evening split)
+  amazing1?: string
+  amazing2?: string
+  amazing3?: string
+  betterHow?: string
 }
 
 /**
- * Whether today's mindset entry has been filled in. Used by the home
- * grid to flip the Daily mindset tile's status dot from grey to green.
- * Recomputes the date key on each call so it stays correct across
- * midnight without remounting the screen.
+ * Whether today's mindset entry has anything in it. Either half — the
+ * morning intention block OR the evening reflection block — counts.
+ * Per CLAUDE.md spirit on Lessons, evening is bonus and never required:
+ * doing the morning alone keeps the dot green for the whole day.
  */
 export function hasMindsetEntryToday(): boolean {
   try {
     const today = new Date().toISOString().split('T')[0]
     const raw = localStorage.getItem(`daybreak-mindset-${today}`)
     if (!raw) return false
-    const parsed = JSON.parse(raw) as Partial<Saved>
-    return Boolean(parsed?.greatDay?.trim() || parsed?.affirmation?.trim())
+    const e = JSON.parse(raw) as Partial<Saved>
+    const morningDone = !!(e?.greatDay?.trim() || e?.affirmation?.trim())
+    const eveningDone = !!(e?.amazing1?.trim() || e?.amazing2?.trim() ||
+                           e?.amazing3?.trim() || e?.betterHow?.trim())
+    return morningDone || eveningDone
   } catch { return false }
 }
 
 export default function MindsetScreen() {
   const { registerContent } = useDayBreakContext()
-  const [g1, setG1]                 = useState('')
-  const [g2, setG2]                 = useState('')
-  const [g3, setG3]                 = useState('')
-  const [greatDay, setGreatDay]     = useState('')
-  const [affirmation, setAffirm]    = useState('')
-  const [submitted, setSubmitted]   = useState(false)
-  const [reflection, setReflection] = useState('')
-  const [loading, setLoading]       = useState(false)
+
+  // Morning state
+  const [g1, setG1]                         = useState('')
+  const [g2, setG2]                         = useState('')
+  const [g3, setG3]                         = useState('')
+  const [greatDay, setGreatDay]             = useState('')
+  const [affirmation, setAffirm]            = useState('')
+  const [morningSubmitted, setMSubmitted]   = useState(false)
+  const [reflection, setReflection]         = useState('')
+  const [morningLoading, setMLoading]       = useState(false)
+
+  // Evening state
+  const [amazing1, setAmazing1]             = useState('')
+  const [amazing2, setAmazing2]             = useState('')
+  const [amazing3, setAmazing3]             = useState('')
+  const [betterHow, setBetterHow]           = useState('')
+  const [eveningSubmitted, setESubmitted]   = useState(false)
 
   useEffect(() => {
     const saved = localStorage.getItem(KEY)
-    if (saved) {
-      const e: Saved = JSON.parse(saved)
-      setG1(e.g1); setG2(e.g2); setG3(e.g3)
-      setGreatDay(e.greatDay)
-      setAffirm(e.affirmation)
-      setReflection(e.reflection)
-      setSubmitted(true)
-      registerContent('mindset', {
-        gratitude:    [e.g1, e.g2, e.g3].filter(Boolean),
-        great_day:    e.greatDay,
-        affirmation:  e.affirmation,
-        reflection:   e.reflection,
-      })
+    if (!saved) return
+    let e: Partial<Saved>
+    try { e = JSON.parse(saved) } catch { return }
+
+    setG1(e.g1 ?? '')
+    setG2(e.g2 ?? '')
+    setG3(e.g3 ?? '')
+    setGreatDay(e.greatDay ?? '')
+    setAffirm(e.affirmation ?? '')
+    setReflection(e.reflection ?? '')
+    if ((e.greatDay && e.greatDay.trim()) || (e.affirmation && e.affirmation.trim())) {
+      setMSubmitted(true)
     }
+
+    setAmazing1(e.amazing1 ?? '')
+    setAmazing2(e.amazing2 ?? '')
+    setAmazing3(e.amazing3 ?? '')
+    setBetterHow(e.betterHow ?? '')
+    if ((e.amazing1 && e.amazing1.trim()) || (e.amazing2 && e.amazing2.trim()) ||
+        (e.amazing3 && e.amazing3.trim()) || (e.betterHow && e.betterHow.trim())) {
+      setESubmitted(true)
+    }
+
+    registerContent('mindset', {
+      gratitude:   [e.g1, e.g2, e.g3].filter(Boolean),
+      great_day:   e.greatDay,
+      affirmation: e.affirmation,
+      reflection:  e.reflection,
+      evening: {
+        amazing:    [e.amazing1, e.amazing2, e.amazing3].filter(Boolean),
+        better_how: e.betterHow,
+      },
+    })
   }, [registerContent])
 
-  const allFilled = g1.trim() && g2.trim() && g3.trim() && greatDay.trim() && affirmation.trim()
+  function persistAll(overrides: Partial<Saved> = {}): Saved {
+    const snap: Saved = {
+      g1, g2, g3, greatDay, affirmation, reflection,
+      amazing1, amazing2, amazing3, betterHow,
+      ...overrides,
+    }
+    // If absolutely nothing is filled in, drop the row instead of
+    // writing an empty stub.
+    const anything = [snap.g1, snap.g2, snap.g3, snap.greatDay, snap.affirmation,
+                      snap.amazing1, snap.amazing2, snap.amazing3, snap.betterHow]
+                      .some(s => (s ?? '').trim())
+    if (anything) localStorage.setItem(KEY, JSON.stringify(snap))
+    else          localStorage.removeItem(KEY)
+    return snap
+  }
 
-  const handleSubmit = async () => {
-    if (!allFilled || loading) return
-    setLoading(true)
+  function broadcast(snap: Saved) {
+    registerContent('mindset', {
+      gratitude:   [snap.g1, snap.g2, snap.g3].filter(Boolean),
+      great_day:   snap.greatDay,
+      affirmation: snap.affirmation,
+      reflection:  snap.reflection,
+      evening: {
+        amazing:    [snap.amazing1, snap.amazing2, snap.amazing3].filter(Boolean),
+        better_how: snap.betterHow,
+      },
+    })
+  }
+
+  /* ----- Morning ----- */
+  const morningAllFilled =
+    g1.trim() && g2.trim() && g3.trim() && greatDay.trim() && affirmation.trim()
+
+  const handleMorningSubmit = async () => {
+    if (!morningAllFilled || morningLoading) return
+    setMLoading(true)
     try {
       const result = await generateMindsetReflection(g1, g2, g3, greatDay, affirmation)
       setReflection(result)
-      setSubmitted(true)
-      localStorage.setItem(KEY, JSON.stringify({ g1, g2, g3, greatDay, affirmation, reflection: result }))
-      registerContent('mindset', {
-        gratitude:   [g1, g2, g3].filter(Boolean),
-        great_day:   greatDay,
-        affirmation: affirmation,
-        reflection:  result,
-      })
+      setMSubmitted(true)
+      const snap = persistAll({ reflection: result })
+      broadcast(snap)
     } finally {
-      setLoading(false)
+      setMLoading(false)
     }
   }
 
-  const handleReset = () => {
-    localStorage.removeItem(KEY)
+  const handleMorningReset = () => {
     setG1(''); setG2(''); setG3('')
     setGreatDay(''); setAffirm('')
-    setReflection(''); setSubmitted(false); setLoading(false)
-    registerContent('mindset', null)
+    setReflection(''); setMSubmitted(false); setMLoading(false)
+    const snap = persistAll({
+      g1: '', g2: '', g3: '', greatDay: '', affirmation: '', reflection: '',
+    })
+    broadcast(snap)
   }
 
-  const btnClass = loading ? 'mindset-btn loading' : allFilled ? 'mindset-btn complete' : 'mindset-btn incomplete'
-  const btnText  = allFilled ? 'SET MY MINDSET →' : 'FILL IN ALL FIELDS TO CONTINUE'
+  const morningBtnClass =
+    morningLoading        ? 'mindset-btn loading'    :
+    morningAllFilled      ? 'mindset-btn complete'   :
+                            'mindset-btn incomplete'
+  const morningBtnText =
+    morningAllFilled ? 'SET MY MINDSET →' : 'FILL IN ALL FIELDS TO CONTINUE'
 
   const GRATITUDE_FIELDS = [
     { num: 1, val: g1, set: setG1, placeholder: 'Something small that matters...' },
     { num: 2, val: g2, set: setG2, placeholder: 'A person in your corner...' },
     { num: 3, val: g3, set: setG3, placeholder: 'Something you often overlook...' },
+  ]
+
+  /* ----- Evening ----- */
+  const eveningAllFilled =
+    amazing1.trim() && amazing2.trim() && amazing3.trim() && betterHow.trim()
+
+  const handleEveningSubmit = () => {
+    if (!eveningAllFilled) return
+    setESubmitted(true)
+    const snap = persistAll()
+    broadcast(snap)
+  }
+
+  const handleEveningReset = () => {
+    setAmazing1(''); setAmazing2(''); setAmazing3('')
+    setBetterHow(''); setESubmitted(false)
+    const snap = persistAll({ amazing1: '', amazing2: '', amazing3: '', betterHow: '' })
+    broadcast(snap)
+  }
+
+  const eveningBtnClass = eveningAllFilled ? 'mindset-btn complete' : 'mindset-btn incomplete'
+  const eveningBtnText  = eveningAllFilled ? 'CLOSE THE DAY →'      : 'FILL IN ALL FIELDS TO CONTINUE'
+
+  const AMAZING_FIELDS = [
+    { num: 1, val: amazing1, set: setAmazing1, placeholder: 'Something that lifted you...' },
+    { num: 2, val: amazing2, set: setAmazing2, placeholder: 'A small win you almost missed...' },
+    { num: 3, val: amazing3, set: setAmazing3, placeholder: "Someone who showed up..." },
   ]
 
   const quote = quoteForDay()
@@ -104,6 +206,10 @@ export default function MindsetScreen() {
         <span className="mindset-quote-text">“{quote.text}”</span>
         <span className="mindset-quote-attr"> {quote.attribution}.</span>
       </div>
+
+      {/* ---------------- MORNING ---------------- */}
+      <div className="screen-section-label" style={{ marginBottom: 6 }}>MORNING</div>
+      <p className="mindset-section-sub">Set the day in three minutes.</p>
 
       <div className="screen-section-label" style={{ marginBottom: 14 }}>THREE THINGS I'M GRATEFUL FOR</div>
 
@@ -116,19 +222,19 @@ export default function MindsetScreen() {
             value={val}
             onChange={e => set(e.target.value)}
             placeholder={placeholder}
-            disabled={submitted}
+            disabled={morningSubmitted}
           />
         </div>
       ))}
 
       <div className="mindset-intention-section">
-        <div className="mindset-intention-label">ONE THING THAT WOULD MAKE TODAY GREAT</div>
+        <div className="mindset-intention-label">WHAT WOULD MAKE TODAY GREAT</div>
         <textarea
           className="mindset-textarea"
           value={greatDay}
           onChange={e => setGreatDay(e.target.value)}
           placeholder="If I do this one thing, today will feel like a win..."
-          disabled={submitted}
+          disabled={morningSubmitted}
           rows={3}
         />
       </div>
@@ -140,24 +246,28 @@ export default function MindsetScreen() {
           value={affirmation}
           onChange={e => setAffirm(e.target.value)}
           placeholder="I am..."
-          disabled={submitted}
+          disabled={morningSubmitted}
           rows={2}
         />
       </div>
 
-      {!submitted && (
-        <button className={btnClass} onClick={handleSubmit} disabled={!allFilled || loading}>
-          {loading ? (
+      {!morningSubmitted && (
+        <button
+          className={morningBtnClass}
+          onClick={handleMorningSubmit}
+          disabled={!morningAllFilled || morningLoading}
+        >
+          {morningLoading ? (
             <div className="mindset-dots">
               <div className="mindset-dot" />
               <div className="mindset-dot" />
               <div className="mindset-dot" />
             </div>
-          ) : btnText}
+          ) : morningBtnText}
         </button>
       )}
 
-      {submitted && reflection && (
+      {morningSubmitted && reflection && (
         <>
           <div className="mindset-divider">
             <div className="mindset-divider-line" />
@@ -165,8 +275,55 @@ export default function MindsetScreen() {
             <div className="mindset-divider-line" />
           </div>
           <div className="mindset-reflection">{reflection}</div>
-          <button className="mindset-reset-btn" onClick={handleReset}>RESET</button>
+          <button className="mindset-reset-btn" onClick={handleMorningReset}>RESET</button>
         </>
+      )}
+
+      {/* ---------------- EVENING ---------------- */}
+      <div className="mindset-section-divider" />
+      <div className="screen-section-label" style={{ marginBottom: 6 }}>EVENING</div>
+      <p className="mindset-section-sub">Close the day in three minutes.</p>
+
+      <div className="screen-section-label" style={{ marginBottom: 14 }}>THREE AMAZING THINGS THAT HAPPENED TODAY</div>
+
+      {AMAZING_FIELDS.map(({ num, val, set, placeholder }) => (
+        <div key={num} className="mindset-field-row">
+          <div className={`mindset-badge${val.trim() ? ' filled' : ''}`}>{num}</div>
+          <input
+            className="mindset-input"
+            type="text"
+            value={val}
+            onChange={e => set(e.target.value)}
+            placeholder={placeholder}
+            disabled={eveningSubmitted}
+          />
+        </div>
+      ))}
+
+      <div className="mindset-intention-section">
+        <div className="mindset-intention-label">HOW COULD I HAVE MADE TODAY BETTER</div>
+        <textarea
+          className="mindset-textarea"
+          value={betterHow}
+          onChange={e => setBetterHow(e.target.value)}
+          placeholder="A small change that would have helped..."
+          disabled={eveningSubmitted}
+          rows={3}
+        />
+      </div>
+
+      {!eveningSubmitted && (
+        <button
+          className={eveningBtnClass}
+          onClick={handleEveningSubmit}
+          disabled={!eveningAllFilled}
+        >
+          {eveningBtnText}
+        </button>
+      )}
+
+      {eveningSubmitted && (
+        <button className="mindset-reset-btn" onClick={handleEveningReset}>RESET EVENING</button>
       )}
     </div>
   )

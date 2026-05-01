@@ -1227,6 +1227,22 @@
   color: var(--muted);
 }
 
+/* Subtitle under the MORNING / EVENING eyebrow. Small, quiet, no caps. */
+.mindset-section-sub {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 18px;
+}
+
+/* Hairline rule between morning and evening sections. */
+.mindset-section-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 32px 0 24px;
+}
+
 /* ---------- Schedule (calendar grid) ---------- */
 .schedule-summary {
   font-family: 'DM Serif Display', serif;
