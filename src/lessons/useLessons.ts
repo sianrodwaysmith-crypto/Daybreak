@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getStorage } from './storage'
+import { getStorage, getSeedReady } from './storage'
 import { todayISO } from './core/dateHelpers'
 import type { Answer, Course, Enrollment, Lesson, TileState, UserProgress } from './types'
 
@@ -48,10 +48,14 @@ export function useLessons(userId: string = 'sian'): UseLessons {
   useEffect(() => {
     let alive = true
     const storage = getStorage()
-    Promise.all([
+    // Await the seed first. Without this, listCourses() can race ahead
+    // of the seed's writes and return only the courses that were in
+    // localStorage before this version shipped — meaning newly-added
+    // courses don't show up on first load.
+    getSeedReady().then(() => Promise.all([
       storage.getProgress(userId),
       storage.listCourses(),
-    ]).then(async ([p, cs]) => {
+    ])).then(async ([p, cs]) => {
       if (!alive) return
 
       // Auto-enrol the user silently in any course present in storage
