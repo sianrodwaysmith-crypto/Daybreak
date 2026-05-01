@@ -2354,13 +2354,9 @@
   top: 18px;
   transform: translateX(-50%);
   display: block;
-  /* default = moderate; intensity classes override --mark-size */
   --mark-size: 9px;
   --mark-inset: 2px;
 }
-.movement-mark.intensity-low      { --mark-size: 6px;  --mark-inset: 1.5px; top: 19px; }
-.movement-mark.intensity-moderate { --mark-size: 9px;  --mark-inset: 2px;   top: 18px; }
-.movement-mark.intensity-high     { --mark-size: 12px; --mark-inset: 3px;   top: 16px; }
 
 .movement-mark.mark-done {
   width: var(--mark-size);
