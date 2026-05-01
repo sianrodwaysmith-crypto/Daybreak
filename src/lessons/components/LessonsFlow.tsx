@@ -37,27 +37,42 @@ export function LessonsFlow({ userId = 'sian', onClose }: Props) {
   const lessons = useLessons(userId)
   const [mode, setMode] = useState<Mode | null>(null)
 
+  // The lesson, course, and day-number to teach right now. Two paths:
+  //   - Regular: state is 'ready' → today's untouched lesson.
+  //   - Bonus:   state is 'done' but the course has a next lesson →
+  //     teach that as an opt-in extra. CLAUDE.md frames this as bonus,
+  //     never as a target. Without this branch the flow dead-ended at
+  //     "Day X done" once the user had completed any lesson today.
+  const flowLesson = lessons.state.kind === 'ready'
+    ? lessons.state.lesson
+    : (lessons.state.kind === 'done' && lessons.todaysLesson ? lessons.todaysLesson : null)
+  const flowCourse = lessons.state.kind === 'ready'
+    ? lessons.state.course
+    : lessons.activeCourse
+  const flowDayNumber = lessons.state.kind === 'ready'
+    ? lessons.state.dayNumber
+    : (lessons.enrollment?.completedLessons.length ?? 0) + 1
+
   // Resolve initial mode the first time state arrives. After completion
   // we keep showing the recap regardless of state changes.
   const initialMode: Mode = useMemo(() => {
-    if (lessons.state.kind === 'ready') return { kind: 'lesson' }
+    if (flowLesson && flowCourse) return { kind: 'lesson' }
     return { kind: 'unavailable' }
-  }, [lessons.state.kind])
+  }, [flowLesson, flowCourse])
 
   const current = mode ?? initialMode
 
   function beginQuiz() {
-    if (lessons.state.kind !== 'ready') return
-    const { lesson, course, dayNumber } = lessons.state
+    if (!flowLesson || !flowCourse) return
     const completedIds = new Set(lessons.enrollment?.completedLessons ?? [])
-    const pastLessons  = course.lessons.filter(l => completedIds.has(l.id))
+    const pastLessons  = flowCourse.lessons.filter(l => completedIds.has(l.id))
     const questions = composeQuiz({
-      todaysLesson: lesson,
+      todaysLesson: flowLesson,
       pastLessons,
       mastery:      lessons.enrollment?.conceptMastery ?? {},
       desiredCount: 5,
     })
-    setMode({ kind: 'quiz', questions, lesson, course, dayNumber })
+    setMode({ kind: 'quiz', questions, lesson: flowLesson, course: flowCourse, dayNumber: flowDayNumber })
   }
 
   function handleAnswer(answer: Answer, conceptTags: string[]) {
@@ -106,12 +121,12 @@ export function LessonsFlow({ userId = 'sian', onClose }: Props) {
     )
   }
 
-  if (current.kind === 'lesson' && lessons.state.kind === 'ready') {
+  if (current.kind === 'lesson' && flowLesson && flowCourse) {
     return (
       <LessonScreen
-        lesson={lessons.state.lesson}
-        course={lessons.state.course}
-        dayNumber={lessons.state.dayNumber}
+        lesson={flowLesson}
+        course={flowCourse}
+        dayNumber={flowDayNumber}
         onBeginQuiz={beginQuiz}
       />
     )
