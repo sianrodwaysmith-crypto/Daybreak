@@ -18,7 +18,7 @@ export const TECH_MARKET_COURSE: Course = {
   id:          'tech-market-sales',
   title:       'Selling in the Tech Market',
   description: 'A guided primer for someone new to selling software or tech. The shape of the industry, the players, how money flows, what to listen for in a sales motion.',
-  totalDays:   3,
+  totalDays:   7,
   authoredAt:  '2026-05-01',
   lessons: [
 
@@ -286,6 +286,323 @@ None of the three is going away. None is winning a winner-takes-all race. Plan f
           explanation:  'Pure-play share leads with AWS; Azure rides Microsoft’s enterprise relationships; GCP is third with data and AI as differentiators. Plan for a multi-cloud world rather than a single winner.',
           difficulty:   'medium',
           conceptTags:  ['aws', 'azure', 'gcp'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 4 ============================ */
+    {
+      id:               'tech-market-d4',
+      dayNumber:        4,
+      title:            'What SaaS actually changed',
+      hook:             'Why subscriptions beat shrinkwrap.',
+      estimatedMinutes: 3,
+      conceptTags:      ['saas', 'subscription', 'net-retention', 'land-and-expand'],
+      body:
+`Until the late 1990s, software was a product. You paid once for a copy on a disc, installed it on your machine, and lived with whatever bugs it shipped with until next year's release. The vendor sold a box; the customer owned a copy.
+
+Software-as-a-Service flipped the deal. You don't own a copy. You log in to the vendor's running instance. They host it, fix it, ship features continuously. You pay an ongoing subscription — usually per user per month, billed annually — to keep the lights on.
+
+For the buyer, that's a different bargain. Lower upfront cost. No IT install. New features arrive automatically. The operational headache moves to the vendor. But the spend never stops, switching costs accumulate as data and workflows pile up inside the product, and the vendor controls the roadmap.
+
+For the vendor, the economics changed even more. Revenue is recurring rather than lumpy. R&D is funded by a smooth annual base of contracted dollars. Every new feature reaches every customer immediately, which means feedback loops are tighter and bad decisions hurt faster.
+
+The single most important metric in a SaaS business is net dollar retention — what last year's customers spend this year, including upgrades and minus churn. A company with 110% net retention grows even if it never wins another logo. A company at 90% leaks faster than it can fill the tub.
+
+For sellers this changes the shape of the job. Deals are smaller per transaction but compound. Renewal is the second sale; expansion is the third. "Land and expand" replaces "sell once". And customer success exists as a function because keeping a customer is usually worth more than winning a new one.`,
+      takeaway:         'SaaS turned software from a one-time product sale into a relationship you renew every year.',
+      questions: [
+        {
+          id:           'tech-market-d4-q1',
+          prompt:       'What does SaaS fundamentally change versus the old "buy a CD" model?',
+          options: [
+            'Customers buy a perpetual licence and host it themselves',
+            'Customers log in to the vendor’s instance and pay an ongoing subscription',
+            'Customers pay a one-time fee with optional support contracts',
+            'Customers receive a CD by post each month',
+          ],
+          correctIndex: 1,
+          explanation:  'SaaS replaces buying a copy with logging into the vendor’s hosted instance and paying recurring fees while you use it.',
+          difficulty:   'easy',
+          conceptTags:  ['saas', 'subscription'],
+        },
+        {
+          id:           'tech-market-d4-q2',
+          prompt:       'Which metric matters most to a SaaS business?',
+          options: [
+            'Number of trial sign-ups per quarter',
+            'Net dollar retention — what existing customers spend this year vs last',
+            'Average website traffic',
+            'Number of marketing emails sent',
+          ],
+          correctIndex: 1,
+          explanation:  'Net dollar retention captures whether the existing customer base is growing or shrinking; above 100% means the company can grow on its installed base alone.',
+          difficulty:   'medium',
+          conceptTags:  ['net-retention'],
+        },
+        {
+          id:           'tech-market-d4-q3',
+          prompt:       'Why does "land and expand" describe modern SaaS selling?',
+          options: [
+            'The first deal is usually small; the value compounds through renewal and expansion',
+            'Every customer pays the maximum on day one',
+            'Vendors land in one country and expand globally',
+            'Sales reps are required to physically expand the office for each deal',
+          ],
+          correctIndex: 0,
+          explanation:  'Initial deals are smaller than legacy on-prem ones; the bulk of lifetime revenue comes from renewing and expanding the relationship over years.',
+          difficulty:   'medium',
+          conceptTags:  ['land-and-expand'],
+        },
+        {
+          id:           'tech-market-d4-q4',
+          prompt:       'Why do SaaS companies invest heavily in customer success even when it costs more than landing new deals?',
+          options: [
+            'Regulators require a customer success team',
+            'It is a marketing channel for advertising new products',
+            'Keeping an existing customer is usually worth more — through renewal and expansion — than winning a new one',
+            'Customer success teams replace the engineering function',
+          ],
+          correctIndex: 2,
+          explanation:  'Recurring revenue compounds: a saved or expanded customer pays year after year, which is typically more lucrative than the same dollars spent on new acquisition.',
+          difficulty:   'hard',
+          conceptTags:  ['net-retention', 'land-and-expand'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 5 ============================ */
+    {
+      id:               'tech-market-d5',
+      dayNumber:        5,
+      title:            'The AI layer',
+      hook:             'A new dependency, quietly inside every product that says "AI".',
+      estimatedMinutes: 3,
+      conceptTags:      ['foundation-models', 'tokens', 'ai-providers', 'unit-economics'],
+      body:
+`Between 2022 and 2024 a new layer of the stack formed. Foundation models — neural networks trained on enormous text, image, and audio corpuses, capable of general-purpose reasoning — became something you could call from any product over an API. Almost overnight, "AI features" stopped being R&D projects and started being a check-the-box capability you could ship in a sprint.
+
+The providers are a small group. OpenAI (the GPT family). Anthropic (Claude). Google (Gemini). Meta (the open-weight Llama models). Specialists like Mistral and Cohere. Around them sits a layer of hosting and fine-tuning services — Together, Fireworks, Replicate, Bedrock, Vertex — that resell the same models with different operational guarantees.
+
+For an application company, the foundation model is now a critical-path supplier — like AWS, but for intelligence. If your product's AI features stop working, your product stops working. That dependency is the same shape as cloud and behaves the same way: you have a contract, an SLA, a rate limit, and a bill.
+
+Pricing is metered, like cloud. You're charged by tokens — the unit chunks of text the model reads and writes. Input tokens are cheap; output tokens are more expensive; long-context tokens are more expensive still. Costs per task drop steeply year over year as model efficiency improves; what cost a dollar in 2023 costs a few cents in 2026.
+
+For sellers there are three questions worth asking of any "AI-powered" product. Which model is underneath. How reliable is the contract with that model provider. And what does the unit economics look like if customer usage grows 10×. Models can absorb your margin fast if customer queries get expensive and your pricing isn't tied to consumption.`,
+      takeaway:         'Foundation models are a new dependency layer. Cheap, fast-improving, and quietly inside every product that says AI.',
+      questions: [
+        {
+          id:           'tech-market-d5-q1',
+          prompt:       'A "foundation model" is best described as:',
+          options: [
+            'A spreadsheet template for financial models',
+            'A general-purpose neural network trained on huge data, called via API',
+            'A regulatory framework for AI vendors',
+            'A specific Microsoft Excel add-in',
+          ],
+          correctIndex: 1,
+          explanation:  'Foundation models are large neural networks trained broadly enough to be useful across many tasks; applications consume them through APIs.',
+          difficulty:   'easy',
+          conceptTags:  ['foundation-models'],
+        },
+        {
+          id:           'tech-market-d5-q2',
+          prompt:       'How is access to a foundation model typically priced?',
+          options: [
+            'A flat per-month fee per developer',
+            'Per-token — you pay for the chunks of text the model reads and writes',
+            'Per-seat licence renewed annually',
+            'A fixed price per trained model',
+          ],
+          correctIndex: 1,
+          explanation:  'Foundation-model APIs are metered by tokens (input and output), the model’s unit of text. Costs scale with usage, like cloud.',
+          difficulty:   'medium',
+          conceptTags:  ['tokens'],
+        },
+        {
+          id:           'tech-market-d5-q3',
+          prompt:       'Why is the model provider effectively a critical-path supplier for an AI-powered product?',
+          options: [
+            'They distribute the product on their app store',
+            'If their service stops working, the product’s AI features stop working',
+            'They handle all of the customer’s legal contracts',
+            'They print the company’s marketing materials',
+          ],
+          correctIndex: 1,
+          explanation:  'AI features sit on top of a foundation model. Outages, rate limits, or pricing changes from the provider directly impact the application.',
+          difficulty:   'medium',
+          conceptTags:  ['ai-providers'],
+        },
+        {
+          id:           'tech-market-d5-q4',
+          prompt:       'A buyer asks: "What happens to your margin if my team uses your AI features 10× more next year?" What is the right shape of question they are pushing on?',
+          options: [
+            'Brand strategy and marketing spend',
+            'Unit economics — whether your pricing scales with the model cost underneath',
+            'Office location and hiring plans',
+            'Tax structure',
+          ],
+          correctIndex: 1,
+          explanation:  'They are probing whether your product’s pricing tracks consumption. If usage explodes and your contract is flat-fee, the model bill underneath can swallow your margin.',
+          difficulty:   'hard',
+          conceptTags:  ['unit-economics', 'tokens'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 6 ============================ */
+    {
+      id:               'tech-market-d6',
+      dayNumber:        6,
+      title:            'Horizontal vs vertical software',
+      hook:             'Two different bets on where your moat lives.',
+      estimatedMinutes: 3,
+      conceptTags:      ['horizontal', 'vertical', 'tam', 'moat'],
+      body:
+`Software businesses pick between two shapes. They can serve a single function across every industry (horizontal), or they can serve a single industry across all its functions (vertical). The choice shapes the company.
+
+Horizontal players cover one job everyone has. Salesforce sells CRM to banks, biotech, retail, and manufacturing — every business that has customers. Workday handles HR for any company with employees. Slack runs the chat in any team. The total addressable market is enormous. The competition is fierce. The product can rarely afford to go deep on any one industry's quirks; it has to stay general enough to serve all of them.
+
+Vertical players pick one industry and go deep. Veeva sells CRM, content management, and clinical trial software to life sciences companies. Toast sells point-of-sale and back-office software to restaurants. Procore covers project management for construction. Tyler Technologies sells software to local governments. The TAM is smaller, but the relationships are deeper, the switching costs are higher (because the product knows the customer's regulatory environment, jargon, edge cases), and the leader within a vertical often dominates it for a long time.
+
+Each shape buys a different moat. Horizontal companies bet on scale: become the default everywhere, push the cost per customer down, win on platform economics. Vertical companies bet on depth: know the industry better than any horizontal generalist could, and use that knowledge to charge premium pricing and stay sticky.
+
+For sellers, the shape changes how you talk. Horizontal pitches lean on logos across industries and the "general purpose" of the product. Vertical pitches lean on outcome-specific case studies, industry conferences, and the seller's own credibility within the niche. The most interesting in-between is a horizontal product with a vertical edition — Salesforce Health Cloud, Microsoft Cloud for Retail. They aim for both moats at once, with mixed results.`,
+      takeaway:         'Horizontal goes wide for scale. Vertical goes deep for stickiness. Neither is better — they are different bets.',
+      questions: [
+        {
+          id:           'tech-market-d6-q1',
+          prompt:       'A vertical software company is best described as one that:',
+          options: [
+            'Sells the same generic product to every industry',
+            'Goes deep on one industry, covering many of its functions',
+            'Builds only mobile apps',
+            'Operates only in a single country',
+          ],
+          correctIndex: 1,
+          explanation:  'Vertical companies pick an industry and serve it deeply, often dominating their slice with high domain expertise and switching costs.',
+          difficulty:   'easy',
+          conceptTags:  ['vertical'],
+        },
+        {
+          id:           'tech-market-d6-q2',
+          prompt:       'Veeva (life sciences) and Toast (restaurants) are examples of:',
+          options: ['Horizontal software', 'Vertical software', 'Hyperscalers', 'AI labs'],
+          correctIndex: 1,
+          explanation:  'Both pick a single industry and go deep on its specific functions and constraints — the textbook vertical play.',
+          difficulty:   'medium',
+          conceptTags:  ['vertical'],
+        },
+        {
+          id:           'tech-market-d6-q3',
+          prompt:       'What kind of moat do horizontal players typically chase?',
+          options: [
+            'Deep industry-specific expertise',
+            'Scale and platform economics across many industries',
+            'Government regulation in a single country',
+            'Hardware patents',
+          ],
+          correctIndex: 1,
+          explanation:  'Horizontal companies bet on becoming the default everywhere, driving cost per customer down through scale.',
+          difficulty:   'medium',
+          conceptTags:  ['horizontal', 'moat'],
+        },
+        {
+          id:           'tech-market-d6-q4',
+          prompt:       'A vertical-software competitor often beats a horizontal generalist within its industry by:',
+          options: [
+            'Charging less than the generalist on every line item',
+            'Knowing the industry’s regulations, jargon, and edge cases better, then charging premium pricing for that knowledge',
+            'Refusing to sell outside its country',
+            'Outspending the generalist on television advertising',
+          ],
+          correctIndex: 1,
+          explanation:  'Domain depth — workflows, terminology, regulatory specifics — is the vertical player’s moat. It supports premium pricing and sticky relationships.',
+          difficulty:   'hard',
+          conceptTags:  ['vertical', 'moat'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 7 ============================ */
+    {
+      id:               'tech-market-d7',
+      dayNumber:        7,
+      title:            'How tech companies make money',
+      hook:             'Five pricing shapes, and what each one rewards.',
+      estimatedMinutes: 3,
+      conceptTags:      ['pricing', 'per-seat', 'consumption', 'freemium', 'enterprise', 'take-rate'],
+      body:
+`Pricing is the deepest signal of what kind of business something is. Most modern tech companies use one or two of five shapes, and each shape pulls the company in a different direction.
+
+Per-seat subscription. Salesforce, Workday, Microsoft 365. You pay a fixed price per user per month, billed annually. The model is predictable, scales cleanly with the customer's headcount, and rewards the vendor for getting more people inside the customer's organisation onto the product.
+
+Consumption — also called usage-based. AWS, Snowflake, OpenAI, Twilio. You pay for what you use: compute hours, queries, tokens, messages. Revenue tracks customer activity, which means a customer's good year is automatically the vendor's good year. The downside: the bill is unpredictable, and procurement teams hate that.
+
+Freemium with paid tiers. Slack, Notion, Figma, Loom. The product is free for individuals or small teams; paid plans unlock collaboration, admin controls, security and scale. The shape is designed to drive bottom-up adoption — the team adopts the product before IT or procurement gets involved, and the upgrade conversation happens once it is already entrenched.
+
+Enterprise contracts. Often layered on top of one of the above for the largest customers. A multi-year, custom-negotiated commitment with discounts, volume tiers, and bespoke terms. The mark of "real" enterprise software: the price you pay isn't on the website; it is whatever the procurement team agreed.
+
+Marketplace / take-rate. App stores, AWS Marketplace, Stripe, Shopify. The platform takes a cut of every transaction running through it — say 1% to 30% — rather than charging access. The platform's revenue grows with its customers' revenue.
+
+Most modern companies blend two or three. Snowflake is consumption with annual commitments. Salesforce is per-seat with consumption-priced add-ons. Stripe is take-rate with subscription tiers on top. For sellers, the dominant shape tells you what behaviour the company is paid to produce — more seats, more queries, more transactions — and what the customer is going to be pushed on through the year.`,
+      takeaway:         'Five pricing shapes. The dominant one tells you what behaviour the company is paid to produce.',
+      questions: [
+        {
+          id:           'tech-market-d7-q1',
+          prompt:       'Salesforce is primarily an example of which pricing shape?',
+          options: [
+            'Per-seat subscription',
+            'Consumption / usage-based',
+            'Marketplace / take-rate',
+            'One-time perpetual licence',
+          ],
+          correctIndex: 0,
+          explanation:  'Salesforce charges a fixed price per user per month, billed annually — the canonical per-seat SaaS model.',
+          difficulty:   'easy',
+          conceptTags:  ['per-seat'],
+        },
+        {
+          id:           'tech-market-d7-q2',
+          prompt:       'Which is most characteristic of a consumption-priced business like Snowflake or AWS?',
+          options: [
+            'Predictable monthly bill regardless of activity',
+            'Revenue tracks customer activity — busy customers cost more, quiet ones cost less',
+            'Unlimited free usage with no upsell path',
+            'A one-time perpetual licence with no renewal',
+          ],
+          correctIndex: 1,
+          explanation:  'Consumption-priced products bill against actual usage — compute, storage, queries — so revenue rises and falls with the customer’s activity.',
+          difficulty:   'medium',
+          conceptTags:  ['consumption'],
+        },
+        {
+          id:           'tech-market-d7-q3',
+          prompt:       'Why does freemium suit a bottom-up adoption motion?',
+          options: [
+            'Free users have no influence inside their organisations',
+            'It lets a team adopt the product before IT or procurement gets involved, then negotiates the paid upgrade once entrenched',
+            'It is cheaper for the vendor than running a sales team',
+            'Regulators require some products to be free',
+          ],
+          correctIndex: 1,
+          explanation:  'Freemium gets the product into the team’s daily workflow first; the paid conversion happens once switching costs and habits make the upgrade an easy yes.',
+          difficulty:   'medium',
+          conceptTags:  ['freemium'],
+        },
+        {
+          id:           'tech-market-d7-q4',
+          prompt:       'For a seller, why does the dominant pricing shape matter beyond the contract itself?',
+          options: [
+            'It changes the colour of the invoice',
+            'It tells you what behaviour the company is paid to drive — more seats, more queries, more transactions — and shapes how the customer will be pushed throughout the contract',
+            'It determines the legal jurisdiction of the deal',
+            'It controls how often the website is updated',
+          ],
+          correctIndex: 1,
+          explanation:  'Pricing shape is the company’s incentive structure. It dictates which expansion levers the sales and product teams will lean on, and what the customer should expect over the contract life.',
+          difficulty:   'hard',
+          conceptTags:  ['pricing'],
         },
       ],
     },
