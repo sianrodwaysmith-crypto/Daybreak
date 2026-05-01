@@ -247,9 +247,30 @@ function lastUpdated(states: TileAI[]): number | null {
   return ts.length === 0 ? null : Math.min(...ts)
 }
 
+function isToday(ms: number, now: Date = new Date()): boolean {
+  const d = new Date(ms)
+  return d.getFullYear() === now.getFullYear()
+      && d.getMonth()    === now.getMonth()
+      && d.getDate()     === now.getDate()
+}
+
+/**
+ * Pulse calls are the most API-credit-expensive thing in the app
+ * (web_search × 3 sections per refresh). When all three sections
+ * already have today's content cached and didn't error, suppress the
+ * Refresh button so an accidental tap can't spend more credit on
+ * content that's already there. The auto-load on the next calendar
+ * day will refresh things naturally; users who really need to force
+ * a refetch can clear PWA storage as the power-user escape hatch.
+ */
+function allFreshToday(states: TileAI[]): boolean {
+  return states.every(s => !!s.content && !s.error && s.fetchedAt != null && isToday(s.fetchedAt))
+}
+
 export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
   const updated    = lastUpdated([anthropic, aiWorld, techMkt])
   const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
+  const freshToday = allFreshToday([anthropic, aiWorld, techMkt])
 
   return (
     <div className="pulse-screen">
@@ -257,15 +278,21 @@ export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySectio
         <span className="pulse-toolbar-meta">
           {updated ? `Updated ${formatTime(updated)}` : 'Updating…'}
         </span>
-        <button
-          onClick={onRefreshAll}
-          disabled={anyLoading}
-          aria-label="Refresh Pulse"
-          className="pulse-refresh-btn"
-        >
-          <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
-          <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
-        </button>
+        {freshToday ? (
+          <span className="pulse-fresh-pill" aria-label="Pulse is up to date for today">
+            Up to date · refreshes tomorrow
+          </span>
+        ) : (
+          <button
+            onClick={onRefreshAll}
+            disabled={anyLoading}
+            aria-label="Refresh Pulse"
+            className="pulse-refresh-btn"
+          >
+            <span className={`pulse-refresh-icon${anyLoading ? ' spinning' : ''}`}>↻</span>
+            <span>{anyLoading ? 'Refreshing' : 'Refresh'}</span>
+          </button>
+        )}
       </div>
 
       <Section label="Anthropic"   state={anthropic} onRetry={() => onRetrySection('pulse-anthropic')} />
