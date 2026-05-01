@@ -284,18 +284,7 @@ Search reputable technology news sources including TechCrunch, The Verge, Wired,
 
 Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'anthropic',
-  )
-}
-
-export function fetchPulseAIWorld(): Promise<string> {
-  const { day, date } = dayInfo()
-  return callPulse(
-    `Today is ${day}, ${date}.
-
-Search reputable technology news sources including TechCrunch, The Verge, Wired, MIT Technology Review, VentureBeat and Reuters Technology for the most important AI industry news from the last 30 days. Cover OpenAI, Google DeepMind, Meta AI, Microsoft AI, enterprise AI adoption and significant AI research.
-
-Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
-    'aiworld',
+    { maxSearches: 1 },
   )
 }
 
@@ -308,5 +297,6 @@ Search reputable business and technology sources including the Financial Times, 
 
 Return the 2 most important stories with a bold headline and 2 sentences of context each.${PULSE_FORMAT_TAIL}`,
     'techmarket',
+    { maxSearches: 1 },
   )
 }

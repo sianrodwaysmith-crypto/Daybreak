@@ -3,9 +3,8 @@ import { formatRelativeDate, dateFromUrl } from '../clients/parse'
 
 interface Props {
   anthropic: TileAI
-  aiWorld:   TileAI
   techMkt:   TileAI
-  onRetrySection: (id: 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech') => void
+  onRetrySection: (id: 'pulse-anthropic' | 'pulse-tech') => void
   onRefreshAll:   () => void
 }
 
@@ -267,10 +266,10 @@ function allFreshToday(states: TileAI[]): boolean {
   return states.every(s => !!s.content && !s.error && s.fetchedAt != null && isToday(s.fetchedAt))
 }
 
-export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySection, onRefreshAll }: Props) {
-  const updated    = lastUpdated([anthropic, aiWorld, techMkt])
-  const anyLoading = anthropic.loading || aiWorld.loading || techMkt.loading
-  const freshToday = allFreshToday([anthropic, aiWorld, techMkt])
+export default function PulseScreen({ anthropic, techMkt, onRetrySection, onRefreshAll }: Props) {
+  const updated    = lastUpdated([anthropic, techMkt])
+  const anyLoading = anthropic.loading || techMkt.loading
+  const freshToday = allFreshToday([anthropic, techMkt])
 
   return (
     <div className="pulse-screen">
@@ -296,7 +295,6 @@ export default function PulseScreen({ anthropic, aiWorld, techMkt, onRetrySectio
       </div>
 
       <Section label="Anthropic"   state={anthropic} onRetry={() => onRetrySection('pulse-anthropic')} />
-      <Section label="AI world"    state={aiWorld}   onRetry={() => onRetrySection('pulse-aiworld')} />
       <Section label="Tech market" state={techMkt}   onRetry={() => onRetrySection('pulse-tech')} />
     </div>
   )

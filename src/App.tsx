@@ -149,7 +149,7 @@ function HomeView() {
   const { ai, retry, refreshPulse } = useAIContent()
 
   const pulseLoading =
-    ai['pulse-anthropic'].loading || ai['pulse-aiworld'].loading || ai['pulse-tech'].loading
+    ai['pulse-anthropic'].loading || ai['pulse-tech'].loading
 
   // Anything that reads as exercise lives in the Movement tile, not the
   // schedule. Filter those events out so they don't show in both places.
@@ -211,7 +211,6 @@ function HomeView() {
       case 'client':   return <ClientResearchScreen />
       case 'pulse':    return <PulseScreen
         anthropic={ai['pulse-anthropic']}
-        aiWorld={ai['pulse-aiworld']}
         techMkt={ai['pulse-tech']}
         onRetrySection={(id) => retry(id)}
         onRefreshAll={refreshPulse}
