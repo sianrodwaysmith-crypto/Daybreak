@@ -44,6 +44,75 @@ export function hasMindsetEntryToday(): boolean {
   } catch { return false }
 }
 
+/* --------------------------------------------------------------------
+   History helpers — scan localStorage for every daybreak-mindset-*
+   key, return parsed entries newest-first. The scan is in-memory and
+   cheap (<= a few hundred entries even for heavy users).
+-------------------------------------------------------------------- */
+interface PastEntry { date: string; e: Partial<Saved> }
+
+function listPastEntries(): PastEntry[] {
+  const out: PastEntry[] = []
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (!key || !key.startsWith('daybreak-mindset-')) continue
+    const date = key.slice('daybreak-mindset-'.length)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue
+    try {
+      const raw = localStorage.getItem(key)
+      if (!raw) continue
+      out.push({ date, e: JSON.parse(raw) as Partial<Saved> })
+    } catch { /* skip malformed */ }
+  }
+  out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+  return out
+}
+
+const STOP_WORDS = new Set([
+  'i', 'a', 'an', 'the', 'and', 'or', 'but', 'so', 'as', 'of', 'in', 'on',
+  'at', 'to', 'for', 'with', 'by', 'is', 'am', 'are', 'was', 'were', 'be',
+  'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'my', 'me',
+  'we', 'us', 'our', 'you', 'your', 'he', 'she', 'it', 'they', 'them',
+  'this', 'that', 'these', 'those', 'a', 'one', 'some', 'any', 'all',
+  'just', 'will', 'can', 'would', 'could', 'should', 'about', 'from',
+])
+
+/**
+ * Lower-case a string, strip punctuation, split into words, drop stop
+ * words and anything < 3 chars. Used to build the "what comes up
+ * most" frequency map for the morning gratitudes.
+ */
+function tokenise(s: string): string[] {
+  return s.toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !STOP_WORDS.has(w))
+}
+
+function topWordsFromGratitudes(entries: PastEntry[], topN: number): Array<{ word: string; count: number }> {
+  const counts = new Map<string, number>()
+  for (const { e } of entries) {
+    for (const t of [e.g1, e.g2, e.g3]) {
+      if (!t) continue
+      for (const w of tokenise(t)) {
+        counts.set(w, (counts.get(w) ?? 0) + 1)
+      }
+    }
+  }
+  return [...counts.entries()]
+    .filter(([, c]) => c >= 2)                    // hide hapax legomena
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, topN)
+    .map(([word, count]) => ({ word, count }))
+}
+
+function formatDate(iso: string): string {
+  const d = new Date(iso + 'T00:00:00')
+  return d.toLocaleDateString(undefined, {
+    weekday: 'long', day: 'numeric', month: 'long',
+  })
+}
+
 export default function MindsetScreen() {
   const { registerContent } = useDayBreakContext()
 
@@ -63,6 +132,10 @@ export default function MindsetScreen() {
   const [amazing3, setAmazing3]             = useState('')
   const [betterHow, setBetterHow]           = useState('')
   const [eveningSubmitted, setESubmitted]   = useState(false)
+
+  // 'edit' = today's morning + evening form. 'history' = past entries
+  // browser, opened via the link below the form.
+  const [view, setView] = useState<'edit' | 'history'>('edit')
 
   useEffect(() => {
     const saved = localStorage.getItem(KEY)
@@ -200,6 +273,10 @@ export default function MindsetScreen() {
 
   const quote = quoteForDay()
 
+  if (view === 'history') {
+    return <MindsetHistoryView onBack={() => setView('edit')} />
+  }
+
   return (
     <div>
       <div className="mindset-quote">
@@ -325,6 +402,102 @@ export default function MindsetScreen() {
       {eveningSubmitted && (
         <button className="mindset-reset-btn" onClick={handleEveningReset}>RESET EVENING</button>
       )}
+
+      <button
+        type="button"
+        className="mindset-history-link"
+        onClick={() => setView('history')}
+      >
+        View past entries →
+      </button>
+    </div>
+  )
+}
+
+/* ====================================================================
+   MindsetHistoryView — read-only browser for every past mindset entry
+   on this device. Shows a small "themes" line on top (most-mentioned
+   gratitude words once N >= 5 entries) followed by a reverse-chrono
+   stack of cards. Designed to feel like flipping through a notebook,
+   not like a dashboard.
+==================================================================== */
+
+interface HistoryProps { onBack: () => void }
+
+function MindsetHistoryView({ onBack }: HistoryProps) {
+  const entries = listPastEntries()
+  const themes  = entries.length >= 5 ? topWordsFromGratitudes(entries, 3) : []
+
+  return (
+    <div className="mindset-history">
+      <header className="mindset-history-head">
+        <button type="button" className="mindset-history-back" onClick={onBack}>← back</button>
+        <span className="mindset-history-title">past entries</span>
+        <span className="mindset-history-count">{entries.length}</span>
+      </header>
+
+      {entries.length === 0 && (
+        <p className="mindset-history-empty">Your past entries will appear here as you fill them in.</p>
+      )}
+
+      {themes.length > 0 && (
+        <p className="mindset-history-themes">
+          What comes up most:{' '}
+          {themes.map((t, i) => (
+            <span key={t.word}>
+              <span className="mindset-history-theme-word">{t.word}</span>
+              <span className="mindset-history-theme-count"> ({t.count})</span>
+              {i < themes.length - 1 ? ', ' : ''}
+            </span>
+          ))}
+        </p>
+      )}
+
+      <ul className="mindset-history-list">
+        {entries.map(({ date, e }) => {
+          const grats   = [e.g1, e.g2, e.g3].filter((s): s is string => !!s && !!s.trim())
+          const amazing = [e.amazing1, e.amazing2, e.amazing3].filter((s): s is string => !!s && !!s.trim())
+          const hasMorning = grats.length > 0 || (e.greatDay && e.greatDay.trim()) || (e.affirmation && e.affirmation.trim())
+          const hasEvening = amazing.length > 0 || (e.betterHow && e.betterHow.trim())
+
+          return (
+            <li key={date} className="mindset-history-card">
+              <div className="mindset-history-date">{formatDate(date)}</div>
+
+              {hasMorning && (
+                <>
+                  <div className="mindset-history-eyebrow">MORNING</div>
+                  {grats.length > 0 && (
+                    <ul className="mindset-history-bullets">
+                      {grats.map((g, i) => <li key={i}>{g}</li>)}
+                    </ul>
+                  )}
+                  {e.greatDay && e.greatDay.trim() && (
+                    <p className="mindset-history-line"><em>What would make today great:</em> {e.greatDay}</p>
+                  )}
+                  {e.affirmation && e.affirmation.trim() && (
+                    <p className="mindset-history-line"><em>Affirmation:</em> {e.affirmation}</p>
+                  )}
+                </>
+              )}
+
+              {hasEvening && (
+                <>
+                  <div className="mindset-history-eyebrow">EVENING</div>
+                  {amazing.length > 0 && (
+                    <ul className="mindset-history-bullets">
+                      {amazing.map((g, i) => <li key={i}>{g}</li>)}
+                    </ul>
+                  )}
+                  {e.betterHow && e.betterHow.trim() && (
+                    <p className="mindset-history-line"><em>How today could've been better:</em> {e.betterHow}</p>
+                  )}
+                </>
+              )}
+            </li>
+          )
+        })}
+      </ul>
     </div>
   )
 }
