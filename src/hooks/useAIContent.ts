@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
 import {
-  fetchPulseAnthropic, fetchPulseAIWorld, fetchPulseTechMarket,
+  fetchPulseAnthropic, fetchPulseTechMarket,
 } from '../services/ai'
 import { useDayBreakContext } from '../contexts/DayBreakContext'
 
-export type AITileId = 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
-export type PulseSectionId = 'pulse-anthropic' | 'pulse-aiworld' | 'pulse-tech'
+export type AITileId = 'pulse-anthropic' | 'pulse-tech'
+export type PulseSectionId = 'pulse-anthropic' | 'pulse-tech'
 
-export const PULSE_SECTIONS: PulseSectionId[] = ['pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
+export const PULSE_SECTIONS: PulseSectionId[] = ['pulse-anthropic', 'pulse-tech']
 
 export interface TileAI {
   content:    string | null
@@ -19,34 +19,49 @@ export interface TileAI {
 
 type AIState = Record<AITileId, TileAI>
 
-const TILE_IDS: AITileId[] = ['pulse-anthropic', 'pulse-aiworld', 'pulse-tech']
+const TILE_IDS: AITileId[] = ['pulse-anthropic', 'pulse-tech']
 
-function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+function dateOffsetStr(offsetDays: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + offsetDays)
+  return d.toISOString().slice(0, 10)
 }
+function todayStr(): string { return dateOffsetStr(0) }
 
 // Bump this when the prompt format or rendered shape changes so stale caches
 // don't survive a deploy.
 const CACHE_VERSION = 'v10'
 
-function cacheKey(id: AITileId): string {
-  return `daybreak-ai-${CACHE_VERSION}-${id}-${todayStr()}`
-}
+// How many days of past cache we'll happily use before refetching. News
+// for a personal coaching context doesn't need to be daily; a 3-day
+// lookback cuts auto-fetches by ~3× without making the content feel
+// stale.
+const CACHE_LOOKBACK_DAYS = 3
 
-function tsKey(id: AITileId): string {
-  return `daybreak-ai-${CACHE_VERSION}-${id}-${todayStr()}-ts`
+function cacheKeyForDate(id: AITileId, date: string): string {
+  return `daybreak-ai-${CACHE_VERSION}-${id}-${date}`
 }
+function tsKeyForDate(id: AITileId, date: string): string {
+  return `daybreak-ai-${CACHE_VERSION}-${id}-${date}-ts`
+}
+function cacheKey(id: AITileId): string { return cacheKeyForDate(id, todayStr()) }
+function tsKey(id: AITileId):    string { return tsKeyForDate(id, todayStr()) }
 
 function readCache(id: AITileId): { content: string; fetchedAt: number } | null {
-  try {
-    const content = localStorage.getItem(cacheKey(id))
-    if (!content) return null
-    const tsRaw = localStorage.getItem(tsKey(id))
-    const fetchedAt = tsRaw ? Number(tsRaw) : Date.now()
-    return { content, fetchedAt }
-  } catch {
-    return null
+  // Look back up to CACHE_LOOKBACK_DAYS-1 days. Return the freshest hit.
+  // Today's key wins when present; otherwise we'll happily use yesterday's
+  // or the day before — better than burning credit on a fresh search.
+  for (let offset = 0; offset < CACHE_LOOKBACK_DAYS; offset++) {
+    try {
+      const date = dateOffsetStr(-offset)
+      const content = localStorage.getItem(cacheKeyForDate(id, date))
+      if (!content) continue
+      const tsRaw = localStorage.getItem(tsKeyForDate(id, date))
+      const fetchedAt = tsRaw ? Number(tsRaw) : Date.now()
+      return { content, fetchedAt }
+    } catch { return null }
   }
+  return null
 }
 
 function writeCache(id: AITileId, value: string, fetchedAt: number): void {
@@ -57,16 +72,20 @@ function writeCache(id: AITileId, value: string, fetchedAt: number): void {
 }
 
 function clearCache(id: AITileId): void {
+  // Clear the whole lookback window so a manual refresh isn't quietly
+  // satisfied by yesterday's still-cached content.
   try {
-    localStorage.removeItem(cacheKey(id))
-    localStorage.removeItem(tsKey(id))
+    for (let offset = 0; offset < CACHE_LOOKBACK_DAYS; offset++) {
+      const date = dateOffsetStr(-offset)
+      localStorage.removeItem(cacheKeyForDate(id, date))
+      localStorage.removeItem(tsKeyForDate(id, date))
+    }
   } catch { /* noop */ }
 }
 
 function getPromise(id: AITileId): Promise<string> {
   switch (id) {
     case 'pulse-anthropic': return fetchPulseAnthropic()
-    case 'pulse-aiworld':   return fetchPulseAIWorld()
     case 'pulse-tech':      return fetchPulseTechMarket()
   }
 }
