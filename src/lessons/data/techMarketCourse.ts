@@ -18,7 +18,7 @@ export const TECH_MARKET_COURSE: Course = {
   id:          'tech-market-sales',
   title:       'Selling in the Tech Market',
   description: 'A guided primer for someone new to selling software or tech. The shape of the industry, the players, how money flows, what to listen for in a sales motion.',
-  totalDays:   7,
+  totalDays:   11,
   authoredAt:  '2026-05-01',
   lessons: [
 
@@ -603,6 +603,358 @@ Most modern companies blend two or three. Snowflake is consumption with annual c
           explanation:  'Pricing shape is the company’s incentive structure. It dictates which expansion levers the sales and product teams will lean on, and what the customer should expect over the contract life.',
           difficulty:   'hard',
           conceptTags:  ['pricing'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 8 ============================ */
+    {
+      id:               'tech-market-d8',
+      dayNumber:        8,
+      title:            'Who actually buys',
+      hook:             'In enterprise, the buyer is rarely the user.',
+      estimatedMinutes: 3,
+      conceptTags:      ['economic-buyer', 'technical-buyer', 'end-user', 'developer-as-buyer'],
+      body:
+`In consumer products the buyer and the user are usually the same person. In enterprise, almost never. There are typically three personas a seller has to satisfy, and a fourth that has emerged in the last decade.
+
+The economic buyer signs the cheque. They might be a CFO, a COO, a business unit leader, or — for smaller deals — a department head with budget. They care about return on investment, fit with budget, and whether buying this thing fits the company's broader plans.
+
+The technical buyer says yes or no on whether the product can actually run inside the customer's estate. IT, security, enterprise architecture. They care about how it integrates, how it stores data, what its security posture looks like, and whether their team can operate it.
+
+The end user uses the product every day. The team whose workflow the software is meant to improve. They care about whether their working life gets easier or harder.
+
+{{diagram:tech-buyers}}
+
+A fourth persona has appeared more recently: the developer-as-buyer. For platform and dev-tool products — think Stripe, Vercel, Auth0, MongoDB — the developer is end user, internal advocate, and increasingly the de-facto buyer. They sign up to free tiers, drag the product into the company, and the procurement conversation comes after.
+
+The pattern depends on the product layer. Application software is dominated by the business buyer with IT vetoing. Infrastructure and platform are dominated by the technical buyer. Dev tools follow the developer. Vertical software often collapses into a single buyer who carries all three hats because the team is small.
+
+For a seller new to enterprise, the trick is identifying all three personas early and mapping each one's win condition. A deal stalls the moment any one of them isn't a yes.`,
+      takeaway:         "Find the economic, technical, and end-user buyers. A deal needs yes from each.",
+      diagrams: [
+        {
+          id:      'tech-buyers',
+          caption: 'Three personas in the enterprise sale. Each cares about a different thing.',
+          svg: `<svg viewBox="0 0 600 180" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif">
+  <g stroke-width="1">
+    <rect x="20"  y="20" width="180" height="140" rx="6" />
+    <rect x="210" y="20" width="180" height="140" rx="6" />
+    <rect x="400" y="20" width="180" height="140" rx="6" />
+  </g>
+  <g font-size="11" fill="currentColor" stroke="none">
+    <text x="110" y="46"  text-anchor="middle" font-weight="500">Economic</text>
+    <text x="110" y="68"  text-anchor="middle" opacity="0.7">signs the cheque</text>
+    <text x="110" y="100" text-anchor="middle" opacity="0.85">CFO · COO · BU lead</text>
+    <text x="110" y="124" text-anchor="middle" opacity="0.7">cares about ROI</text>
+    <text x="110" y="142" text-anchor="middle" opacity="0.7">and budget fit</text>
+
+    <text x="300" y="46"  text-anchor="middle" font-weight="500">Technical</text>
+    <text x="300" y="68"  text-anchor="middle" opacity="0.7">says yes / no on fit</text>
+    <text x="300" y="100" text-anchor="middle" opacity="0.85">IT · security · arch.</text>
+    <text x="300" y="124" text-anchor="middle" opacity="0.7">cares about security,</text>
+    <text x="300" y="142" text-anchor="middle" opacity="0.7">data, integration</text>
+
+    <text x="490" y="46"  text-anchor="middle" font-weight="500">End user</text>
+    <text x="490" y="68"  text-anchor="middle" opacity="0.7">uses it daily</text>
+    <text x="490" y="100" text-anchor="middle" opacity="0.85">the team itself</text>
+    <text x="490" y="124" text-anchor="middle" opacity="0.7">cares about workflow</text>
+    <text x="490" y="142" text-anchor="middle" opacity="0.7">and time saved</text>
+  </g>
+</svg>`,
+        },
+      ],
+      questions: [
+        {
+          id:           'tech-market-d8-q1',
+          prompt:       'In enterprise software, the buyer and the end user are typically:',
+          options: [
+            'The same person',
+            'Different people, with the buyer often a finance or business leader and the user the team itself',
+            'Always the IT department',
+            'Always the CEO',
+          ],
+          correctIndex: 1,
+          explanation:  'Enterprise sales separate the economic buyer (signs the cheque) from the end user (uses the product). Aligning both is the seller’s job.',
+          difficulty:   'easy',
+          conceptTags:  ['economic-buyer', 'end-user'],
+        },
+        {
+          id:           'tech-market-d8-q2',
+          prompt:       'Who is the technical buyer in a typical enterprise deal?',
+          options: [
+            'The CEO',
+            'IT, security, and enterprise architecture — the people who say yes/no on whether it can run in the customer’s estate',
+            'The end user’s manager',
+            'The legal team',
+          ],
+          correctIndex: 1,
+          explanation:  'The technical buyer evaluates fit with the customer’s infrastructure, security, and integration needs. They have a hard veto.',
+          difficulty:   'medium',
+          conceptTags:  ['technical-buyer'],
+        },
+        {
+          id:           'tech-market-d8-q3',
+          prompt:       'For products like Stripe, Vercel, or MongoDB, who is the de-facto buyer?',
+          options: [
+            'The CFO',
+            'The developer — they adopt via free tier, advocate internally, and the contract follows',
+            'The HR director',
+            'The customer’s general counsel',
+          ],
+          correctIndex: 1,
+          explanation:  'For developer-tooling products the developer is end user, internal champion, and effectively the buyer. Procurement gets involved later, after adoption.',
+          difficulty:   'medium',
+          conceptTags:  ['developer-as-buyer'],
+        },
+        {
+          id:           'tech-market-d8-q4',
+          prompt:       'A deal has executive sign-off and end-user enthusiasm but IT is uneasy about data residency. What is most likely to happen?',
+          options: [
+            'The deal closes anyway because two of three buyers said yes',
+            'It stalls — a deal needs yes from each persona, and the technical buyer effectively has a veto',
+            'IT will be overruled by the CFO',
+            'The end user can sign on IT’s behalf',
+          ],
+          correctIndex: 1,
+          explanation:  'Any one persona can stall a deal indefinitely. Treating the technical buyer’s concerns as a soft block is one of the most common mistakes new sellers make.',
+          difficulty:   'hard',
+          conceptTags:  ['technical-buyer', 'economic-buyer'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 9 ============================ */
+    {
+      id:               'tech-market-d9',
+      dayNumber:        9,
+      title:            'Top-down vs bottom-up',
+      hook:             'Two shapes of deal — and the first call each implies.',
+      estimatedMinutes: 3,
+      conceptTags:      ['top-down', 'bottom-up', 'plg', 'enterprise-overlay'],
+      body:
+`Sales motions in tech come in two broad shapes, and most companies run one of them as their primary path to revenue.
+
+Top-down. The seller talks to executives first. They build a business case, secure budget, get a contract signed, and IT rolls the product out across the organisation. Cycles are long — six to eighteen months for serious enterprise deals. Initial deals are large: a multi-year, multi-million-dollar commitment isn't unusual. This is the shape of classic enterprise software. Salesforce historically. Workday. Oracle. Anyone selling a category-defining product where executives have to be convinced the category itself is worth investing in.
+
+Bottom-up. The product does the early selling. A free tier or low-cost individual plan lets people start using the product without a buying decision. End users adopt it organically and spread it inside their teams. Once it's entrenched, a self-serve flow or a small sales team converts the team to paid; eventually finance and IT show up to negotiate an enterprise tier with security, compliance, and admin features. Slack, Notion, Figma, Postman, GitHub. The cost of acquisition is low because users do most of the work; the cap is that day-one deals are tiny.
+
+Many companies blend the two. Slack started bottom-up but built an enterprise sales team once large customers needed SSO, audit, and data residency features that don't sit on the free tier. The blended motion is sometimes called "PLG with enterprise overlay" — product-led growth at the bottom of the customer list, traditional sellers servicing the top.
+
+For someone new to selling, knowing which motion your product runs tells you who to call and when. If it's top-down, your job is opening a conversation with executives. If it's bottom-up, the product has already done the early work — your job is to find the buyer who has budget, surface the existing usage as the proof, and shepherd it through procurement.`,
+      takeaway:         'Top-down or bottom-up. Each motion implies a different first call.',
+      questions: [
+        {
+          id:           'tech-market-d9-q1',
+          prompt:       'A top-down sales motion typically begins with:',
+          options: [
+            'A free trial individual users sign up for',
+            'A conversation with executives to build a business case and secure budget',
+            'A booth at a developer conference',
+            'An app store listing',
+          ],
+          correctIndex: 1,
+          explanation:  'Top-down means the seller engages executive buyers first; the rollout follows the contract.',
+          difficulty:   'easy',
+          conceptTags:  ['top-down'],
+        },
+        {
+          id:           'tech-market-d9-q2',
+          prompt:       'Slack, Figma, and Notion are best examples of which motion?',
+          options: ['Top-down enterprise sales', 'Bottom-up / product-led growth', 'Government procurement', 'Pure marketplace take-rate'],
+          correctIndex: 1,
+          explanation:  'All three drove early adoption through free tiers and individual / team usage, then layered enterprise contracts on top once large customers showed up.',
+          difficulty:   'medium',
+          conceptTags:  ['bottom-up', 'plg'],
+        },
+        {
+          id:           'tech-market-d9-q3',
+          prompt:       '"PLG with enterprise overlay" describes what?',
+          options: [
+            'A new tax structure for software companies',
+            'A blended motion: product-led growth at the bottom of the customer list, traditional enterprise sellers servicing the largest accounts',
+            'A regulatory regime in the EU',
+            'A specific Salesforce product',
+          ],
+          correctIndex: 1,
+          explanation:  'Most modern bottom-up companies eventually layer an enterprise sales team on top to capture larger contracts that need negotiated terms.',
+          difficulty:   'medium',
+          conceptTags:  ['enterprise-overlay'],
+        },
+        {
+          id:           'tech-market-d9-q4',
+          prompt:       'Your product runs a bottom-up motion and a target company already has 200 active free users across three teams. What is the next-best move?',
+          options: [
+            'Cold-email the CEO with a generic enterprise pitch',
+            'Surface the existing usage as proof, find the buyer with budget across those teams, and help them get it through procurement',
+            'Disable all the free accounts to force an upgrade',
+            'Ignore the existing users and run a top-down outreach campaign',
+          ],
+          correctIndex: 1,
+          explanation:  'In a bottom-up motion the product has already done the early work. The seller’s job is to convert in-product usage into a contracted enterprise deal — not to start the conversation from zero.',
+          difficulty:   'hard',
+          conceptTags:  ['bottom-up', 'plg'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 10 ============================ */
+    {
+      id:               'tech-market-d10',
+      dayNumber:        10,
+      title:            'Procurement: MSA, SOW, RFP, security review',
+      hook:             'The gauntlet between executive yes and signed contract.',
+      estimatedMinutes: 3,
+      conceptTags:      ['procurement', 'msa', 'sow', 'rfp', 'security-review'],
+      body:
+`The handshake is not the deal. Procurement is the formal process the customer's company runs to actually convert a yes into a signature, and on most enterprise deals it takes longer than the rest of the sales cycle combined. The vocabulary is worth learning early, because the first time you bump into it the deal is already weeks behind schedule.
+
+MSA — Master Services Agreement. The umbrella contract between the two companies. It covers liability caps, intellectual property, data ownership, governing law, and the bits both sides will reuse on every future order. MSAs are negotiated once, often by lawyers, and then live forever; subsequent orders reference the existing MSA rather than re-litigating it.
+
+SOW or Order Form — Statement of Work. The specific thing being bought under the MSA: scope, pricing, term length, start date, named modules, named users. Each new purchase has its own SOW.
+
+RFP — Request for Proposal. A formal procurement process where the customer writes a structured brief, multiple vendors respond, and a scoring matrix decides the winner. Common in regulated industries (banking, insurance, healthcare) and government. Responses are detailed; cycles are long; participating without a strong inside relationship is usually a waste of time.
+
+Security review. A questionnaire (often based on industry-standard templates like SIG or CAIQ) the customer's security team walks the vendor through. Encryption, access controls, sub-processors, where data physically lives, what compliance certifications you carry — SOC 2, ISO 27001, HIPAA, FedRAMP, depending on the customer's industry.
+
+DPA — Data Processing Addendum. For any product touching personal data, a separate addendum spelling out GDPR or regional privacy obligations.
+
+The single biggest skill is anticipating procurement at the start of the deal, not the end. Asking up front about MSA templates, security requirements, and procurement timelines can shave weeks. Letting them surface in week ten is the most common reason a deal slips a quarter.`,
+      takeaway:         'Procurement is half the cycle. Anticipating it is half the job.',
+      questions: [
+        {
+          id:           'tech-market-d10-q1',
+          prompt:       'What does an MSA do?',
+          options: [
+            'Names a single specific purchase',
+            'Sets the umbrella terms — liability, IP, data, governing law — that every future order reuses',
+            'Records the security questionnaire results',
+            'Replaces the price on the website',
+          ],
+          correctIndex: 1,
+          explanation:  'The MSA is the parent contract; specific orders (SOWs / order forms) reference it rather than negotiating each term again.',
+          difficulty:   'easy',
+          conceptTags:  ['msa'],
+        },
+        {
+          id:           'tech-market-d10-q2',
+          prompt:       'A formal customer brief inviting multiple vendors to bid against a structured set of requirements is called:',
+          options: ['MSA', 'SOW', 'RFP', 'DPA'],
+          correctIndex: 2,
+          explanation:  'RFP — Request for Proposal — is the formal multi-vendor procurement process. Common in regulated industries and government.',
+          difficulty:   'medium',
+          conceptTags:  ['rfp'],
+        },
+        {
+          id:           'tech-market-d10-q3',
+          prompt:       'A customer’s security team will likely ask about each of these EXCEPT:',
+          options: [
+            'Encryption and access controls',
+            'Sub-processors and where data physically lives',
+            'Compliance certifications such as SOC 2 or ISO 27001',
+            'The vendor’s favourite office snacks',
+          ],
+          correctIndex: 3,
+          explanation:  'Security reviews focus on data protection, sub-processors, residency, and certifications. Snack policy stays out of scope.',
+          difficulty:   'medium',
+          conceptTags:  ['security-review'],
+        },
+        {
+          id:           'tech-market-d10-q4',
+          prompt:       'Why does anticipating procurement at the start of the deal — not the end — matter?',
+          options: [
+            'It is required by law',
+            'It can shave weeks off the close because MSA, security, and certification questions surface earlier rather than blocking signature at the last minute',
+            'Procurement teams refuse to engage with deals discovered late',
+            'It changes the colour of the contract',
+          ],
+          correctIndex: 1,
+          explanation:  'Most quarter-end slips come from procurement work surfacing late. Asking about MSA templates and security requirements in week one — not week ten — is the single highest-leverage move.',
+          difficulty:   'hard',
+          conceptTags:  ['procurement'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 11 ============================ */
+    {
+      id:               'tech-market-d11',
+      dayNumber:        11,
+      title:            'Partners — SIs, ISVs, GSIs, the channel',
+      hook:             'You sell with partners, not just to customers.',
+      estimatedMinutes: 3,
+      conceptTags:      ['partners', 'system-integrators', 'gsis', 'isvs', 'channel'],
+      body:
+`Most enterprise tech is sold with partners as much as it is sold to customers. The partner ecosystem is a parallel sales motion, and a vendor that ignores it usually loses the largest deals to one that doesn't. The categories worth knowing:
+
+System Integrators (SIs). Consultancies that help customers configure, customise, and roll out software. They earn from services hours; the software vendor earns from licences. Mid-sized firms — Slalom, regional implementation shops — often dominate specific industries or geographies. They have relationships you don't and can pull you into deals you'd never reach alone.
+
+Global System Integrators (GSIs). The largest SIs — Accenture, Deloitte, IBM Consulting, KPMG, EY, Capgemini, Infosys, TCS. They run multi-year, multi-million-dollar transformation programmes for the world's biggest companies. Being on a GSI's preferred-partner list for a particular product is one of the highest-leverage things a vendor can secure: it pulls you into Fortune 500 deals as the chosen technology by default.
+
+Independent Software Vendors (ISVs). Software companies that build products on top of yours and resell or co-sell. Salesforce's AppExchange is full of them. ISVs can extend your product's reach into vertical use cases you'd never staff yourself.
+
+Resellers and Value-Added Resellers (VARs). Partners who buy from you and resell to the customer with services and support wrapped around. Common in regional or industry-specific markets where the customer wants a local relationship.
+
+The "channel" is the umbrella term for all of these. A channel-led company sells most of its revenue through partners and treats direct sales as a smaller add-on. Most enterprise software is hybrid — direct sales on the largest deals, channel on the long tail.
+
+For a seller new to the industry, two things matter. Know which partners cover your territory and your product's strongest use cases. And treat them well. Partners that like working with you bring you deals; partners that don't quietly route the same deals to your competitor.`,
+      takeaway:         "You don't only sell to customers. You sell with partners. They're a force multiplier — or, ignored, a force against you.",
+      questions: [
+        {
+          id:           'tech-market-d11-q1',
+          prompt:       'Accenture, Deloitte, and IBM Consulting are examples of:',
+          options: [
+            'Hyperscalers',
+            'Global System Integrators (GSIs)',
+            'Foundation-model providers',
+            'Vertical software companies',
+          ],
+          correctIndex: 1,
+          explanation:  'GSIs are the largest implementation consultancies, running multi-year programmes inside the world’s biggest enterprises.',
+          difficulty:   'easy',
+          conceptTags:  ['gsis'],
+        },
+        {
+          id:           'tech-market-d11-q2',
+          prompt:       'An ISV is best described as:',
+          options: [
+            'A consultancy that bills hours to customers',
+            'A software company that builds products on top of another vendor’s platform and resells or co-sells',
+            'A regulator',
+            'A reseller of physical hardware',
+          ],
+          correctIndex: 1,
+          explanation:  'Independent Software Vendors extend a platform with their own products, often surfaced through the platform’s marketplace.',
+          difficulty:   'medium',
+          conceptTags:  ['isvs'],
+        },
+        {
+          id:           'tech-market-d11-q3',
+          prompt:       'A "channel-led" software company is one that:',
+          options: [
+            'Sells exclusively through television channels',
+            'Generates most of its revenue through partners rather than its own direct sales team',
+            'Refuses to work with any partners',
+            'Sells only to the public sector',
+          ],
+          correctIndex: 1,
+          explanation:  'Channel-led means the partner ecosystem — SIs, GSIs, ISVs, resellers — drives the bulk of revenue, with direct sales as a smaller add-on.',
+          difficulty:   'medium',
+          conceptTags:  ['channel'],
+        },
+        {
+          id:           'tech-market-d11-q4',
+          prompt:       'Why does treating partners well matter as much as treating customers well?',
+          options: [
+            'Partners control the software vendor’s salary',
+            'Partners have relationships and projects you cannot see — they bring you deals when they like working with you, and route the same deals to your competitor when they don’t',
+            'Regulators audit how vendors speak to partners',
+            'Partners pick the vendor’s CEO',
+          ],
+          correctIndex: 1,
+          explanation:  'Partners are a force multiplier on deal flow. The same deal can land in your inbox or your competitor’s, often based on which vendor the partner prefers to work with.',
+          difficulty:   'hard',
+          conceptTags:  ['partners', 'channel'],
         },
       ],
     },
