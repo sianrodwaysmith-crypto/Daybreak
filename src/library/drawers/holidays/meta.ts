@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react'
-import { copy } from './copy'
 import { getHolidaysStorage } from './storage'
 import { ensureSeeded } from './seed'
 
 /**
  * Hook that returns the Holidays drawer's meta-line for the Library
- * grid card. Reads the seeded/saved trips, derives counts, and emits:
- *   - "17 visited · 1 planned"
- *   - "17 visited"        (no planned)
- *   - "1 planned"         (no visited)
- *   - null                (drawer is empty, card omits the meta-line)
- *
- * Re-runs on mount; the grid card re-renders once the async load
- * resolves so the counts appear without a flash of stale state.
+ * grid card. Counts unique visited + wishlist countries, emits one of:
+ *   - "17 visited · 8 wishlist"
+ *   - "17 visited"
+ *   - "8 wishlist"
+ *   - null (card omits the meta-line entirely)
  */
 export function useHolidaysMetaLine(): string | null {
   const [line, setLine] = useState<string | null>(null)
@@ -23,11 +19,15 @@ export function useHolidaysMetaLine(): string | null {
       .then(() => getHolidaysStorage().listTrips())
       .then(trips => {
         if (!alive) return
-        const visitedCountries = new Set(
+        const visited = new Set(
           trips.filter(t => t.status === 'visited').map(t => t.countryCode),
         ).size
-        const plannedCount = trips.filter(t => t.status === 'planned').length
-        setLine(formatMetaLine(visitedCountries, plannedCount))
+        // Treat both 'planned' and 'wishlist' as wishlist for this readout —
+        // the drawer redesign collapses planned into wishlist as one bucket.
+        const wishlist = new Set(
+          trips.filter(t => t.status === 'wishlist' || t.status === 'planned').map(t => t.countryCode),
+        ).size
+        setLine(formatMetaLine(visited, wishlist))
       })
     return () => { alive = false }
   }, [])
@@ -35,9 +35,9 @@ export function useHolidaysMetaLine(): string | null {
   return line
 }
 
-function formatMetaLine(visited: number, planned: number): string | null {
+function formatMetaLine(visited: number, wishlist: number): string | null {
   const parts: string[] = []
-  if (visited > 0) parts.push(`${visited} ${copy.stats.visited}`)
-  if (planned > 0) parts.push(`${planned} ${copy.stats.planned}`)
+  if (visited  > 0) parts.push(`${visited} visited`)
+  if (wishlist > 0) parts.push(`${wishlist} wishlist`)
   return parts.length === 0 ? null : parts.join(' · ')
 }
