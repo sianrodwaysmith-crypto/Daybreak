@@ -28,16 +28,20 @@ async function seedIfNeeded(storage: LessonsStorage): Promise<void> {
   const existing = await storage.listCourses()
   const existingIds = new Set(existing.map(c => c.id))
 
-  // Tech-market is intentionally always upserted while it's still being
-  // authored in chunks: each commit bumps totalDays and appends lessons
-  // to the array, so we want the latest copy to overwrite whatever was
-  // seeded on the user's device. Once the course hits 14 days and stops
-  // changing we'll move it back to the "skip if already seeded" branch.
   for (const course of [ANTHROPIC_COURSE, INSURANCE_COURSE, AZTEC_COURSE, ROTHESAY_COURSE]) {
     if (!existingIds.has(course.id)) {
       await storage.saveCourse(course)
     }
   }
+
+  // tech-market is upserted unconditionally rather than skip-if-seeded.
+  // The course shipped in four chunks with totalDays growing 3 → 7 → 11
+  // → 14, and we need everyone — fresh installs and users with a
+  // partial earlier version on their device — to land on the same
+  // final 14-day course definition. Upsert is safe here because course
+  // records are independent of Enrollment progress: saveCourse rewrites
+  // the curriculum but leaves user lastEngagedAt / completedLessons /
+  // mastery untouched.
   await storage.saveCourse(TECH_MARKET_COURSE)
 }
 
