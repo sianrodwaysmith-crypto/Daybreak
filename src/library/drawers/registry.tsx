@@ -15,6 +15,8 @@ import { HolidaysDrawer }         from './holidays/components/HolidaysDrawer'
 import { useHolidaysMetaLine }    from './holidays/meta'
 import { HouseDrawer }            from './house/components/HouseDrawer'
 import { useHouseMetaLine }       from './house/meta'
+import { OutfitsDrawer }          from './outfits/components/OutfitsDrawer'
+import { useOutfitsMetaLine }     from './outfits/meta'
 
 const useNullMetaLine = () => null
 
@@ -31,9 +33,9 @@ export function buildRegistry(onBack: () => void): DrawerManifest[] {
       id:           'outfits',
       name:         'Outfits',
       icon:         () => <OutfitsIcon />,
-      useMetaLine:  useNullMetaLine,
-      component:    () => <PlaceholderDrawer name="Outfits" onBack={onBack} />,
-      status:       'placeholder',
+      useMetaLine:  useOutfitsMetaLine,
+      component:    () => <OutfitsDrawer onBack={onBack} />,
+      status:       'live',
     },
     {
       id:           'holidays',
