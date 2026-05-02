@@ -18,7 +18,7 @@ export const TECH_MARKET_COURSE: Course = {
   id:          'tech-market-sales',
   title:       'Selling in the Tech Market',
   description: 'A guided primer for someone new to selling software or tech. The shape of the industry, the players, how money flows, what to listen for in a sales motion.',
-  totalDays:   11,
+  totalDays:   14,
   authoredAt:  '2026-05-01',
   lessons: [
 
@@ -955,6 +955,280 @@ For a seller new to the industry, two things matter. Know which partners cover y
           explanation:  'Partners are a force multiplier on deal flow. The same deal can land in your inbox or your competitor’s, often based on which vendor the partner prefers to work with.',
           difficulty:   'hard',
           conceptTags:  ['partners', 'channel'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 12 ============================ */
+    {
+      id:               'tech-market-d12',
+      dayNumber:        12,
+      title:            'Switching costs, build vs buy, lock-in',
+      hook:             'The competitive forces in every enterprise deal.',
+      estimatedMinutes: 3,
+      conceptTags:      ['switching-costs', 'build-vs-buy', 'lock-in', 'moat'],
+      body:
+`Three forces shape almost every enterprise tech decision. Knowing them helps you anticipate the questions a buyer will quietly ask before they sign.
+
+Switching costs. The work a customer would have to do to leave you and adopt a competitor. Switching costs come from data (their data lives inside your product), workflow (their team has built habits around your UI), integrations (other tools call into yours through APIs and webhooks), and skills (engineers and operators are trained on your specifics). High switching costs are a moat. They are also the source of much customer cynicism — once locked in, the path of least resistance is to spend more with the same vendor next year.
+
+Build vs buy. The fundamental question every enterprise asks itself: should we buy this product, or have our team build something internally? Buy is faster, cheaper for the first year, and benefits from the vendor's ongoing R&D. Build is slower, more expensive up front, but tailored exactly to the company's needs and free of vendor lock-in. The general rule used by most well-run companies: buy commodity, build differentiation. A bank should buy its email server (commodity) and build its own pricing engine (differentiation). Where the line falls depends on industry, scale, and how much in-house engineering capacity the customer actually has.
+
+Lock-in. Switching costs accumulated over years become lock-in. Once a customer's data is in Salesforce, their sales team is trained on Salesforce, and ten downstream tools integrate with Salesforce, moving to a competitor isn't just buying a new licence — it's months of migration work and change management. Lock-in is sometimes treated as a dirty word. It is also a structural feature of any long-term enterprise software relationship. The well-managed version reads as "sticky for good reasons"; the badly-managed version reads as "we'd love to leave but we can't".
+
+For sellers: lean into switching costs as part of the value (more data in, more value out, more downstream integration) without being smug about it. The build-vs-buy question deserves an honest answer; pretending the customer can't possibly build it themselves usually backfires.`,
+      takeaway:         'Switching costs are a moat. Lock-in is the same moat with the customer angry about it.',
+      questions: [
+        {
+          id:           'tech-market-d12-q1',
+          prompt:       'Switching costs in enterprise software typically come from each of these EXCEPT:',
+          options: [
+            'Customer data living inside the product',
+            'Team workflows built around the UI',
+            'Downstream integrations calling the product’s APIs',
+            'The colour of the vendor’s logo',
+          ],
+          correctIndex: 3,
+          explanation:  'Switching costs come from data, workflow, integrations, and skills — the structural ties between the customer and the product. Visual branding doesn’t move the needle.',
+          difficulty:   'easy',
+          conceptTags:  ['switching-costs'],
+        },
+        {
+          id:           'tech-market-d12-q2',
+          prompt:       'A common rule of thumb for build vs buy is:',
+          options: [
+            'Build everything; vendor lock-in is unacceptable',
+            'Buy commodity, build differentiation',
+            'Buy everything; in-house engineering is too expensive',
+            'Build only when the vendor refuses to discount',
+          ],
+          correctIndex: 1,
+          explanation:  'Most well-run companies buy commodity capabilities (email, payroll, CRM scaffolding) and build the parts that are genuinely differentiating to their business.',
+          difficulty:   'medium',
+          conceptTags:  ['build-vs-buy'],
+        },
+        {
+          id:           'tech-market-d12-q3',
+          prompt:       'Why is lock-in best understood as switching costs accumulated over time?',
+          options: [
+            'Lock-in is a regulatory term',
+            'Once data, training, and integrations build up, the cost of moving to a competitor far exceeds the new licence price',
+            'Lock-in only applies to public-sector contracts',
+            'Lock-in is created by a clause every vendor inserts into the MSA',
+          ],
+          correctIndex: 1,
+          explanation:  'Lock-in is the cumulative result of switching costs growing year over year. The new licence is rarely the expensive part; migration and retraining are.',
+          difficulty:   'medium',
+          conceptTags:  ['lock-in', 'switching-costs'],
+        },
+        {
+          id:           'tech-market-d12-q4',
+          prompt:       'A buyer asks "couldn’t we just build this ourselves?" What is usually the strongest seller response?',
+          options: [
+            'Insist the customer cannot possibly build it',
+            'Concede the question honestly, then frame what the vendor brings — ongoing R&D, faster time to value, lower opportunity cost — versus what the customer would spend to build and maintain',
+            'Refuse to discuss the question',
+            'Promise the contract will include a build-it-yourself option',
+          ],
+          correctIndex: 1,
+          explanation:  'Engaging the question honestly is the move. Pretending the customer can’t build it tends to backfire; framing the trade-off in their own terms tends to win.',
+          difficulty:   'hard',
+          conceptTags:  ['build-vs-buy'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 13 ============================ */
+    {
+      id:               'tech-market-d13',
+      dayNumber:        13,
+      title:            'Where the value flows',
+      hook:             'Following a dollar of customer spend down the stack.',
+      estimatedMinutes: 3,
+      conceptTags:      ['value-flow', 'gross-margin', 'cost-of-revenue', 'budget-competition'],
+      body:
+`A useful exercise: trace where a single dollar of enterprise software spend actually flows. The view is simplified but the shape is right.
+
+Suppose a Fortune 500 spends $30 million a year on Salesforce — say 10,000 seats at $250 a month. Where does that money go?
+
+Salesforce keeps roughly 70-75% as gross margin. The rest is cost of revenue — the cloud and data-centre bills required to run the product, customer support, and a few smaller line items. Of what they keep, sizeable chunks go to sales and marketing (~40-45% of revenue, the cost of acquiring you), R&D (~15-18%, which is why next year's product will look different), and general and administrative costs (~10%). What's left is operating margin, around 20% in a steady year. Some flows to share buybacks and dividends; some is reinvested.
+
+Beneath Salesforce, the cloud portion flows to AWS (with whom they have a multi-year, multi-billion-dollar agreement). Beneath AWS, money flows to NVIDIA for GPUs, to Intel and AMD for CPUs, to property owners and power utilities for the data centres themselves.
+
+{{diagram:value-flow}}
+
+Why this matters for someone selling tech. Every layer of the stack captures a piece of the customer's spend, and budget battles often happen between layers, not within them. A buyer pushing back on the price of an AI feature isn't always being squeezed by your competitor; they may be looking nervously at the cloud bill those AI features are quietly running up underneath. Knowing how much your product keeps, how much your suppliers keep, and where the customer's overall budget actually flows tells you what your real competition is — and what arguments will land.`,
+      takeaway:         'Every dollar of customer spend flows through multiple layers. Knowing where it stops tells you what you are really competing with.',
+      diagrams: [
+        {
+          id:      'value-flow',
+          caption: 'A simplified path of $1 of enterprise SaaS spend, from buyer down through silicon and power.',
+          svg: `<svg viewBox="0 0 600 200" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" font-family="-apple-system,'SF Pro Display','Helvetica Neue',sans-serif">
+  <g stroke-width="1">
+    <rect x="20"  y="80" width="100" height="40" rx="6" />
+    <rect x="150" y="80" width="100" height="40" rx="6" />
+    <rect x="280" y="80" width="100" height="40" rx="6" />
+    <rect x="410" y="80" width="100" height="40" rx="6" />
+    <rect x="540" y="80" width="40"  height="40" rx="6" />
+  </g>
+  <g stroke-width="1" stroke-dasharray="3 3" opacity="0.7">
+    <line x1="120" y1="100" x2="150" y2="100" />
+    <polygon points="142,96 150,100 142,104" stroke="none" fill="currentColor" opacity="0.7" />
+    <line x1="250" y1="100" x2="280" y2="100" />
+    <polygon points="272,96 280,100 272,104" stroke="none" fill="currentColor" opacity="0.7" />
+    <line x1="380" y1="100" x2="410" y2="100" />
+    <polygon points="402,96 410,100 402,104" stroke="none" fill="currentColor" opacity="0.7" />
+    <line x1="510" y1="100" x2="540" y2="100" />
+    <polygon points="532,96 540,100 532,104" stroke="none" fill="currentColor" opacity="0.7" />
+  </g>
+  <g font-size="11" fill="currentColor" stroke="none" text-anchor="middle">
+    <text x="70"  y="98"  font-weight="500">Customer</text>
+    <text x="70"  y="114" opacity="0.7">$1 of spend</text>
+    <text x="200" y="98"  font-weight="500">App vendor</text>
+    <text x="200" y="114" opacity="0.7">~70-75% kept</text>
+    <text x="330" y="98"  font-weight="500">Cloud</text>
+    <text x="330" y="114" opacity="0.7">AWS / Azure / GCP</text>
+    <text x="460" y="98"  font-weight="500">Silicon</text>
+    <text x="460" y="114" opacity="0.7">NVIDIA · Intel · AMD</text>
+    <text x="560" y="98"  font-weight="500">Power</text>
+    <text x="560" y="114" opacity="0.7">grid</text>
+  </g>
+  <g font-size="10" fill="currentColor" stroke="none" opacity="0.6">
+    <text x="200" y="56" text-anchor="middle">cost of revenue ~25%, plus S&M, R&D, G&amp;A, margin</text>
+  </g>
+</svg>`,
+        },
+      ],
+      questions: [
+        {
+          id:           'tech-market-d13-q1',
+          prompt:       'For a typical SaaS company like Salesforce, gross margin is roughly:',
+          options: ['10-20%', '40-50%', '70-75%', '95-100%'],
+          correctIndex: 2,
+          explanation:  'Mature SaaS gross margins sit around 70-75% — the rest goes mostly to the cloud and support costs of running the service.',
+          difficulty:   'easy',
+          conceptTags:  ['gross-margin'],
+        },
+        {
+          id:           'tech-market-d13-q2',
+          prompt:       'When a Fortune 500 pays a SaaS vendor, the largest chunk of the vendor’s revenue is typically spent on which line?',
+          options: [
+            'Gifts to customers',
+            'Sales and marketing — the cost of acquiring and retaining customers',
+            'Office furniture',
+            'Marketing-only TV advertising',
+          ],
+          correctIndex: 1,
+          explanation:  'Sales and marketing routinely runs at 40-45% of SaaS revenue. It is the dominant cost line in most application-layer companies.',
+          difficulty:   'medium',
+          conceptTags:  ['cost-of-revenue'],
+        },
+        {
+          id:           'tech-market-d13-q3',
+          prompt:       'Beneath an application vendor like Salesforce, where does the cloud portion of customer spend flow?',
+          options: [
+            'Directly to the end user as cashback',
+            'To the hyperscaler (AWS / Azure / GCP), and beneath them to silicon and power',
+            'It evaporates',
+            'To the customer’s board members',
+          ],
+          correctIndex: 1,
+          explanation:  'Application vendors spend a large share of revenue on cloud infrastructure; the hyperscalers in turn spend on silicon and power.',
+          difficulty:   'medium',
+          conceptTags:  ['value-flow'],
+        },
+        {
+          id:           'tech-market-d13-q4',
+          prompt:       'Why does it pay a seller to know where the customer’s budget actually flows?',
+          options: [
+            'It changes the typeface on the contract',
+            'Budget battles often happen between layers, not within them — a customer pushing back on AI feature pricing may really be worried about the cloud bill underneath',
+            'It is required by GDPR',
+            'It is the only way to qualify for marketplace payouts',
+          ],
+          correctIndex: 1,
+          explanation:  'Real competition for a buyer’s budget is often a different layer of the stack, not your direct competitor. Knowing the value flow lets you have the right conversation.',
+          difficulty:   'hard',
+          conceptTags:  ['budget-competition', 'value-flow'],
+        },
+      ],
+    },
+
+    /* ============================ DAY 14 ============================ */
+    {
+      id:               'tech-market-d14',
+      dayNumber:        14,
+      title:            'The next decade',
+      hook:             'Agents, vertical AI, shifting boundaries — and the habits that travel.',
+      estimatedMinutes: 3,
+      conceptTags:      ['agents', 'vertical-ai', 'shifting-boundaries', 'durable-habits'],
+      body:
+`A short attempt at where this is heading, with high uncertainty. Three things to track.
+
+Agents. Most software today waits for a human to push a button. Agentic software acts on its own — drafting an email, scheduling a meeting, kicking off a refund, monitoring a dashboard and intervening when needed. Foundation models plus tooling make this newly tractable. The open question is whether agents become a new application category, with each agent a discrete product the customer buys, or a feature inside every existing application. The answer probably differs by domain. Either way, "are there parts of the buyer's job they would let a piece of software do without supervision?" becomes a useful sales question.
+
+Vertical AI. Horizontal foundation models are good at general tasks and merely competent at industry-specific ones — legal, medical, financial. Companies building AI products tuned to specific industries can charge premium prices because their models know the domain. Watch the vertical-AI startups that win procurement deals against horizontal generalists in regulated industries; their playbook is the early signal of where AI moves next.
+
+Shifting boundaries. The lines between layers get redrawn often. AWS started as infrastructure and now sells applications (Connect, QuickSight). OpenAI started as a model lab and now sells applications (ChatGPT). Salesforce started as application and now sells platform pieces (Heroku, Mulesoft, Slack). Boundaries blur because each layer's incumbent has structural advantages in adjacent layers, and each platform shift redistributes who is adjacent to whom. Plan for the boundaries to keep moving.
+
+For someone new to selling, three habits compound regardless of which way the market turns. Place every product on the stack and the buyer map without thinking. Ask "which layer is this and where does the value flow?" before discussing features. Assume the rules will change again in three years and keep your model of the market loose. The market shape today won't be the shape when you're senior — but the habits of the analysis will travel.`,
+      takeaway:         "The market shape today won't be the shape when you're senior. The habits of the analysis will travel.",
+      questions: [
+        {
+          id:           'tech-market-d14-q1',
+          prompt:       'Agentic software is best described as software that:',
+          options: [
+            'Waits for a human to push a button on every action',
+            'Acts on its own — completing tasks like drafting emails, scheduling meetings, or processing refunds without per-step human prompts',
+            'Runs only on consumer mobile phones',
+            'Replaces foundation models',
+          ],
+          correctIndex: 1,
+          explanation:  'Agents take initiative within bounded tasks, rather than waiting for click-by-click human input. That shift is what foundation models plus tooling have unlocked.',
+          difficulty:   'easy',
+          conceptTags:  ['agents'],
+        },
+        {
+          id:           'tech-market-d14-q2',
+          prompt:       'Why might a vertical-AI startup beat a horizontal foundation-model lab in legal or medical software procurement?',
+          options: [
+            'Vertical-AI products are cheaper to build',
+            'A model tuned to the industry’s terminology, regulation, and edge cases can charge premium prices because it gets domain-specific tasks measurably right where horizontal models are merely competent',
+            'Regulators ban horizontal models in regulated industries',
+            'Horizontal labs do not sell to enterprises',
+          ],
+          correctIndex: 1,
+          explanation:  'Domain depth — the same moat as vertical software — is the structural advantage. Premium pricing follows when the customer can verify the model knows their specifics.',
+          difficulty:   'medium',
+          conceptTags:  ['vertical-ai'],
+        },
+        {
+          id:           'tech-market-d14-q3',
+          prompt:       'Why are layer boundaries in the tech stack expected to keep shifting?',
+          options: [
+            'Regulators force them to shift on a 5-year cadence',
+            'Each layer’s incumbent has structural advantages in adjacent layers, and each platform shift redistributes who is adjacent to whom',
+            'Customers vote on the layer structure annually',
+            'The boundaries are stable; only the names change',
+          ],
+          correctIndex: 1,
+          explanation:  'Adjacent expansion is the dominant pattern: AWS into apps, Salesforce into platform pieces, OpenAI into apps. Each platform shift opens new adjacencies.',
+          difficulty:   'medium',
+          conceptTags:  ['shifting-boundaries'],
+        },
+        {
+          id:           'tech-market-d14-q4',
+          prompt:       'Which habit is most likely to keep paying off across multiple platform shifts?',
+          options: [
+            'Memorising every current product name in the market',
+            'Placing each new product on the stack and the buyer map, asking which layer it sits in and where the value flows, before talking about features',
+            'Refusing to learn about new vendors',
+            'Treating today’s rules as permanent',
+          ],
+          correctIndex: 1,
+          explanation:  'The specifics of the market will keep changing. The analytic habit — layer, buyer, value flow — keeps working regardless of which platform shift is current.',
+          difficulty:   'hard',
+          conceptTags:  ['durable-habits'],
         },
       ],
     },
