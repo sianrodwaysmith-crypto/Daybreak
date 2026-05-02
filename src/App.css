@@ -3107,6 +3107,70 @@ a.pulse-card-link:active { transform: scale(0.995); }
   color: var(--ink-2);
 }
 
+/* ---------- Outfits home tile (long horizontal strip above Moments) ---------- */
+.outfits-tile {
+  margin: 4px 0 14px;
+}
+.outfits-tile-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.outfits-tile-eyebrow {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.outfits-tile-count {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: var(--muted);
+}
+.outfits-tile-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  padding-bottom: 4px;
+  /* Hide the scrollbar; the strip reads as a bar, not a panel. */
+  scrollbar-width: none;
+}
+.outfits-tile-strip::-webkit-scrollbar { display: none; }
+.outfits-tile-add,
+.outfits-tile-thumb {
+  flex: 0 0 auto;
+  width: 80px;
+  height: 100px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--card);
+  padding: 0;
+  cursor: pointer;
+  scroll-snap-align: start;
+}
+.outfits-tile-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Serif Display', serif;
+  font-size: 28px;
+  color: var(--muted);
+  border-style: dashed;
+}
+.outfits-tile-add:disabled { opacity: 0.6; cursor: default; }
+.outfits-tile-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* ---------- Outfits drawer ---------- */
 .outfits-error {
   font-family: 'DM Serif Display', serif;

@@ -6,6 +6,7 @@ import Tile from './components/Tile'
 import Modal from './components/Modal'
 import ChatWidget from './components/ChatWidget'
 import MovementTile from './components/MovementTile'
+import OutfitsTile from './components/OutfitsTile'
 import { MomentsTile } from './moments'
 import { LessonsFlow, LessonsLibrary, useLessons } from './lessons'
 import {
@@ -280,6 +281,8 @@ function HomeView() {
           strain={whoop.strain}
           activeCalories={whoop.activeCalories}
         />
+
+        <OutfitsTile />
 
         <MomentsTile onConnect={() => setSettings(true)} />
 
