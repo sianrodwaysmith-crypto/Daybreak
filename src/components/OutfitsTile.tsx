@@ -1,39 +1,15 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Modal from './Modal'
-import { getStorage } from '../library/drawers/outfits/storage'
 import { OutfitsDrawer } from '../library/drawers/outfits/components/OutfitsDrawer'
-
-const USER_ID = 'sian'
+import { OutfitsIcon } from '../library/drawers/icons'
 
 /* ====================================================================
-   OutfitsTile — full-width "bar" that sits on the home screen above
-   the Moments tile. Deliberately doesn't render any photos on the
-   home surface — the user wanted a tap-into entry point, not a public
-   feed. Opens the full Outfits drawer in a modal on tap; refreshes
-   the count when the modal closes.
+   OutfitsTile — quiet full-width bar above the Moments tile. Just an
+   icon + label + chevron; no count, no photos, nothing on the home
+   surface. Tap opens the existing OutfitsDrawer inside a modal.
 ==================================================================== */
 export default function OutfitsTile() {
-  const [count, setCount] = useState<number | null>(null)
-  const [open,  setOpen]  = useState(false)
-
-  async function refresh() {
-    try {
-      const list = await getStorage().list(USER_ID)
-      setCount(list.length)
-    } catch { setCount(null) }
-  }
-
-  // Refresh whenever the modal closes (added or deleted something) and
-  // once on mount so the bar shows a count without waiting for a tap.
-  useEffect(() => {
-    if (!open) void refresh()
-  }, [open])
-
-  const meta =
-    count == null ? 'Tap to open' :
-    count === 0   ? 'Tap to add your first' :
-    count === 1   ? '1 outfit logged' :
-                    `${count} outfits logged`
+  const [open, setOpen] = useState(false)
 
   return (
     <>
@@ -43,8 +19,8 @@ export default function OutfitsTile() {
         onClick={() => setOpen(true)}
         aria-label="Open outfits"
       >
+        <span className="outfits-tile-icon" aria-hidden><OutfitsIcon size={22} /></span>
         <span className="outfits-tile-eyebrow">outfits</span>
-        <span className="outfits-tile-meta">{meta}</span>
         <span className="outfits-tile-chev" aria-hidden>→</span>
       </button>
 
