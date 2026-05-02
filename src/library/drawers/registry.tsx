@@ -2,40 +2,31 @@
  * Add a new drawer here. Each drawer must declare its id, name, icon,
  * metaLine function, component, and status. Drawers with status:
  * 'placeholder' render the shared coming-soon surface; live drawers
- * render their own component. Adding a seventh drawer should be a
- * single entry in this list — no scaffolding changes needed elsewhere.
+ * render their own component. Adding another drawer should be a single
+ * entry in this list — no scaffolding changes needed elsewhere.
  */
 
 import type { DrawerManifest } from '../types'
 import {
   HolidaysIcon, OutfitsIcon, RecipesIcon, RestaurantsIcon, GiftsIcon, ReadingIcon, HouseIcon,
-  TechMarketIcon,
 } from './icons'
 import { PlaceholderDrawer } from '../components/PlaceholderDrawer'
 import { HolidaysDrawer }         from './holidays/components/HolidaysDrawer'
 import { useHolidaysMetaLine }    from './holidays/meta'
 import { HouseDrawer }            from './house/components/HouseDrawer'
 import { useHouseMetaLine }       from './house/meta'
-import { TechMarketDrawer }       from './tech-market/components/TechMarketDrawer'
-import { useTechMarketMetaLine }  from './tech-market/meta'
 
 const useNullMetaLine = () => null
 
 /**
- * The Library home renders its grid in this order. Use a function
- * factory pattern for component rendering so each entry can pass the
- * onBack callback uniformly without the registry knowing about it.
+ * The Library home renders its grid in this order. Outfits sits at the
+ * top — it's the next live drawer (photo-a-day style, Drive-backed) and
+ * giving it the first slot makes it easy to reach. Tech-market used to
+ * live here as a static drawer; it became a Lessons course (April 2026)
+ * and the drawer was removed to avoid duplication.
  */
 export function buildRegistry(onBack: () => void): DrawerManifest[] {
   return [
-    {
-      id:           'holidays',
-      name:         'Holidays',
-      icon:         () => <HolidaysIcon />,
-      useMetaLine:  useHolidaysMetaLine,
-      component:    () => <HolidaysDrawer    onBack={onBack} />,
-      status:       'live',
-    },
     {
       id:           'outfits',
       name:         'Outfits',
@@ -43,6 +34,14 @@ export function buildRegistry(onBack: () => void): DrawerManifest[] {
       useMetaLine:  useNullMetaLine,
       component:    () => <PlaceholderDrawer name="Outfits" onBack={onBack} />,
       status:       'placeholder',
+    },
+    {
+      id:           'holidays',
+      name:         'Holidays',
+      icon:         () => <HolidaysIcon />,
+      useMetaLine:  useHolidaysMetaLine,
+      component:    () => <HolidaysDrawer    onBack={onBack} />,
+      status:       'live',
     },
     {
       id:           'recipes',
@@ -82,14 +81,6 @@ export function buildRegistry(onBack: () => void): DrawerManifest[] {
       icon:         () => <HouseIcon />,
       useMetaLine:  useHouseMetaLine,
       component:    () => <HouseDrawer onBack={onBack} />,
-      status:       'live',
-    },
-    {
-      id:           'tech-market',
-      name:         'Tech market',
-      icon:         () => <TechMarketIcon />,
-      useMetaLine:  useTechMarketMetaLine,
-      component:    () => <TechMarketDrawer onBack={onBack} />,
       status:       'live',
     },
   ]
