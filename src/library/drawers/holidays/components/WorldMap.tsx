@@ -5,23 +5,23 @@ const VB_W = 800
 const VB_H = 400
 
 interface Props {
-  visited:  Trip[]
-  planned:  Trip[]
+  visited:   Trip[]
+  wishlist:  Trip[]
 }
 
 /**
  * Hairline-style world map. Continent gestures only — not geographic
  * precision. Filled discs mark visited countries; dashed circles mark
- * planned trips. Wishlist trips don't appear on the map by design.
+ * wishlist countries.
  *
  * The continent paths are simplified rounded blobs roughly sited where
  * the continents are in equirectangular projection. The point is
  * recognition, not cartography.
  */
-export function WorldMap({ visited, planned }: Props) {
+export function WorldMap({ visited, wishlist }: Props) {
   // Dedupe by countryCode so two visits to one country = one dot.
-  const visitedDots = uniqueCentroidPositions(visited)
-  const plannedDots = uniqueCentroidPositions(planned)
+  const visitedDots  = uniqueCentroidPositions(visited)
+  const wishlistDots = uniqueCentroidPositions(wishlist)
 
   return (
     <svg
@@ -57,10 +57,10 @@ export function WorldMap({ visited, planned }: Props) {
         ))}
       </g>
 
-      {/* Planned: dashed-outline circles */}
+      {/* Wishlist: dashed-outline circles */}
       <g fill="none" stroke="currentColor" strokeWidth={1} strokeDasharray="2 2">
-        {plannedDots.map((p, i) => (
-          <circle key={`p-${i}`} cx={p.x} cy={p.y} r={4} />
+        {wishlistDots.map((p, i) => (
+          <circle key={`w-${i}`} cx={p.x} cy={p.y} r={4} />
         ))}
       </g>
     </svg>

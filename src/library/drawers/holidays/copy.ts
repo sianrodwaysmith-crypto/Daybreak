@@ -5,40 +5,31 @@
 
 export const copy = {
   back:    '← library',
-  add:     '+ add',
   title:   'Holidays',
-  tagline: "Where you've been. Where you're going.",
+  tagline: "Tap a country to mark visited or wishlist.",
 
   stats: {
-    visited:  'visited',
-    visitedSuffix: (n: number) => n === 1 ? 'country' : 'countries',
-    planned:  'planned',
-    wishlist: 'on the wishlist',
+    visited:  (n: number) => `${n} visited`,
+    wishlist: (n: number) => `${n} wishlist`,
   },
 
-  nextTripLabel:    'next trip',
-  visitedLabel:     "where you've been",
-  wishlistLabel:    'on the wishlist',
+  search: {
+    placeholder: 'Search countries…',
+  },
 
-  inDays:  (n: number) => n === 0 ? 'today' : n === 1 ? 'in 1 day' : `in ${n} days`,
-  moreLink: (n: number) => n === 1 ? '1 more →' : `${n} more →`,
+  filters: {
+    all:       'all',
+    visited:   'visited',
+    wishlist:  'wishlist',
+    untagged:  'untagged',
+  },
 
   empty: {
-    visited:  'No countries visited yet.',
-    planned:  null,                    // section is omitted when empty
-    wishlist: 'Nothing on the wishlist yet.',
+    none: 'No countries match.',
   },
 
-  meta: {
-    placesNoted:  (n: number) => n === 1 ? '1 place noted' : `${n} places noted`,
-    flightBooked: 'flight booked',
+  toggles: {
+    visitedAria:  (name: string) => `Mark ${name} as visited`,
+    wishlistAria: (name: string) => `Add ${name} to wishlist`,
   },
-
-  add_soon: {
-    primary:   'Adding trips is coming next.',
-    secondary: 'For now, this is a quiet record.',
-    close:     'close',
-  },
-
-  countryDetailSoon: 'Country detail — coming soon',
 }
